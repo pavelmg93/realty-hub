@@ -63,3 +63,30 @@ uvicorn src.api.main:app --reload
 - Never commit `.env` files or API keys. Use `.env.example` for templates.
 - Zalo API credentials and LLM API keys are sensitive — always load from environment variables.
 - Database migrations should be reviewed before applying to production.
+
+## File Standards
+- Always use UTF-8 encoding for all text files
+- Use LF line endings (Unix-style), not CRLF
+
+## Documentation Style - ASCII Diagrams
+- Use pure ASCII only: `+`, `-`, `|`, `>`, `<`, `v`, `^`
+- No Unicode box-drawing or arrow characters
+- Calculate box width: longest text line + 4 chars padding (2 each side)
+- Minimum inner width: 20 characters
+- Example:
+```
++------------------------+     +------------------------+
+|       Ingestion        |---->|        Parsing         |
+|                        |     |                        |
+|  Zalo groups           |     |  Vietnamese NLP        |
+|  monitoring            |     |  extraction            |
++------------------------+     +------------------------+
+          |                              |
+          v                              v
++------------------------+     +------------------------+
+|       Database         |     |       Matching         |
+|                        |     |                        |
+|  PostgreSQL            |     |  Score & rank          |
+|  + pgvector            |     |  against buyers        |
++------------------------+     +------------------------+
+```
