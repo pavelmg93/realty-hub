@@ -37,23 +37,23 @@ RE Nha Trang automates this workflow:
 
 ```
 re-nhatrang/
-├── README.md
-├── CLAUDE.md              # Claude Code instructions
-├── CHANGELOG.md           # Change log
-├── docs/
-│   └── ARCHITECTURE.md    # System design
-├── src/
-│   ├── ingestion/         # Zalo group monitoring & message extraction
-│   ├── parsing/           # Vietnamese NLP & listing normalization
-│   ├── matching/          # Matching engine & scoring
-│   ├── notifications/     # Alert delivery (Zalo, email, webhook)
-│   ├── api/               # FastAPI endpoints
-│   ├── models/            # Database models
-│   └── config/            # Configuration & settings
-├── tests/
-├── docker-compose.yml
-├── pyproject.toml
-└── .env.example
+|-- README.md
+|-- CLAUDE.md              # Claude Code instructions
+|-- CHANGELOG.md           # Change log
+|-- docs/
+|   +-- ARCHITECTURE.md    # System design
+|-- src/
+|   |-- ingestion/         # Zalo group monitoring & message extraction
+|   |-- parsing/           # Vietnamese NLP & listing normalization
+|   |-- matching/          # Matching engine & scoring
+|   |-- notifications/     # Alert delivery (Zalo, email, webhook)
+|   |-- api/               # FastAPI endpoints
+|   |-- models/            # Database models
+|   +-- config/            # Configuration & settings
+|-- tests/
+|-- docker-compose.yml
+|-- pyproject.toml
++-- .env.example
 ```
 
 ## Getting Started

@@ -5,22 +5,30 @@
 RE Nha Trang is a pipeline-based system with four stages: **Ingestion**, **Parsing**, **Matching**, and **Notification**. Each stage is decoupled via a task queue, allowing independent scaling and fault isolation.
 
 ```
-┌─────────────┐    ┌─────────────┐    ┌─────────────┐    ┌──────────────┐
-│  Ingestion   │───▶│   Parsing    │───▶│  Matching    │───▶│ Notification │
-│              │    │              │    │              │    │              │
-│ Zalo groups  │    │ Vietnamese   │    │ Score &      │    │ Zalo, email, │
-│ monitoring   │    │ NLP extract  │    │ rank matches │    │ webhook      │
-└─────────────┘    └─────────────┘    └─────────────┘    └──────────────┘
-       │                  │                  │                    │
-       └──────────────────┴──────────────────┴────────────────────┘
-                              │
-                    ┌─────────┴─────────┐
-                    │    PostgreSQL      │
-                    │   + pgvector       │
-                    │                    │
-                    │  Redis (queue +    │
-                    │   cache)           │
-                    └───────────────────┘
++---------------------------+     +---------------------------+
+|         Ingestion         |---->|          Parsing          |
+|                           |     |                           |
+|   Zalo groups             |     |   Vietnamese NLP          |
+|   monitoring              |     |   extraction              |
++---------------------------+     +---------------------------+
+              |                                |
+              v                                v
++---------------------------+     +---------------------------+
+|         Matching          |---->|       Notification        |
+|                           |     |                           |
+|   Score & rank            |     |   Zalo, email,            |
+|   against buyers          |     |   webhook                 |
++---------------------------+     +---------------------------+
+              |                                |
+              +----------------+----------------+
+                               |
+                               v
+                 +---------------------------+
+                 |        Data Store         |
+                 |                           |
+                 |   PostgreSQL + pgvector   |
+                 |   Redis (queue + cache)   |
+                 +---------------------------+
 ```
 
 ## Components
@@ -125,59 +133,59 @@ RE Nha Trang is a pipeline-based system with four stages: **Ingestion**, **Parsi
 
 ```
 RawListing
-├── id (UUID)
-├── source_group (string)       # Zalo group name/ID
-├── raw_text (text)             # Original Vietnamese message
-├── media_urls (jsonb)          # Attached images/files
-├── captured_at (timestamp)
-└── processed (boolean)
+|-- id (UUID)
+|-- source_group (string)       # Zalo group name/ID
+|-- raw_text (text)             # Original Vietnamese message
+|-- media_urls (jsonb)          # Attached images/files
+|-- captured_at (timestamp)
++-- processed (boolean)
 
 ParsedListing
-├── id (UUID)
-├── raw_listing_id (FK)
-├── property_type (enum)
-├── price_vnd (bigint)
-├── area_sqm (decimal)
-├── location_ward (string)
-├── location_street (string)
-├── bedrooms (int)
-├── bathrooms (int)
-├── floors (int)
-├── description (text)
-├── contact_phone (string)
-├── confidence_score (float)    # Parsing confidence
-├── embedding (vector)          # pgvector for semantic search
-└── parsed_at (timestamp)
+|-- id (UUID)
+|-- raw_listing_id (FK)
+|-- property_type (enum)
+|-- price_vnd (bigint)
+|-- area_sqm (decimal)
+|-- location_ward (string)
+|-- location_street (string)
+|-- bedrooms (int)
+|-- bathrooms (int)
+|-- floors (int)
+|-- description (text)
+|-- contact_phone (string)
+|-- confidence_score (float)    # Parsing confidence
+|-- embedding (vector)          # pgvector for semantic search
++-- parsed_at (timestamp)
 
 BuyerRequirement
-├── id (UUID)
-├── agent_id (FK)
-├── property_types (enum[])
-├── price_min_vnd (bigint)
-├── price_max_vnd (bigint)
-├── area_min_sqm (decimal)
-├── locations (string[])        # Target wards/streets
-├── min_bedrooms (int)
-├── notes (text)                # Free-text preferences
-├── active (boolean)
-└── created_at (timestamp)
+|-- id (UUID)
+|-- agent_id (FK)
+|-- property_types (enum[])
+|-- price_min_vnd (bigint)
+|-- price_max_vnd (bigint)
+|-- area_min_sqm (decimal)
+|-- locations (string[])        # Target wards/streets
+|-- min_bedrooms (int)
+|-- notes (text)                # Free-text preferences
+|-- active (boolean)
++-- created_at (timestamp)
 
 Match
-├── id (UUID)
-├── listing_id (FK)
-├── requirement_id (FK)
-├── score (float)               # 0-100 match score
-├── notified (boolean)
-├── notified_at (timestamp)
-└── matched_at (timestamp)
+|-- id (UUID)
+|-- listing_id (FK)
+|-- requirement_id (FK)
+|-- score (float)               # 0-100 match score
+|-- notified (boolean)
+|-- notified_at (timestamp)
++-- matched_at (timestamp)
 
 Agent
-├── id (UUID)
-├── name (string)
-├── phone (string)
-├── zalo_id (string)
-├── email (string)
-└── role (enum)                 # buyer_agent, seller_agent, both
+|-- id (UUID)
+|-- name (string)
+|-- phone (string)
+|-- zalo_id (string)
+|-- email (string)
++-- role (enum)                 # buyer_agent, seller_agent, both
 ```
 
 ## Infrastructure

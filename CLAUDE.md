@@ -71,22 +71,17 @@ uvicorn src.api.main:app --reload
 ## Documentation Style - ASCII Diagrams
 - Use pure ASCII only: `+`, `-`, `|`, `>`, `<`, `v`, `^`
 - No Unicode box-drawing or arrow characters
-- Calculate box width: longest text line + 4 chars padding (2 each side)
-- Minimum inner width: 20 characters
+- Box width calculation:
+  1. Find longest text line in the box
+  2. Inner width = max(longest_line + 6, 20)
+  3. This ensures minimum 3 chars padding each side
+- All boxes in same diagram should use same width for alignment
 - Example:
 ```
-+------------------------+     +------------------------+
-|       Ingestion        |---->|        Parsing         |
-|                        |     |                        |
-|  Zalo groups           |     |  Vietnamese NLP        |
-|  monitoring            |     |  extraction            |
-+------------------------+     +------------------------+
-          |                              |
-          v                              v
-+------------------------+     +------------------------+
-|       Database         |     |       Matching         |
-|                        |     |                        |
-|  PostgreSQL            |     |  Score & rank          |
-|  + pgvector            |     |  against buyers        |
-+------------------------+     +------------------------+
++----------------------------+     +----------------------------+
+|         Ingestion          |---->|          Parsing           |
+|                            |     |                            |
+|   Zalo groups              |     |   Vietnamese NLP           |
+|   monitoring               |     |   extraction               |
++----------------------------+     +----------------------------+
 ```
