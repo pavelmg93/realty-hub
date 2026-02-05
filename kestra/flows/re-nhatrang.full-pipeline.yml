@@ -1,0 +1,28 @@
+id: full-pipeline
+namespace: re-nhatrang
+
+description: |
+  Full ETL pipeline: ingest CSV file and parse all new listings.
+  Combines the ingest-csv and parse-listings flows into a single execution.
+
+inputs:
+  - id: csv_file
+    type: FILE
+    description: CSV file with listing data to ingest
+
+tasks:
+  - id: ingest
+    type: io.kestra.plugin.core.flow.Subflow
+    flowId: ingest-csv
+    namespace: re-nhatrang
+    inputs:
+      csv_file: "{{ inputs.csv_file }}"
+    wait: true
+
+  - id: parse
+    type: io.kestra.plugin.core.flow.Subflow
+    flowId: parse-listings
+    namespace: re-nhatrang
+    inputs:
+      batch_id: "{{ outputs.ingest.executionId }}"
+    wait: true

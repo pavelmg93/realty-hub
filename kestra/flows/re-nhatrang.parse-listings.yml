@@ -1,0 +1,293 @@
+id: parse-listings
+namespace: re-nhatrang
+
+description: |
+  Parse pending raw listings into structured data.
+  Reads raw_listings with status='pending', extracts fields using Vietnamese
+  regex parser, and stores results in parsed_listings.
+  Optionally filter by batch_id.
+
+inputs:
+  - id: batch_id
+    type: STRING
+    required: false
+    description: Optional batch_id to filter which listings to parse. Leave empty to parse all pending.
+
+tasks:
+  - id: parse_raw_listings
+    type: io.kestra.plugin.scripts.python.Script
+    warningOnStdErr: false
+    beforeCommands:
+      - pip install psycopg2-binary sqlalchemy
+    script: |
+      import os
+      import re
+      import sys
+      from dataclasses import dataclass, field
+
+      from sqlalchemy import create_engine, text
+
+      # Database connection
+      db_host = "app-postgres"
+      db_port = "5432"
+      db_name = os.environ.get("APP_DB_NAME", "re_nhatrang")
+      db_user = os.environ.get("APP_DB_USER", "re_nhatrang")
+      db_password = os.environ.get("APP_DB_PASSWORD", "change_me_in_production")
+      db_url = f"postgresql://{db_user}:{db_password}@{db_host}:{db_port}/{db_name}"
+
+      batch_id = "{{ inputs.batch_id }}" or None
+      if batch_id == "":
+          batch_id = None
+
+      # --- Vietnamese parser (inline for Kestra script task) ---
+
+      PROPERTY_TYPES = {
+          "nha": ["nhà mặt tiền", "nhà phố", "nhà cấp 4", "nhà", "nha"],
+          "dat": ["đất nền", "lô đất", "đất", "dat", "lo dat"],
+          "can_ho": ["căn hộ", "chung cư", "can ho", "chung cu"],
+          "phong_tro": ["phòng trọ", "nhà trọ", "phong tro", "nha tro"],
+          "biet_thu": ["biệt thự", "biet thu"],
+          "khach_san": ["khách sạn", "khach san"],
+          "mat_bang": ["mặt bằng", "mat bang"],
+      }
+
+      _PROPERTY_KEYWORD_MAP = {}
+      for ptype, keywords in PROPERTY_TYPES.items():
+          for kw in sorted(keywords, key=len, reverse=True):
+              _PROPERTY_KEYWORD_MAP[kw] = ptype
+
+      SELL_KEYWORDS = ["bán", "ban", "cần bán", "can ban", "bán gấp", "ban gap", "bán nhanh", "sang nhượng", "sang nhuong"]
+      RENT_KEYWORDS = ["cho thuê", "cho thue", "cần thuê", "can thue", "thuê", "thue"]
+
+      PRICE_PATTERN = re.compile(r"(\d+[.,]?\d*)\s*(tỷ|ty|tỉ|ti|triệu|trieu|tr|t)\b", re.IGNORECASE)
+      AREA_DIRECT = re.compile(r"(\d+[.,]?\d*)\s*m[2²]", re.IGNORECASE)
+      AREA_DIM = re.compile(r"(\d+[.,]?\d*)\s*[xX×]\s*(\d+[.,]?\d*)")
+      WARD_PAT = re.compile(r"(?:phường|phuong|p\.)\s*([\w\s]+?)(?:,|\.|$|\s*[-;])", re.IGNORECASE)
+      STREET_PAT = re.compile(r"(?:đường|duong|đ\.)\s*([\w\s]+?)(?:,|\.|$|\s*[-;])", re.IGNORECASE)
+      DISTRICT_PAT = re.compile(r"(?:quận|quan|q\.)\s*([\w\s]+?)(?:,|\.|$|\s*[-;])", re.IGNORECASE)
+      BEDROOM_PAT = re.compile(r"(\d+)\s*(?:phòng ngủ|phong ngu|pn)\b", re.IGNORECASE)
+      FLOOR_PAT = re.compile(r"(\d+)\s*(?:tầng|tang|lầu|lau)\b", re.IGNORECASE)
+      FRONTAGE_PAT = re.compile(r"(?:(?:mặt tiền|mat tien|mt|ngang)\s*(\d+[.,]?\d*)\s*m|(\d+[.,]?\d*)\s*m\s*(?:mặt tiền|mat tien|mt|ngang))\b", re.IGNORECASE)
+
+      NHA_TRANG_WARDS = [
+          "Vĩnh Hòa", "Vĩnh Hải", "Vĩnh Phước", "Vĩnh Thọ",
+          "Xương Huân", "Vạn Thắng", "Vạn Thạnh", "Phương Sài",
+          "Phương Sơn", "Ngọc Hiệp", "Phước Hòa", "Phước Tân",
+          "Phước Tiến", "Phước Hải", "Phước Long", "Lộc Thọ",
+          "Tân Lập", "Vĩnh Nguyên", "Vĩnh Trường",
+      ]
+
+      def norm_num(s):
+          return float(s.replace(",", "."))
+
+      def parse_listing(text):
+          errors = []
+          result = {}
+
+          # Property type
+          text_lower = text.lower()
+          result["property_type"] = None
+          for kw, pt in _PROPERTY_KEYWORD_MAP.items():
+              if kw in text_lower:
+                  result["property_type"] = pt
+                  break
+
+          # Transaction type
+          result["transaction_type"] = None
+          for kw in SELL_KEYWORDS:
+              if kw in text_lower:
+                  result["transaction_type"] = "ban"
+                  break
+          if not result["transaction_type"]:
+              for kw in RENT_KEYWORDS:
+                  if kw in text_lower:
+                      result["transaction_type"] = "cho_thue"
+                      break
+
+          # Price
+          m = PRICE_PATTERN.search(text)
+          if m:
+              result["price_raw"] = m.group(0)
+              num = norm_num(m.group(1))
+              unit = m.group(2).lower()
+              if unit in ("tỷ", "ty", "tỉ", "ti", "t"):
+                  result["price_vnd"] = int(num * 1_000_000_000)
+              elif unit in ("triệu", "trieu", "tr"):
+                  result["price_vnd"] = int(num * 1_000_000)
+              else:
+                  result["price_vnd"] = int(num)
+          else:
+              result["price_raw"] = None
+              result["price_vnd"] = None
+
+          # Area
+          m = AREA_DIRECT.search(text)
+          if m:
+              result["area_m2"] = norm_num(m.group(1))
+          else:
+              m = AREA_DIM.search(text)
+              if m:
+                  result["area_m2"] = round(norm_num(m.group(1)) * norm_num(m.group(2)), 2)
+              else:
+                  result["area_m2"] = None
+
+          # Location
+          result["ward"] = None
+          result["street"] = None
+          result["district"] = None
+
+          m = WARD_PAT.search(text)
+          if m:
+              result["ward"] = m.group(1).strip()
+          m = STREET_PAT.search(text)
+          if m:
+              result["street"] = m.group(1).strip()
+          m = DISTRICT_PAT.search(text)
+          if m:
+              result["district"] = m.group(1).strip()
+
+          if not result["ward"]:
+              for w in NHA_TRANG_WARDS:
+                  if w.lower() in text_lower:
+                      result["ward"] = w
+                      break
+
+          parts = [v for v in [result["street"], result["ward"], result["district"]] if v]
+          result["address_raw"] = ", ".join(parts) if parts else None
+
+          # Bedrooms
+          m = BEDROOM_PAT.search(text)
+          result["num_bedrooms"] = int(m.group(1)) if m else None
+
+          # Floors
+          m = FLOOR_PAT.search(text)
+          result["num_floors"] = int(m.group(1)) if m else None
+
+          # Frontage
+          m = FRONTAGE_PAT.search(text)
+          if m:
+              val = m.group(1) or m.group(2)
+              result["frontage_m"] = norm_num(val) if val else None
+          else:
+              result["frontage_m"] = None
+
+          result["description"] = text.strip()
+
+          # Confidence
+          checks = [result["property_type"], result["transaction_type"], result["price_vnd"], result["area_m2"], result["ward"] or result["street"]]
+          result["confidence"] = round(sum(1 for c in checks if c is not None) / len(checks), 2)
+
+          if not result["property_type"]:
+              errors.append("Could not determine property type")
+          if not result["transaction_type"]:
+              errors.append("Could not determine transaction type")
+          if not result["price_vnd"]:
+              errors.append("Could not extract price")
+
+          result["parse_errors"] = "; ".join(errors) if errors else None
+          return result
+
+      # --- Main execution ---
+
+      engine = create_engine(db_url)
+      counts = {"parsed": 0, "failed": 0, "total": 0}
+
+      with engine.connect() as conn:
+          query = "SELECT id, message_text FROM raw_listings WHERE status = 'pending'"
+          params = {}
+          if batch_id:
+              query += " AND batch_id = :batch_id"
+              params["batch_id"] = batch_id
+
+          rows = conn.execute(text(query), params).fetchall()
+          counts["total"] = len(rows)
+
+          for row in rows:
+              raw_id, message_text = row[0], row[1]
+              try:
+                  parsed = parse_listing(message_text)
+
+                  conn.execute(
+                      text(
+                          "INSERT INTO parsed_listings "
+                          "(raw_listing_id, property_type, transaction_type, "
+                          "price_raw, price_vnd, area_m2, address_raw, ward, street, "
+                          "district, num_bedrooms, num_floors, frontage_m, "
+                          "description, confidence, parse_errors) "
+                          "VALUES (:raw_listing_id, :property_type, :transaction_type, "
+                          ":price_raw, :price_vnd, :area_m2, :address_raw, :ward, :street, "
+                          ":district, :num_bedrooms, :num_floors, :frontage_m, "
+                          ":description, :confidence, :parse_errors)"
+                      ),
+                      {"raw_listing_id": raw_id, **parsed},
+                  )
+
+                  new_status = "parsed" if parsed["confidence"] > 0 else "failed"
+                  conn.execute(
+                      text("UPDATE raw_listings SET status = :status WHERE id = :id"),
+                      {"status": new_status, "id": raw_id},
+                  )
+                  if new_status == "parsed":
+                      counts["parsed"] += 1
+                  else:
+                      counts["failed"] += 1
+
+              except Exception as e:
+                  conn.execute(
+                      text("UPDATE raw_listings SET status = 'failed' WHERE id = :id"),
+                      {"id": raw_id},
+                  )
+                  counts["failed"] += 1
+                  print(f"Error parsing listing {raw_id}: {e}", file=sys.stderr)
+
+          conn.commit()
+
+      print(f"Parse complete: {counts['parsed']} parsed, {counts['failed']} failed, {counts['total']} total")
+
+      # Collect sample failures for the log
+      sample_failures = []
+      with engine.connect() as conn2:
+          fail_rows = conn2.execute(
+              text(
+                  "SELECT rl.id, LEFT(rl.message_text, 120), pl.parse_errors, pl.confidence "
+                  "FROM parsed_listings pl "
+                  "JOIN raw_listings rl ON rl.id = pl.raw_listing_id "
+                  "WHERE pl.confidence < 0.4 "
+                  "ORDER BY pl.parsed_at DESC LIMIT 5"
+              )
+          ).fetchall()
+          for fr in fail_rows:
+              sample_failures.append({
+                  "raw_id": fr[0],
+                  "text_preview": fr[1],
+                  "errors": fr[2],
+                  "confidence": fr[3],
+              })
+
+      # Write execution log
+      import json
+      from datetime import datetime
+
+      log_dir = "/app/logs/kestra"
+      os.makedirs(log_dir, exist_ok=True)
+      exec_id = "{{ execution.id }}"
+      log_entry = {
+          "flow": "parse-listings",
+          "execution_id": exec_id,
+          "timestamp": datetime.utcnow().isoformat() + "Z",
+          "status": "success",
+          "batch_id": batch_id,
+          "total": counts["total"],
+          "parsed": counts["parsed"],
+          "failed": counts["failed"],
+          "success_rate": round(counts["parsed"] / counts["total"], 2) if counts["total"] > 0 else 0,
+          "sample_failures": sample_failures,
+      }
+      log_path = f"{log_dir}/{datetime.utcnow().strftime('%Y-%m-%d')}_parse-listings_{exec_id[:8]}.json"
+      with open(log_path, "w") as f:
+          json.dump(log_entry, f, indent=2, default=str)
+      print(f"Execution log: {log_path}")
+    env:
+      APP_DB_NAME: "{{ envs.APP_DB_NAME ?? 're_nhatrang' }}"
+      APP_DB_USER: "{{ envs.APP_DB_USER ?? 're_nhatrang' }}"
+      APP_DB_PASSWORD: "{{ envs.APP_DB_PASSWORD ?? 'change_me_in_production' }}"

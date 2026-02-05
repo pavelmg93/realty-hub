@@ -1,0 +1,116 @@
+services:
+  kestra:
+    image: kestra/kestra:latest
+    pull_policy: always
+    entrypoint: /bin/bash
+    command:
+      - -c
+      - /app/kestra server standalone
+    ports:
+      - "8080:8080"
+      - "8081:8081"
+    environment:
+      KESTRA_CONFIGURATION: |
+        datasources:
+          postgres:
+            url: jdbc:postgresql://kestra-postgres:5432/kestra
+            driverClassName: org.postgresql.Driver
+            username: kestra
+            password: ${KESTRA_DB_PASSWORD:-kestra_change_me}
+        kestra:
+          repository:
+            type: postgres
+          storage:
+            type: local
+            local:
+              base-path: /app/storage
+          queue:
+            type: postgres
+    volumes:
+      - kestra-data:/app/storage
+      - ./kestra/flows:/app/flows
+      - ./logs/kestra:/app/logs/kestra
+    depends_on:
+      kestra-postgres:
+        condition: service_healthy
+    networks:
+      - re-nhatrang
+
+  kestra-postgres:
+    image: postgres:16
+    environment:
+      POSTGRES_DB: kestra
+      POSTGRES_USER: kestra
+      POSTGRES_PASSWORD: ${KESTRA_DB_PASSWORD:-kestra_change_me}
+    ports:
+      - "5433:5432"
+    volumes:
+      - kestra-pg-data:/var/lib/postgresql/data
+      - ./logs/kestra/backups:/backups
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U kestra"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - re-nhatrang
+
+  kestra-restore:
+    image: postgres:16
+    environment:
+      PGPASSWORD: ${KESTRA_DB_PASSWORD:-kestra_change_me}
+      KESTRA_BACKUP_DAYS: ${KESTRA_BACKUP_DAYS:-30}
+    volumes:
+      - ./logs/kestra/backups:/backups
+      - ./scripts/restore_kestra_db.sh:/restore.sh
+    entrypoint: /bin/bash
+    command: ["/restore.sh"]
+    depends_on:
+      kestra-postgres:
+        condition: service_healthy
+    networks:
+      - re-nhatrang
+    restart: "no"
+
+  app-postgres:
+    image: ankane/pgvector:latest
+    environment:
+      POSTGRES_DB: ${APP_DB_NAME:-re_nhatrang}
+      POSTGRES_USER: ${APP_DB_USER:-re_nhatrang}
+      POSTGRES_PASSWORD: ${APP_DB_PASSWORD:-change_me_in_production}
+    ports:
+      - "${APP_DB_PORT:-5432}:5432"
+    volumes:
+      - app-pg-data:/var/lib/postgresql/data
+      - ./src/db/init_db.sql:/docker-entrypoint-initdb.d/init_db.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${APP_DB_USER:-re_nhatrang}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - re-nhatrang
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - re-nhatrang
+
+volumes:
+  kestra-data:
+  kestra-pg-data:
+  app-pg-data:
+  redis-data:
+
+networks:
+  re-nhatrang:
+    driver: bridge

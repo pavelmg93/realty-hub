@@ -1,0 +1,120 @@
+id: ingest-csv
+namespace: re-nhatrang
+
+description: |
+  Ingest a CSV file of Zalo listings into the raw_listings table.
+  Upload a CSV with columns: source_group, sender_name, message_text, message_date, source.
+  Triggered manually via the Kestra UI.
+
+inputs:
+  - id: csv_file
+    type: FILE
+    description: CSV file with listing data to ingest
+
+tasks:
+  - id: validate_and_load
+    type: io.kestra.plugin.scripts.python.Script
+    warningOnStdErr: false
+    beforeCommands:
+      - pip install pandas psycopg2-binary sqlalchemy
+    inputFiles:
+      listings.csv: "{{ inputs.csv_file }}"
+    script: |
+      import csv
+      import os
+      import sys
+      from datetime import datetime
+
+      import pandas as pd
+      from sqlalchemy import create_engine, text
+
+      # Database connection
+      db_host = "app-postgres"
+      db_port = "5432"
+      db_name = os.environ.get("APP_DB_NAME", "re_nhatrang")
+      db_user = os.environ.get("APP_DB_USER", "re_nhatrang")
+      db_password = os.environ.get("APP_DB_PASSWORD", "change_me_in_production")
+      db_url = f"postgresql://{db_user}:{db_password}@{db_host}:{db_port}/{db_name}"
+
+      # Batch ID from Kestra execution
+      batch_id = "{{ execution.id }}"
+
+      # Validate CSV
+      csv_path = "listings.csv"
+      required_cols = {"source_group", "sender_name", "message_text", "message_date", "source"}
+
+      df = pd.read_csv(csv_path, encoding="utf-8")
+      missing = required_cols - set(df.columns)
+      if missing:
+          print(f"ERROR: Missing columns: {missing}", file=sys.stderr)
+          sys.exit(1)
+
+      if df.empty:
+          print("ERROR: CSV is empty", file=sys.stderr)
+          sys.exit(1)
+
+      empty_msgs = df["message_text"].isna().sum()
+      if empty_msgs > 0:
+          print(f"WARNING: {empty_msgs} rows have empty message_text")
+
+      # Load into database
+      engine = create_engine(db_url)
+      row_count = 0
+
+      with engine.connect() as conn:
+          for _, row in df.iterrows():
+              # Parse date
+              message_date = None
+              date_str = str(row.get("message_date", "")).strip()
+              if date_str and date_str != "nan":
+                  for fmt in ("%Y-%m-%dT%H:%M:%S", "%Y-%m-%d %H:%M:%S", "%d/%m/%Y %H:%M"):
+                      try:
+                          message_date = datetime.strptime(date_str, fmt)
+                          break
+                      except ValueError:
+                          continue
+
+              conn.execute(
+                  text(
+                      "INSERT INTO raw_listings "
+                      "(source, source_group, sender_name, message_text, message_date, batch_id) "
+                      "VALUES (:source, :source_group, :sender_name, :message_text, :message_date, :batch_id)"
+                  ),
+                  {
+                      "source": row.get("source", "zalo_manual"),
+                      "source_group": row.get("source_group", ""),
+                      "sender_name": row.get("sender_name", ""),
+                      "message_text": row["message_text"],
+                      "message_date": message_date,
+                      "batch_id": batch_id,
+                  },
+              )
+              row_count += 1
+
+          conn.commit()
+
+      print(f"Ingested {row_count} listings with batch_id={batch_id}")
+
+      # Write execution log
+      import json
+      log_dir = "/app/logs/kestra"
+      os.makedirs(log_dir, exist_ok=True)
+      log_entry = {
+          "flow": "ingest-csv",
+          "execution_id": batch_id,
+          "timestamp": datetime.utcnow().isoformat() + "Z",
+          "status": "success",
+          "rows_ingested": row_count,
+          "empty_messages_warned": int(empty_msgs) if empty_msgs > 0 else 0,
+          "source_groups": df["source_group"].dropna().unique().tolist(),
+      }
+      log_path = f"{log_dir}/{datetime.utcnow().strftime('%Y-%m-%d')}_ingest-csv_{batch_id[:8]}.json"
+      with open(log_path, "w") as f:
+          json.dump(log_entry, f, indent=2)
+      print(f"Execution log: {log_path}")
+    outputFiles:
+      - "*.csv"
+    env:
+      APP_DB_NAME: "{{ envs.APP_DB_NAME ?? 're_nhatrang' }}"
+      APP_DB_USER: "{{ envs.APP_DB_USER ?? 're_nhatrang' }}"
+      APP_DB_PASSWORD: "{{ envs.APP_DB_PASSWORD ?? 'change_me_in_production' }}"

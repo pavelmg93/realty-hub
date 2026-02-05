@@ -6,9 +6,11 @@ RE Nha Trang is a Real Estate Agent Matching Platform for the Nha Trang market. 
 
 ## Tech Stack
 
-- Python 3.12+, FastAPI, PostgreSQL (pgvector), Celery, Redis
-- LLM-based Vietnamese text extraction + rule-based matching
+- Python 3.12+, PostgreSQL (pgvector), Redis
+- Kestra for workflow orchestration (replaces Celery for V1)
+- Regex/rule-based Vietnamese text extraction (V1); LLM-based planned for V2
 - Docker Compose for local development
+- uv for Python dependency management
 
 ## Code Conventions
 
@@ -30,8 +32,10 @@ RE Nha Trang is a Real Estate Agent Matching Platform for the Nha Trang market. 
 ## Architecture
 
 - See `docs/ARCHITECTURE.md` for full system design.
-- The system has four main pipelines: Ingestion → Parsing → Matching → Notification.
-- Each pipeline stage is decoupled via message queue (Celery/Redis).
+- See `docs/USAGE.md` for how to operate the V1 pipeline.
+- V1 pipeline: Manual CSV Ingestion -> Vietnamese Regex Parser -> PostgreSQL.
+- Kestra orchestrates ETL flows (manual trigger via UI at localhost:8080).
+- Future pipelines: Matching (V1.1), Notification (V2).
 
 ## Testing
 
@@ -42,8 +46,11 @@ RE Nha Trang is a Real Estate Agent Matching Platform for the Nha Trang market. 
 ## Common Commands
 
 ```bash
+# Activate virtual environment
+source .venv/bin/activate
+
 # Run tests
-pytest
+pytest tests/ -v
 
 # Run linter
 ruff check src/ tests/
@@ -51,11 +58,17 @@ ruff check src/ tests/
 # Format code
 ruff format src/ tests/
 
-# Start development services
+# Start development services (Kestra + Postgres + Redis)
 docker compose up -d
 
-# Run API server (development)
-uvicorn src.api.main:app --reload
+# Stop services
+docker compose down
+
+# Transform a Zalo export to CSV
+python scripts/transform_zalo_export.py data/my_export.txt -g "Group Name"
+
+# Generate sample data for testing
+python scripts/seed_sample_data.py
 ```
 
 ## Important Warnings
@@ -67,6 +80,23 @@ uvicorn src.api.main:app --reload
 ## File Standards
 - Always use UTF-8 encoding for all text files
 - Use LF line endings (Unix-style), not CRLF
+
+## Session Documentation
+
+After every completed successful coding session, update `docs/SESSION_LOG.md`
+with the full session entry. Keep only the latest session's key recommendations
+below so this file stays concise. See `docs/SESSION_LOG.md` for complete history.
+
+**Latest session: #2 — 2026-02-05 — Execution Logging and Backup/Restore**
+
+Recommendations:
+- Kestra flows must use inline Python scripts (not `from src import ...`) because
+  Kestra script tasks run in isolated containers without the project's packages.
+- Kestra flows auto-write JSON logs to `logs/kestra/` (mounted volume).
+- Run `./scripts/backup_kestra_db.sh` before `docker compose down -v`.
+- `kestra-restore` init container auto-restores on fresh DB startup.
+- `KESTRA_BACKUP_DAYS` env var controls retention (default: 30 days).
+- `uv` installed at `~/.local/bin/uv`; venv at `.venv/`.
 
 ## Documentation Style - ASCII Diagrams
 - Use pure ASCII only: `+`, `-`, `|`, `>`, `<`, `v`, `^`
