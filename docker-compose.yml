@@ -2,14 +2,15 @@ services:
   kestra:
     image: kestra/kestra:latest
     pull_policy: always
-    entrypoint: /bin/bash
-    command:
-      - -c
-      - /app/kestra server standalone
+    # Root is required to access the Docker socket for task containers.
+    # See: https://kestra.io/docs/installation/podman-compose
+    user: "root"
+    command: server standalone --flow-path /app/flows
     ports:
       - "8080:8080"
       - "8081:8081"
     environment:
+      ENV_GEMINI_API_KEY: ${ENV_GEMINI_API_KEY}
       KESTRA_CONFIGURATION: |
         datasources:
           postgres:
@@ -23,11 +24,21 @@ services:
           storage:
             type: local
             local:
-              base-path: /app/storage
+              basePath: "/app/storage"
           queue:
             type: postgres
+          ai:
+            type: gemini
+            gemini:
+              api-key: "${ENV_GEMINI_API_KEY}"
+              model-name: gemini-2.5-flash
+          tasks:
+            tmpDir:
+              path: /tmp/kestra-wd/tmp
     volumes:
       - kestra-data:/app/storage
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /tmp/kestra-wd:/tmp/kestra-wd
       - ./kestra/flows:/app/flows
       - ./logs/kestra:/app/logs/kestra
     depends_on:

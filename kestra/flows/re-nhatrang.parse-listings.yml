@@ -16,6 +16,10 @@ inputs:
 tasks:
   - id: parse_raw_listings
     type: io.kestra.plugin.scripts.python.Script
+    containerImage: python:3.12-slim
+    taskRunner:
+      type: io.kestra.plugin.scripts.runner.docker.Docker
+      networkMode: re-nhatrang_re-nhatrang
     warningOnStdErr: false
     beforeCommands:
       - pip install psycopg2-binary sqlalchemy
@@ -23,7 +27,6 @@ tasks:
       import os
       import re
       import sys
-      from dataclasses import dataclass, field
 
       from sqlalchemy import create_engine, text
 
@@ -192,7 +195,7 @@ tasks:
       engine = create_engine(db_url)
       counts = {"parsed": 0, "failed": 0, "total": 0}
 
-      with engine.connect() as conn:
+      with engine.begin() as conn:
           query = "SELECT id, message_text FROM raw_listings WHERE status = 'pending'"
           params = {}
           if batch_id:
@@ -240,53 +243,7 @@ tasks:
                   counts["failed"] += 1
                   print(f"Error parsing listing {raw_id}: {e}", file=sys.stderr)
 
-          conn.commit()
-
       print(f"Parse complete: {counts['parsed']} parsed, {counts['failed']} failed, {counts['total']} total")
-
-      # Collect sample failures for the log
-      sample_failures = []
-      with engine.connect() as conn2:
-          fail_rows = conn2.execute(
-              text(
-                  "SELECT rl.id, LEFT(rl.message_text, 120), pl.parse_errors, pl.confidence "
-                  "FROM parsed_listings pl "
-                  "JOIN raw_listings rl ON rl.id = pl.raw_listing_id "
-                  "WHERE pl.confidence < 0.4 "
-                  "ORDER BY pl.parsed_at DESC LIMIT 5"
-              )
-          ).fetchall()
-          for fr in fail_rows:
-              sample_failures.append({
-                  "raw_id": fr[0],
-                  "text_preview": fr[1],
-                  "errors": fr[2],
-                  "confidence": fr[3],
-              })
-
-      # Write execution log
-      import json
-      from datetime import datetime
-
-      log_dir = "/app/logs/kestra"
-      os.makedirs(log_dir, exist_ok=True)
-      exec_id = "{{ execution.id }}"
-      log_entry = {
-          "flow": "parse-listings",
-          "execution_id": exec_id,
-          "timestamp": datetime.utcnow().isoformat() + "Z",
-          "status": "success",
-          "batch_id": batch_id,
-          "total": counts["total"],
-          "parsed": counts["parsed"],
-          "failed": counts["failed"],
-          "success_rate": round(counts["parsed"] / counts["total"], 2) if counts["total"] > 0 else 0,
-          "sample_failures": sample_failures,
-      }
-      log_path = f"{log_dir}/{datetime.utcnow().strftime('%Y-%m-%d')}_parse-listings_{exec_id[:8]}.json"
-      with open(log_path, "w") as f:
-          json.dump(log_entry, f, indent=2, default=str)
-      print(f"Execution log: {log_path}")
     env:
       APP_DB_NAME: "{{ envs.APP_DB_NAME ?? 're_nhatrang' }}"
       APP_DB_USER: "{{ envs.APP_DB_USER ?? 're_nhatrang' }}"

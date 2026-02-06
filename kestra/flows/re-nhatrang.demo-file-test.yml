@@ -1,0 +1,26 @@
+id: demo-file-test
+namespace: re-nhatrang
+
+description: |
+  Minimal test: upload a CSV file and log its contents.
+
+inputs:
+  - id: csv_file
+    type: FILE
+    description: Any CSV file to test
+
+tasks:
+  - id: log_uri
+    type: io.kestra.plugin.core.log.Log
+    message: "File URI: {{ inputs.csv_file }}"
+
+  - id: read_csv
+    type: io.kestra.plugin.scripts.python.Script
+    containerImage: python:3.12-slim
+    inputFiles:
+      test.csv: "{{ inputs.csv_file }}"
+    script: |
+      import sys
+      print(f"Python {sys.version}")
+      with open("test.csv", "r") as f:
+          print(f.read()[:500])

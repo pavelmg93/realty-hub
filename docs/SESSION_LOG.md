@@ -146,6 +146,106 @@ Modified:
 
 ---
 
+## Session 3 — 2026-02-06 — Kestra Docker Runner and AI Copilot
+
+### Summary
+
+Configured Gemini AI Copilot in Kestra, then spent an extended debugging
+session resolving a chain of Kestra Docker runner issues: storage permissions,
+Docker socket access, Python version mismatch, container networking, and
+log persistence. Ended with a fully working ingest + parse pipeline using
+Docker runner task containers on the correct network.
+
+### Features Delivered
+
+- Gemini 2.5 Flash AI Copilot active in Kestra UI
+- Docker runner properly configured for all script tasks (python:3.12-slim)
+- Task containers connected to compose network (can reach app-postgres)
+- Bidirectional flow sync script (`scripts/kestra_flow_sync.sh`)
+- `full-pipeline` flow merged into `ingest-csv` with `auto_parse` toggle
+- `demo-file-test` diagnostic flow for quick sanity checks
+- Removed custom JSON log-writing from flows (rely on Kestra built-in logging)
+
+### Architecture Decisions
+
+- **Docker runner over Process runner**: Process runner uses Kestra container's
+  Python 3.10 and can't pip install (permission denied). Docker runner spawns
+  isolated containers with `python:3.12-slim`, proper root access, and clean
+  dependency installation. Trade-off: ~15-30s overhead per task for container
+  pull/start. Acceptable for manual-trigger V1 workflows.
+- **Run Kestra as root**: Official Kestra Docker Compose approach. Required for
+  Docker socket access (spawning task containers). The alternative (rootless)
+  requires Podman, which adds complexity.
+- **Explicit networkMode on task runner**: Docker runner containers default to
+  Docker's bridge network, isolated from compose services. Must set
+  `networkMode: re-nhatrang_re-nhatrang` to reach app-postgres and redis.
+- **Remove custom JSON logs**: Docker runner task containers don't inherit
+  the Kestra container's volume mounts, so writing to `/app/logs/kestra/`
+  from inside a task container does nothing. Kestra's built-in execution
+  logging (Executions tab + Logs tab showing print() output) is sufficient.
+- **Merge full-pipeline into ingest-csv**: Eliminated a separate orchestrator
+  flow. `ingest-csv` now has `auto_parse` boolean (default true) that
+  conditionally triggers parse-listings as a subflow. Simpler, fewer flows,
+  and avoids FILE-across-subflow complexity.
+
+### Challenges
+
+- **refCnt: 0 red herring**: The "Illegal state: refCnt: 0, decrement: 1"
+  error consumed most of the session. Multiple AI tools (Claude Code, ChatGPT,
+  Kestra AI Copilot) analyzed it as a FILE reference lifecycle issue. Actual
+  cause: storage volume permissions. Running as root fixed it instantly.
+  Lesson: always check the basics (permissions, network, runner config)
+  before investigating framework internals.
+- **Five cascading Docker runner issues**: After fixing permissions, each fix
+  revealed the next problem — no Docker socket, then pip permission denied,
+  then wrong Python version, then network isolation. Each required a different
+  piece of docker-compose or flow YAML configuration.
+- **Flow sync gap**: Changes made in Kestra UI don't sync back to host files.
+  Deleting flow files from host doesn't remove them from Kestra's DB.
+  Solved with the push/pull sync script using Kestra CLI.
+
+### Recommendations
+
+- Kestra `user: "root"` is mandatory for Docker runner (Docker socket access).
+- Always set `networkMode` in task runner config when tasks need DB access.
+- Docker network name follows pattern: `{compose-project}_{network-name}`.
+- Use `containerImage: python:3.12-slim` on all script tasks.
+- Use `engine.begin()` (not `engine.connect()`) for SQLAlchemy transactions.
+- Use `runIf` (not `if`) for conditional task execution in Kestra flows.
+- Push flows after editing: `KESTRA_USER=... ./scripts/kestra_flow_sync.sh push`
+- Kestra's built-in Logs tab captures all `print()` output from script tasks.
+
+### Test Results
+
+- No new unit tests (infrastructure/config session).
+- Full pipeline tested via API: ingest-csv (2 rows) + parse-listings both SUCCESS.
+- Parser confidence: 1.0 on both test listings (nhà phố sell + căn hộ rent).
+
+### Files Created/Modified
+
+New files:
+- `kestra/flows/re-nhatrang.demo-file-test.yml` — diagnostic flow
+- `scripts/kestra_flow_sync.sh` — bidirectional flow sync
+
+Modified:
+- `docker-compose.yml` — Gemini API key, AI copilot config, Docker socket,
+  shared temp dir, `user: "root"`, tmpDir config
+- `kestra/flows/re-nhatrang.ingest-csv.yml` — Docker runner, networkMode,
+  auto_parse toggle, subflow call, removed custom log writing
+- `kestra/flows/re-nhatrang.parse-listings.yml` — Docker runner, networkMode,
+  engine.begin(), removed custom log writing
+- `.env.example` — added KESTRA_USER and ENV_GEMINI_API_KEY
+- `docs/TESTING_LOG.md` — session 3 test observations
+- `docs/ARCHITECTURE.md` — added infrastructure diagram
+- `docs/USAGE.md` — updated for current flow structure, removed JSON log docs
+- `CLAUDE.md` — updated session reference
+- `CHANGELOG.md` — added [Unreleased] block
+
+Deleted:
+- `kestra/flows/re-nhatrang.full-pipeline.yml` — merged into ingest-csv
+
+---
+
 <!-- Template for new sessions:
 
 ## Session N — YYYY-MM-DD — Brief Title

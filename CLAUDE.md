@@ -87,15 +87,17 @@ After every completed successful coding session, update `docs/SESSION_LOG.md`
 with the full session entry. Keep only the latest session's key recommendations
 below so this file stays concise. See `docs/SESSION_LOG.md` for complete history.
 
-**Latest session: #2 — 2026-02-05 — Execution Logging and Backup/Restore**
+**Latest session: #3 — 2026-02-06 — Kestra Docker Runner and AI Copilot**
 
 Recommendations:
-- Kestra flows must use inline Python scripts (not `from src import ...`) because
-  Kestra script tasks run in isolated containers without the project's packages.
-- Kestra flows auto-write JSON logs to `logs/kestra/` (mounted volume).
+- Kestra runs as `user: "root"` (required for Docker socket / task containers).
+- Script tasks use Docker runner with `containerImage: python:3.12-slim`.
+- Must set `networkMode: re-nhatrang_re-nhatrang` on task runners for DB access.
+- Use `engine.begin()` for SQLAlchemy transactions (auto-commit), not `engine.connect()`.
+- Use `runIf` (not `if`) for conditional task execution in flows.
+- Kestra built-in logging (Logs tab) captures all `print()` output from tasks.
+- Push flows after editing: `KESTRA_USER=... ./scripts/kestra_flow_sync.sh push`
 - Run `./scripts/backup_kestra_db.sh` before `docker compose down -v`.
-- `kestra-restore` init container auto-restores on fresh DB startup.
-- `KESTRA_BACKUP_DAYS` env var controls retention (default: 30 days).
 - `uv` installed at `~/.local/bin/uv`; venv at `.venv/`.
 
 ## Documentation Style - ASCII Diagrams

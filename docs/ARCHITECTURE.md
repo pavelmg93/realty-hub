@@ -190,9 +190,97 @@ Agent
 
 ## Infrastructure
 
-### Local Development
-- Docker Compose with: PostgreSQL (+ pgvector extension), Redis, API server
-- Hot-reload via `uvicorn --reload`
+### Docker Compose Environment (V1 Current State)
+
+```
++=========================================================================+
+|   Host (WSL2 / Linux)                                                   |
+|                                                                         |
+|   ./kestra/flows/  ./logs/kestra/  /var/run/docker.sock  /tmp/kestra-wd |
++=========================================================================+
+        |                |                  |                   |
+        | (bind mount)   | (bind mount)     | (socket mount)   | (shared)
+        v                v                  v                   v
++-----------------------------------------------------------------------+
+|   Docker Compose Network: re-nhatrang_re-nhatrang                     |
+|                                                                       |
+|  +----------------------------+    +----------------------------+     |
+|  |         kestra             |    |      kestra-postgres       |     |
+|  |                            |    |                            |     |
+|  |   Kestra server            |    |   PostgreSQL 16            |     |
+|  |   (runs as root)           |--->|   Kestra metadata DB       |     |
+|  |   Port: 8080 (UI)          |    |   Port: 5433 (host)        |     |
+|  |   Port: 8081 (API)         |    |                            |     |
+|  |                            |    |   Vol: kestra-pg-data      |     |
+|  |   Vol: kestra-data         |    +----------------------------+     |
+|  |   Vol: /app/flows (bind)   |                                       |
+|  |   Vol: docker.sock (bind)  |    +----------------------------+     |
+|  |   Vol: /tmp/kestra-wd      |    |      app-postgres          |     |
+|  +-------------+--------------+    |                            |     |
+|                |                   |   PostgreSQL 16 + pgvector |     |
+|                | spawns            |   Application data DB      |     |
+|                v                   |   Port: 5432 (host)        |     |
+|  +----------------------------+    |                            |     |
+|  |   Task Container           |    |   Vol: app-pg-data         |     |
+|  |   (ephemeral)              |--->|   Init: init_db.sql        |     |
+|  |                            |    +----------------------------+     |
+|  |   python:3.12-slim         |                                       |
+|  |   networkMode:             |    +----------------------------+     |
+|  |    re-nhatrang_re-nhatrang |    |         redis              |     |
+|  |                            |    |                            |     |
+|  |   Runs: pip install +      |    |   Redis 7 Alpine           |     |
+|  |         inline Python      |    |   Port: 6379 (host)        |     |
+|  |   Shares: /tmp/kestra-wd   |    |                            |     |
+|  +----------------------------+    |   Vol: redis-data           |     |
+|                                    +----------------------------+     |
+|                                                                       |
+|  +----------------------------+                                       |
+|  |     kestra-restore         |                                       |
+|  |     (init container)       |                                       |
+|  |                            |                                       |
+|  |   Restores Kestra DB       |                                       |
+|  |   from backup on fresh     |                                       |
+|  |   startup, then exits      |                                       |
+|  +----------------------------+                                       |
++-----------------------------------------------------------------------+
+```
+
+### User Workflow
+
+```
++----------------------------+     +----------------------------+
+|   User (Human)             |     |   Kestra UI                |
+|                            |     |   localhost:8080            |
+|   1. Copy Zalo messages    |     |                            |
+|   2. Run transform script  |---->|   3. Upload CSV            |
+|   3. Open Kestra UI        |     |   4. Trigger ingest-csv    |
+|   4. Upload CSV file       |     |   5. View execution logs   |
++----------------------------+     +-------------+--------------+
+                                                 |
+                    +----------------------------+----------------------------+
+                    |                            |                            |
+                    v                            v                            v
+      +-------------------+        +-------------------+        +-------------------+
+      |  validate_and_load|        |     parse         |        |   app-postgres    |
+      |  (task container) |        |  (subflow task    |        |                   |
+      |                   |        |   container)      |        |   raw_listings    |
+      |  Reads CSV        |------->|  Reads pending    |------->|   parsed_listings |
+      |  Inserts to DB    |        |  Parses Vietnamese|        |                   |
+      |  Prints summary   |        |  Updates status   |        |   Query via psql  |
+      +-------------------+        +-------------------+        +-------------------+
+```
+
+### Volumes
+
+| Volume | Purpose | Persists across restarts |
+|--------|---------|------------------------|
+| `kestra-data` | Kestra internal storage (uploaded files) | Yes |
+| `kestra-pg-data` | Kestra metadata DB (execution history) | Yes |
+| `app-pg-data` | Application data (listings) | Yes |
+| `redis-data` | Redis persistence | Yes |
+| `./kestra/flows` (bind) | Flow YAML definitions | Yes (in repo) |
+| `./logs/kestra` (bind) | Kestra DB backups | Yes (in repo) |
+| `/tmp/kestra-wd` (bind) | Shared working dir for task containers | No (temp) |
 
 ### Production (future)
 - Containerized deployment
@@ -202,7 +290,8 @@ Agent
 
 ## Key Design Decisions
 
-1. **Pipeline decoupling via Celery/Redis** — Each stage can fail independently without blocking others. Raw data is preserved even if parsing fails.
-2. **LLM + rules hybrid for parsing** — LLM handles the diversity of Vietnamese listing formats; rules handle common structured patterns cheaply.
+1. **Pipeline decoupling via Kestra** — Each stage (ingest, parse, match) runs as an independent flow. Raw data is preserved even if parsing fails. Kestra provides UI-based triggering and execution monitoring out of the box. Celery/Redis reserved for V1.1+ async processing.
+2. **Regex-first parsing (V1), LLM planned (V2)** — V1 uses regex/rule-based extraction for common Vietnamese listing patterns (no external API dependency). LLM augmentation deferred to V2 for handling edge cases.
 3. **pgvector for future semantic search** — Allows matching on meaning, not just exact field values (e.g., "near the beach" matching listings in coastal wards).
 4. **Multi-strategy ingestion** — Zalo access is uncertain, so the system supports API, scraping, and manual import from day one.
+5. **Docker runner for task isolation** — Kestra script tasks run in ephemeral Docker containers (python:3.12-slim) with explicit network access to compose services. This provides clean dependency management and consistent Python versions.

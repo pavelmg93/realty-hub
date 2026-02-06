@@ -5,24 +5,32 @@ description: |
   Ingest a CSV file of Zalo listings into the raw_listings table.
   Upload a CSV with columns: source_group, sender_name, message_text, message_date, source.
   Triggered manually via the Kestra UI.
+  Optionally runs the parser after ingestion (auto_parse, default true).
 
 inputs:
   - id: csv_file
     type: FILE
     description: CSV file with listing data to ingest
+  - id: auto_parse
+    type: BOOLEAN
+    defaults: true
+    description: Automatically parse listings after ingestion
 
 tasks:
   - id: validate_and_load
     type: io.kestra.plugin.scripts.python.Script
+    containerImage: python:3.12-slim
+    taskRunner:
+      type: io.kestra.plugin.scripts.runner.docker.Docker
+      networkMode: re-nhatrang_re-nhatrang
     warningOnStdErr: false
     beforeCommands:
       - pip install pandas psycopg2-binary sqlalchemy
     inputFiles:
       listings.csv: "{{ inputs.csv_file }}"
     script: |
-      import csv
-      import os
       import sys
+      import os
       from datetime import datetime
 
       import pandas as pd
@@ -61,7 +69,7 @@ tasks:
       engine = create_engine(db_url)
       row_count = 0
 
-      with engine.connect() as conn:
+      with engine.begin() as conn:
           for _, row in df.iterrows():
               # Parse date
               message_date = None
@@ -91,30 +99,17 @@ tasks:
               )
               row_count += 1
 
-          conn.commit()
-
       print(f"Ingested {row_count} listings with batch_id={batch_id}")
-
-      # Write execution log
-      import json
-      log_dir = "/app/logs/kestra"
-      os.makedirs(log_dir, exist_ok=True)
-      log_entry = {
-          "flow": "ingest-csv",
-          "execution_id": batch_id,
-          "timestamp": datetime.utcnow().isoformat() + "Z",
-          "status": "success",
-          "rows_ingested": row_count,
-          "empty_messages_warned": int(empty_msgs) if empty_msgs > 0 else 0,
-          "source_groups": df["source_group"].dropna().unique().tolist(),
-      }
-      log_path = f"{log_dir}/{datetime.utcnow().strftime('%Y-%m-%d')}_ingest-csv_{batch_id[:8]}.json"
-      with open(log_path, "w") as f:
-          json.dump(log_entry, f, indent=2)
-      print(f"Execution log: {log_path}")
-    outputFiles:
-      - "*.csv"
     env:
       APP_DB_NAME: "{{ envs.APP_DB_NAME ?? 're_nhatrang' }}"
       APP_DB_USER: "{{ envs.APP_DB_USER ?? 're_nhatrang' }}"
       APP_DB_PASSWORD: "{{ envs.APP_DB_PASSWORD ?? 'change_me_in_production' }}"
+
+  - id: parse
+    type: io.kestra.plugin.core.flow.Subflow
+    flowId: parse-listings
+    namespace: re-nhatrang
+    inputs:
+      batch_id: "{{ execution.id }}"
+    wait: true
+    runIf: "{{ inputs.auto_parse }}"

@@ -24,7 +24,7 @@ uv pip install -e ".[dev]"
 docker compose up -d
 ```
 
-Wait for all 4 services to be healthy:
+Wait for all services to be healthy:
 
 ```bash
 docker compose ps
@@ -35,6 +35,7 @@ You should see:
 - `kestra-postgres` (port 5433) — Kestra internal metadata
 - `kestra` (ports 8080, 8081) — workflow orchestration UI
 - `redis` (port 6379) — cache
+- `kestra-restore` — init container (runs once and exits)
 
 The `app-postgres` container automatically runs `src/db/init_db.sql` on first
 start, creating the `raw_listings` and `parsed_listings` tables.
@@ -142,20 +143,21 @@ Make sure Docker services are running (`docker compose up -d`), then:
 
 1. Open **http://localhost:8080** in your browser (Kestra UI).
 2. Navigate to **Flows** in the left sidebar.
-3. You will see three flows under the `re-nhatrang` namespace:
+3. You will see flows under the `re-nhatrang` namespace:
 
 | Flow | What it does |
 |------|--------------|
-| `ingest-csv` | Loads CSV into `raw_listings` table only |
+| `ingest-csv` | Loads CSV into DB, optionally parses (auto_parse=true by default) |
 | `parse-listings` | Parses pending raw listings into structured data |
-| `full-pipeline` | Does both: ingest + parse in one step |
+| `demo-file-test` | Diagnostic: upload a CSV and log its contents |
 
-**For normal use, run `full-pipeline`:**
+**For normal use, run `ingest-csv`:**
 
-4. Click **full-pipeline** then click **New Execution** (or the play button).
+4. Click **ingest-csv** then click **New Execution** (or the play button).
 5. Upload your CSV file in the `csv_file` input field.
-6. Click **Execute**.
-7. Watch the execution log. When done, you will see output like:
+6. Leave `auto_parse` checked (default: true) to automatically parse after ingestion.
+7. Click **Execute**.
+8. Watch the execution log in the **Logs** tab. When done, you will see output like:
    ```
    Ingested 15 listings with batch_id=abc123
    Parse complete: 13 parsed, 2 failed, 15 total
@@ -253,40 +255,16 @@ docker compose down -v     # Stop containers AND delete all data volumes
 
 ## Execution Logs
 
-Every Kestra flow execution automatically writes a JSON summary to
-`logs/kestra/`. These persist in the repo regardless of Docker volume state.
+All execution logging is handled by Kestra's built-in system:
 
-### Viewing logs from the command line
+- **Executions tab** in the Kestra UI (localhost:8080) shows execution history,
+  status, duration, and task details.
+- **Logs tab** on each execution shows all `print()` output from script tasks
+  (row counts, success rates, error messages).
 
-```bash
-# Show all execution logs (newest first)
-python scripts/show_execution_log.py
-
-# Show last 5 executions
-python scripts/show_execution_log.py --last 5
-
-# Filter by flow name
-python scripts/show_execution_log.py --flow ingest
-python scripts/show_execution_log.py --flow parse
-
-# Only show executions that had parse failures
-python scripts/show_execution_log.py --failures
-```
-
-### Log contents
-
-Each JSON file contains:
-
-**Ingest logs** — rows ingested, source groups seen, empty message warnings.
-
-**Parse logs** — total/parsed/failed counts, success rate, and up to 5 sample
-failures with text previews and error details (useful for improving the parser).
-
-### Kestra UI execution history
-
-The Kestra UI at localhost:8080 also shows execution history. This data lives
-in the `kestra-pg-data` Docker volume and survives `docker compose down`.
-It is only lost with `docker compose down -v`.
+This data lives in the `kestra-pg-data` Docker volume and survives
+`docker compose down`. It is only lost with `docker compose down -v`
+(use backup/restore to preserve it across volume wipes).
 
 ## Kestra Database Backup and Restore
 
@@ -341,6 +319,24 @@ Record your observations from test runs in `docs/TESTING_LOG.md`. This is
 for human-authored notes: edge cases, parser gaps, Zalo message patterns
 you notice. See the template at the top of that file.
 
+## Kestra Flow Sync
+
+Flow YAML files live in `kestra/flows/` and are loaded on Kestra startup.
+To sync changes between host files and the Kestra DB:
+
+```bash
+# Push host files to Kestra (overwrites DB, deletes flows not on host)
+KESTRA_USER='user@email.com:password' ./scripts/kestra_flow_sync.sh push
+
+# Pull flows from Kestra DB to host files
+KESTRA_USER='user@email.com:password' ./scripts/kestra_flow_sync.sh pull
+```
+
+Set `KESTRA_USER` in your `.env` file to avoid typing it each time.
+
+**Note**: Editing flows in the Kestra UI does NOT sync back to host files.
+Always push after editing files locally. Always pull after editing in the UI.
+
 ## File Organization
 
 ```
@@ -350,14 +346,26 @@ data/                              <-- Your raw exports and CSVs
     sample_listings.csv
   zalo_export_YYYY-MM-DD.txt       <-- Your raw Zalo exports
   zalo_export_YYYY-MM-DD.csv       <-- Transformed CSVs
+kestra/
+  flows/                           <-- Kestra flow definitions
+    re-nhatrang.ingest-csv.yml
+    re-nhatrang.parse-listings.yml
+    re-nhatrang.demo-file-test.yml
 logs/
-  kestra/                          <-- Auto-generated execution logs
-    YYYY-MM-DD_flow-name_execid.json
+  kestra/
     backups/                       <-- Kestra DB backups
       kestra_YYYY-MM-DD_HHMMSS.sql.gz
+scripts/
+  kestra_flow_sync.sh             <-- Push/pull flows to/from Kestra
+  backup_kestra_db.sh             <-- Manual Kestra DB backup
+  restore_kestra_db.sh            <-- Auto-restore (used by init container)
+  transform_zalo_export.py        <-- Zalo text -> CSV transformer
+  seed_sample_data.py             <-- Generate sample test data
 docs/
   TESTING_LOG.md                   <-- Your manual testing observations
   SESSION_LOG.md                   <-- Coding session history
+  ARCHITECTURE.md                  <-- System design and diagrams
+  USAGE.md                         <-- This file
 ```
 
 ## Troubleshooting
@@ -367,8 +375,17 @@ docs/
 - Kestra takes 30-60 seconds to start; check logs: `docker compose logs kestra`
 
 **Flows not visible in Kestra UI**
-- Flows are loaded from `kestra/flows/` volume mount
-- Restart Kestra if you added new flow files: `docker compose restart kestra`
+- Flows are loaded from `kestra/flows/` on startup via `--flow-path`
+- After editing flow files, push them: `KESTRA_USER=... ./scripts/kestra_flow_sync.sh push`
+- Or restart Kestra: `docker compose restart kestra`
+
+**"could not translate host name app-postgres"**
+- Task containers need `networkMode: re-nhatrang_re-nhatrang` in their
+  taskRunner config to reach compose services. Check the flow YAML.
+
+**"Illegal state: refCnt: 0, decrement: 1"**
+- Usually a storage permissions issue, not a FILE lifecycle bug.
+- Ensure Kestra runs as `user: "root"` in docker-compose.yml.
 
 **Database connection refused**
 - Verify `app-postgres` is healthy: `docker compose ps`
@@ -379,3 +396,7 @@ docs/
 - Look at `parsed_listings.parse_errors` for specific issues
 - The parser relies on Vietnamese keywords; heavily abbreviated or
   non-standard text may not parse well (confidence will be low)
+
+**Stale flows in Kestra after deleting files**
+- Deleting flow files from host does NOT remove them from Kestra's DB.
+- Use `./scripts/kestra_flow_sync.sh push` (includes `--delete` flag).
