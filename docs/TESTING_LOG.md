@@ -7,6 +7,112 @@ For execution history, see the Kestra UI at localhost:8080 (Executions tab).
 
 ---
 
+### 2026-02-07 — ProMemo Web App: First Manual Test
+
+**What I tested**:
+- Signed up as `pavelmg` user
+- Created one listing using freestyle text (did not press Parse)
+- Browsed Feed (Dean's 37 listings visible)
+- Clicked Message on a feed listing to open a conversation
+
+**Observations**:
+- What worked:
+    - Signup/login flow worked
+    - Listing creation via freestyle text succeeded
+    - Feed shows Dean's 37 listings correctly
+    - Message button creates conversation and navigates to it
+
+- What didn't:
+    - **CRITICAL: White text on white background** — entire app was nearly invisible.
+      Root cause: Next.js default `globals.css` has `@media (prefers-color-scheme: dark)`
+      which sets body text to light color (#ededed) when OS is in dark mode. But all
+      component backgrounds are hardcoded `bg-white`/`bg-gray-50`. Fix: removed dark
+      mode, forced `color-scheme: light`, explicit dark text on form elements.
+    - **Slow performance** — everything felt very slow. Needs investigation (could be
+      dev server overhead, unoptimized queries, or cold compilation on first request).
+
+- Patterns noticed:
+    - Parse Text button is a stub — doesn't actually extract data yet (TS parser
+      port pending, Phase 4)
+
+**Action items**:
+- [x] Fix white-on-white text (dark mode CSS override removed)
+- [ ] Investigate performance (dev server vs production build, query optimization)
+- [ ] Port TypeScript parser (Phase 4) to enable Parse Text button
+- [ ] Test with more users / cross-browser
+
+---
+
+### 2026-02-07 — First real data from An Cu Dean 2026
+
+**What I tested**:
+ - Copy pasted all 2026-01 and 2026 feb messages from
+ An Cu Dean public Zalo channel (no photos yet)
+ - Created csv using our script
+ - Asked Claude to add pgadmin.
+ - Wiped all volumes to erase the Kestra debugging hell.
+ - With fresh docker-compose, ran ingest flow with
+ ancudean-2026-01_transformed.csv
+ - Browsed data in pgadmin
+
+
+**Input source**: 
+ - ancudean-2026-01_transformed.csv
+ - Group (no really a group yet): An Cu Dean, my friend agent
+ - 2026-01 and 2026 feb messages from
+ An Cu Dean public Zalo channel (no photos yet)
+
+**Observations**:
+- What worked:
+   - Pasrsing correctly skipped messages that contained no property info (3/37)
+   - Correctly extracted price, frontage, area, ward
+- What didn't:
+   - Land (dat) listings sometimes got parsed as "home" (nha)
+   - Access info like width of adjecent road or "hem" (narrowest type of road in Vietnam)
+   did not get understood correctly.
+      - "hem thong" - connecting alley.
+      - "cach mat duong chi 50m" - only 50m from main road
+   - Quite a few listing types failed to be inferred, because they did not have a "ban" type wording.
+      - Let's assume it is "for sale" given no other info, but still having property type info.
+- Patterns noticed:
+   - Pattern like "duong o to" mean road good for cars (not only bikes).
+   - "Hem o to" -- same, alley wide enough for cars.  
+
+**Parser gaps found**:
+- "HƯƠNG ĐIỀN 227M², h đầy đủ" - words after comma got placed into "District", but they mean "fully furnished",
+while "Huong Dien" street did not get placed into "Street" column
+- Example of failed listing parsing: ca5334e385c2344e58a073653d7dd23c
+   KHÔNG NHANH LÀ MẤT! BÁN ĐẤT TẶNG NHÀ ĐƯỜNG HƯƠNG ĐIỀN 227M², NGANG 8M, GIÁ CHỈ 33TR/M
+   🌿 Gần trung tâm TP, khu buôn bán sầm uất
+   🏡 Bán đất tặng nhà cấp 4 còn sử dụng tốt
+   📐 Diện tích 226,5m², ngang 8m vuông đẹp
+   🚗 Ô tô ra vào thoải mái, sân để xe rộng
+   🛣️ Cách đường ĐỒNG NAI chỉ 50m
+   🏘️ Tiện ích xung quanh đầy đủ, an cư ổn định
+   📈 Mức giá hiếm, phù hợp đầu tư giữ tiền
+   💰 Giá: ~7,48 tỷ (33 triệu/m², thương lượng nhẹ)
+   📕 Pháp lý chuẩn, sẵn sàng giao dịch
+   ☎️ 0868.33.1111 (An cư cùng Dean)
+
+**Action items**:
+- [x] Test with real Zalo group data to find parser gaps
+- [ ] Assume listing type for sale, unless otherwise is stated.
+- [ ] Let's add a column for "Access" that we'll copy text like "hem o to" or "duong o to", or related, into.
+- [ ] Let's add "Furnished" with text like "h đầy đủ" and variations. Could be "unfurnished", "null" for unknown.
+- [ ] Let's review a list of property features from this data source (each starts with an emoji on new line), name them in english.
+   - [ ] Based on above I will decide then which to add to our listings schema.
+- [ ] We are ready to create a db for agents with relation on-to-many to both listings databases,
+   - [ ] Place one record there for now for "Dean/Duy" and associate all listings we have so far to him.
+- [ ] Let's create a service database for Nha Trang RE, that will contain list of wards, street names, links to OpenStreetMaps, etc. TBD
+   - [ ] Search all street names and ward names in Nha Trang City and add into it.
+   - [ ] Let's implement basic address validation and approximation, based on ward and street name
+- [ ] Let's plan integration with Open Street Maps. Example of street missed above (Huong Dien):
+https://www.openstreetmap.org/way/162825697#map=16/12.24176/109.17981
+   - [ ] Given validated address fields we can generate rough geo-pin, and store it in new column inside parsed_listings
+- [ ] Query data as a DBA and analyze it. Come up with metrics, calculate them, offer methods of improvements. Add to parse code.
+
+---
+
 ### 2026-02-06 — Session 3: The Great Kestra Debugging Marathon
 
 **What I tested**:

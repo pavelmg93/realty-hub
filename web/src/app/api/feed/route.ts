@@ -1,0 +1,148 @@
+import { NextRequest, NextResponse } from "next/server";
+import pool from "@/lib/db";
+import { getAuthFromCookies } from "@/lib/auth";
+
+export async function GET(request: NextRequest) {
+  try {
+    const auth = await getAuthFromCookies();
+    if (!auth) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const { searchParams } = new URL(request.url);
+
+    // Pagination
+    const page = Math.max(1, parseInt(searchParams.get("page") || "1", 10));
+    const limit = Math.min(
+      100,
+      Math.max(1, parseInt(searchParams.get("limit") || "20", 10)),
+    );
+    const offset = (page - 1) * limit;
+
+    // Sorting
+    const sort = searchParams.get("sort") || "created_at";
+    const order = searchParams.get("order") || "desc";
+    const allowedSort = ["created_at", "updated_at", "price_vnd", "area_m2"];
+    const allowedOrder = ["asc", "desc"];
+    const safeSort = allowedSort.includes(sort) ? sort : "created_at";
+    const safeOrder = allowedOrder.includes(order) ? order : "desc";
+
+    // Build dynamic WHERE clauses
+    const conditions: string[] = ["pl.archived_at IS NULL"];
+    const params: (string | number | boolean)[] = [];
+    let paramIndex = 1;
+
+    // Filter parameters
+    const filters: {
+      key: string;
+      column: string;
+      type: "eq" | "gte" | "lte" | "bool";
+    }[] = [
+      { key: "property_type", column: "pl.property_type", type: "eq" },
+      { key: "transaction_type", column: "pl.transaction_type", type: "eq" },
+      { key: "ward", column: "pl.ward", type: "eq" },
+      { key: "status", column: "pl.status", type: "eq" },
+      { key: "legal_status", column: "pl.legal_status", type: "eq" },
+      { key: "direction", column: "pl.direction", type: "eq" },
+      { key: "structure_type", column: "pl.structure_type", type: "eq" },
+      { key: "access_road", column: "pl.access_road", type: "eq" },
+      { key: "furnished", column: "pl.furnished", type: "eq" },
+      { key: "building_type", column: "pl.building_type", type: "eq" },
+      { key: "price_min", column: "pl.price_vnd", type: "gte" },
+      { key: "price_max", column: "pl.price_vnd", type: "lte" },
+      { key: "area_min", column: "pl.area_m2", type: "gte" },
+      { key: "area_max", column: "pl.area_m2", type: "lte" },
+      { key: "num_bedrooms_min", column: "pl.num_bedrooms", type: "gte" },
+      { key: "corner_lot", column: "pl.corner_lot", type: "bool" },
+      { key: "has_elevator", column: "pl.has_elevator", type: "bool" },
+      { key: "negotiable", column: "pl.negotiable", type: "bool" },
+    ];
+
+    for (const filter of filters) {
+      const value = searchParams.get(filter.key);
+      if (value === null || value === "") continue;
+
+      if (filter.type === "eq") {
+        conditions.push(`${filter.column} = $${paramIndex}`);
+        params.push(value);
+        paramIndex++;
+      } else if (filter.type === "gte") {
+        const num = parseFloat(value);
+        if (!isNaN(num)) {
+          conditions.push(`${filter.column} >= $${paramIndex}`);
+          params.push(num);
+          paramIndex++;
+        }
+      } else if (filter.type === "lte") {
+        const num = parseFloat(value);
+        if (!isNaN(num)) {
+          conditions.push(`${filter.column} <= $${paramIndex}`);
+          params.push(num);
+          paramIndex++;
+        }
+      } else if (filter.type === "bool") {
+        if (value === "true") {
+          conditions.push(`${filter.column} = TRUE`);
+        } else if (value === "false") {
+          conditions.push(`${filter.column} = FALSE`);
+        }
+      }
+    }
+
+    const whereClause = conditions.join(" AND ");
+
+    // Count total for pagination
+    const countResult = await pool.query(
+      `SELECT COUNT(*) FROM parsed_listings pl WHERE ${whereClause}`,
+      params,
+    );
+    const total = parseInt(countResult.rows[0].count, 10);
+
+    // Main query with JOIN for owner info and LEFT JOIN for existing conversation
+    const userIdParam = paramIndex;
+    params.push(auth.userId);
+    paramIndex++;
+
+    const limitParam = paramIndex;
+    params.push(limit);
+    paramIndex++;
+
+    const offsetParam = paramIndex;
+    params.push(offset);
+
+    const result = await pool.query(
+      `SELECT
+        pl.*,
+        a.username AS owner_username,
+        a.first_name AS owner_first_name,
+        a.phone AS owner_phone,
+        a.email AS owner_email,
+        c.id AS existing_conversation_id
+      FROM parsed_listings pl
+      JOIN agents a ON a.id = pl.agent_id
+      LEFT JOIN conversations c ON (
+        (c.agent_1_id = LEAST(pl.agent_id, $${userIdParam}) AND c.agent_2_id = GREATEST(pl.agent_id, $${userIdParam}))
+      )
+      WHERE ${whereClause}
+      ORDER BY pl.${safeSort} ${safeOrder}
+      LIMIT $${limitParam} OFFSET $${offsetParam}`,
+      params,
+    );
+
+    return NextResponse.json({
+      listings: result.rows,
+      pagination: {
+        page,
+        limit,
+        total,
+        total_pages: Math.ceil(total / limit),
+      },
+    });
+  } catch (error) {
+    console.error("Feed GET error:", error);
+    return NextResponse.json(
+      { error: "Internal server error" },
+      { status: 500 },
+    );
+  }
+}

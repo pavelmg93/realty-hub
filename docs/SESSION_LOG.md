@@ -246,6 +246,195 @@ Deleted:
 
 ---
 
+## Session 4 — 2026-02-07 — Parser Improvements, pgAdmin, Agents, and Location Data
+
+### Summary
+
+Addressed all parser gaps found from first real data test (An Cu Dean listings).
+Added pgAdmin for database browsing, improved Vietnamese parser with smart
+property type classification, default transaction types, road access and
+furnishing extraction. Created agents table, Nha Trang location reference
+tables (28 wards, 60 streets), and seeded Dean as first agent.
+
+### Features Delivered
+
+- pgAdmin 4 web UI (port 5050) with auto-configured app database connection
+- Smart property type: title-first priority, "bán đất tặng nhà" compound override
+- Default transaction_type to "ban" when listing has property info but no verb
+- `access_road` extraction: mat_duong, hem_oto, hem_thong, hem_rong, hem_nho, hem
+- `furnished` extraction: full, co_ban, khong
+- `agents` table with Dean (Duy) seeded, all listings associated
+- `nha_trang_wards` reference: 28 entries (20 phường + 8 xã, pre/post-merger)
+- `nha_trang_streets` reference: 60 major streets + streets from listing data
+- Comprehensive ward list in parser (was 19, now 28)
+- Database migration 003 for existing databases
+- Seed script for reference data and first agent
+- 20 new tests (90 total, all passing)
+
+### Architecture Decisions
+
+- **Scoring-based property type extraction**: When both "đất" and "nhà" appear
+  in a listing, check the title (first line) to determine the primary type.
+  Compound patterns like "bán đất tặng nhà" are pre-checked as overrides.
+  This fixes the main misclassification issue from real data.
+- **Default to "ban" for listings with property info**: In Vietnamese RE,
+  listings with price/area/type but no explicit "bán" or "cho thuê" are almost
+  always for sale. Rentals consistently use "cho thuê". This eliminated all 12
+  previously-null transaction types.
+- **Access road as categorical, not free text**: Road access patterns map to
+  a fixed set of categories (mat_duong > hem_oto > hem_thong > hem_rong >
+  hem_nho > hem) ordered by accessibility. This enables future filtering and
+  scoring (e.g., car-accessible properties score higher for families).
+- **Both pre- and post-merger ward names**: Nha Trang merged several wards in
+  Nov 2024. We store both old and new names since listings may reference either.
+- **pgAdmin over psql**: Added pgAdmin to docker-compose for visual database
+  browsing. More accessible for the user than docker exec + psql.
+
+### Challenges
+
+- Property type misclassification: "BÁN ĐẤT TẶNG NHÀ" was classified as "nhà"
+  because "nhà" keywords appeared first in the map iteration order. Fixed with
+  scoring + title priority approach.
+- pgAdmin `.local` email domain rejected by newer pgAdmin versions. Changed to
+  `@renhatrang.dev`.
+
+### Recommendations
+
+- After schema changes, prefer `docker compose down -v && up -d` for dev.
+  Use migration SQL only for data you want to preserve.
+- Run `src/db/seed_reference_data.sql` after fresh database creation to
+  populate wards, streets, and agent data.
+- When adding new listing sources, create an agent record first, then set
+  `agent_id` during ingestion for proper attribution.
+- The property feature list (emoji-prefixed lines) contains patterns for:
+  legal status, amenities, direction/orientation, distance to beach, distance
+  to market. User to decide which become schema fields.
+
+### Test Results
+
+- 90 passed, 0 failed (was 70 before this session)
+- Ruff lint: all checks passed
+- Re-parse results: 37/37 parsed (0 failed), avg confidence 0.903
+  - Before: avg confidence 0.835, 12 null transaction types, 12 misclassified
+  - After: avg confidence 0.903, 0 null transaction types, 0 misclassified
+
+### Files Created/Modified
+
+New files:
+- `config/pgadmin-servers.json` — pgAdmin auto-configured server
+- `src/db/seed_reference_data.sql` — reference data and agent seed
+- `src/db/migrations/003_add_agents_access_road_furnished_locations.sql`
+
+Modified:
+- `docker-compose.yml` — added pgAdmin service
+- `src/db/init_db.sql` — added agents, location reference tables, new columns
+- `src/parsing/vietnamese_parser.py` — property type scoring, default txn type,
+  access_road, furnished, comprehensive ward list
+- `src/parsing/parse_listings.py` — includes new columns in INSERT
+- `kestra/flows/re-nhatrang.parse-listings.yml` — synced inline parser
+- `tests/test_vietnamese_parser.py` — 20 new tests
+- `.env.example` — added pgAdmin variables
+- `docs/ARCHITECTURE.md` — updated data model, added pgAdmin to diagrams
+- `docs/USAGE.md` — added pgAdmin docs, updated Step 4, troubleshooting
+- `CHANGELOG.md` — updated [Unreleased] section
+- `CLAUDE.md` — updated session reference
+
+---
+
+## Session 5 — 2026-02-07 — ProMemo Web App: Full Frontend Implementation
+
+### Summary
+
+Built the complete ProMemo frontend: all page components for listings management,
+feed browsing, and agent messaging. Added Docker Compose integration and updated
+all documentation. The web app is now fully functional with signup/login, listing
+CRUD (freestyle + database view), feed with 18 filters, and real-time messaging.
+
+### Features Delivered
+
+- **My Listings page** (`/dashboard/listings`): Active/archived tabs, sorting,
+  grid layout with ListingCard components
+- **Listing editor**: Dual-mode form (Freestyle Message + Database View tabs)
+  - FreestyleEditor: textarea for Vietnamese text, "Parse Text" button
+  - DatabaseView: structured form with all fields grouped by category
+    (Classification, Price & Area, Location, Dimensions, Structure & Features,
+    Extra Details, Description)
+- **Create/Edit pages**: `/dashboard/listings/new` and `[id]/edit`
+- **Feed page** (`/dashboard/feed`): All active listings from all agents
+  - FeedFilters: 18 filter parameters (10 exact match, 5 range, 3 boolean)
+  - FeedCard: owner info, Message/Messages buttons, feature badges
+  - Pagination with page count
+- **Messages page** (`/dashboard/messages`): Conversation list with unread counts
+- **Conversation page** (`/dashboard/messages/[id]`): Message thread with
+  auto-scroll, 5-second polling, chat bubble layout (own=right, other=left)
+- **Docker Compose**: `web` service with volume mounts for hot reload
+- Updated ARCHITECTURE.md, USAGE.md, CHANGELOG.md
+
+### Architecture Decisions
+
+- **No TypeScript parser yet**: Parse route remains a stub. The freestyle editor
+  sends text to `/api/parse` which returns description only. Full TS parser port
+  deferred to Phase 4 (separate session). Agents can still manually fill in all
+  fields via Database View tab.
+- **Polling for messages**: 5-second interval polling via setInterval. Acceptable
+  for V1 with few users. WebSocket upgrade planned for V2 if needed.
+- **Feed filters apply on button click**: Filters are collected in state, then
+  applied when user clicks "Apply". Sort changes also trigger re-fetch. This
+  avoids excessive API calls while filter params are being adjusted.
+- **Conversation get-or-create**: "Message" button on feed cards POST to
+  `/api/conversations` which uses INSERT ON CONFLICT DO NOTHING for idempotent
+  creation. Always returns the existing or new conversation.
+
+### Challenges
+
+- **White text on white background**: First manual test revealed the app was
+  nearly invisible. Root cause: Next.js default `globals.css` includes
+  `@media (prefers-color-scheme: dark)` which changes body text to light color
+  when OS uses dark mode, but all component backgrounds are hardcoded white.
+  Fix: removed dark mode media query, forced `color-scheme: light`, added
+  explicit dark text color on form elements.
+
+### Recommendations
+
+- Run `cd web && npm run dev` for local development (hot reload, port 8888).
+- Use `docker compose up -d` to run ProMemo inside Docker alongside other services.
+- The parse route is a stub — agents must use Database View for structured data
+  until the TS parser port is complete.
+- Seed reference data after fresh DB: `docker exec ... psql -f seed_reference_data.sql`
+
+### Test Results
+
+- Next.js build: 0 errors, all 17 routes compiled successfully
+- Python tests: 171 passed (unchanged, no new Python code)
+
+### Files Created
+
+New frontend files:
+- `web/src/app/dashboard/listings/page.tsx` — My Listings page
+- `web/src/app/dashboard/listings/new/page.tsx` — Create listing
+- `web/src/app/dashboard/listings/[id]/edit/page.tsx` — Edit listing
+- `web/src/app/dashboard/feed/page.tsx` — Feed page
+- `web/src/app/dashboard/messages/page.tsx` — Messages page
+- `web/src/app/dashboard/messages/[conversationId]/page.tsx` — Conversation
+- `web/src/components/listings/ListingForm.tsx` — Dual-mode form
+- `web/src/components/listings/FreestyleEditor.tsx` — Freestyle textarea
+- `web/src/components/listings/DatabaseView.tsx` — Structured form fields
+- `web/src/components/feed/FeedCard.tsx` — Feed listing card
+- `web/src/components/feed/FeedFilters.tsx` — Filter panel
+- `web/src/components/messages/ConversationList.tsx` — Conversation list
+- `web/src/components/messages/MessageThread.tsx` — Message bubbles
+- `web/src/components/messages/MessageInput.tsx` — Message input
+- `web/Dockerfile` — Dev container for Docker Compose
+
+Modified:
+- `docker-compose.yml` — added `web` service
+- `.env.example` — added WEB_PORT, JWT_SECRET
+- `docs/ARCHITECTURE.md` — ProMemo section, data model, Docker diagram
+- `docs/USAGE.md` — ProMemo usage guide, file organization
+- `CHANGELOG.md` — ProMemo features in [Unreleased]
+
+---
+
 <!-- Template for new sessions:
 
 ## Session N — YYYY-MM-DD — Brief Title

@@ -1,8 +1,9 @@
 """Transform raw Zalo chat exports into standardized CSV format.
 
-Handles two input modes:
+Handles three input modes:
 1. Zalo chat export files (structured text with timestamps and sender names)
-2. Raw copy-pasted text blocks (continuous messages, heuristic splitting)
+2. Short-date separated messages (e.g. "jan 4" on its own line as boundary)
+3. Raw copy-pasted text blocks (continuous messages, heuristic splitting)
 """
 
 import csv
@@ -14,6 +15,12 @@ from pathlib import Path
 ZALO_EXPORT_PATTERN = re.compile(
     r"\[(\d{1,2}:\d{2})\s+(\d{1,2}/\d{1,2}/\d{4})\]\s+([^:]+?):\s*(.*)",
     re.DOTALL,
+)
+
+# Pattern for short date lines like "jan 4", "feb 28", "dec 1"
+SHORT_DATE_PATTERN = re.compile(
+    r"^(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)\s+(\d{1,2})\s*$",
+    re.IGNORECASE,
 )
 
 # Pattern for detecting message boundaries in raw pasted text.
@@ -94,35 +101,114 @@ def _parse_zalo_export_message(line: str) -> dict | None:
     }
 
 
-def transform_chat_export(input_path: Path, output_path: Path, source_group: str = "") -> int:
+def _parse_short_date_text(
+    text: str, source_group: str, year: int | None = None
+) -> list[dict]:
+    """Parse text where messages are separated by short date lines (e.g. "jan 4").
+
+    Args:
+        text: Text content with short date boundaries.
+        source_group: Zalo group name metadata.
+        year: Year to assign to dates. Defaults to current year.
+
+    Returns:
+        List of record dicts, empty if text doesn't match short-date format.
+    """
+    if year is None:
+        year = datetime.now().year
+
+    lines = text.strip().split("\n")
+    records: list[dict] = []
+    current_date: str | None = None
+    current_lines: list[str] = []
+
+    for line in lines:
+        stripped = line.strip()
+        match = SHORT_DATE_PATTERN.match(stripped)
+        if match:
+            # Save previous message if exists
+            if current_lines and current_date is not None:
+                msg = "\n".join(current_lines).strip()
+                if msg:
+                    records.append({
+                        "source_group": source_group,
+                        "sender_name": "",
+                        "message_text": msg,
+                        "message_date": current_date,
+                        "source": "zalo_manual",
+                    })
+                current_lines = []
+
+            # Parse the date
+            month_str, day_str = match.groups()
+            try:
+                dt = datetime.strptime(f"{month_str} {day_str} {year}", "%b %d %Y")
+                current_date = dt.strftime("%Y-%m-%dT00:00:00")
+            except ValueError:
+                current_date = ""
+        elif stripped:
+            current_lines.append(stripped)
+
+    # Don't forget the last message
+    if current_lines and current_date is not None:
+        msg = "\n".join(current_lines).strip()
+        if msg:
+            records.append({
+                "source_group": source_group,
+                "sender_name": "",
+                "message_text": msg,
+                "message_date": current_date,
+                "source": "zalo_manual",
+            })
+
+    return records
+
+
+def transform_chat_export(
+    input_path: Path,
+    output_path: Path,
+    source_group: str = "",
+    year: int | None = None,
+) -> int:
     """Convert a Zalo chat export file to standardized CSV.
 
     Args:
         input_path: Path to the raw Zalo export text file.
         output_path: Path where the CSV will be written.
         source_group: Name of the Zalo group (metadata).
+        year: Year for short-date format. Defaults to current year.
 
     Returns:
         Number of messages written to CSV.
     """
     text = input_path.read_text(encoding="utf-8")
-    records = _parse_export_text(text, source_group)
+    records = transform_raw_text(text, source_group, year=year)
     return _write_csv(records, output_path)
 
 
-def transform_raw_text(text: str, source_group: str = "") -> list[dict]:
+def transform_raw_text(
+    text: str, source_group: str = "", year: int | None = None
+) -> list[dict]:
     """Split raw pasted text into message records.
 
-    Attempts Zalo export format first; falls back to boundary detection.
+    Attempts Zalo export format first, then short-date format,
+    falls back to boundary detection.
 
     Args:
         text: Raw text, either Zalo export format or copy-pasted messages.
         source_group: Name of the Zalo group (metadata).
+        year: Year for short-date format. Defaults to current year.
 
     Returns:
         List of dicts with keys matching CSV_COLUMNS.
     """
+    # Try Zalo export format: [HH:MM DD/MM/YYYY] Sender: message
     records = _parse_export_text(text, source_group)
+    if records:
+        return records
+
+    # Try short-date format: "jan 4" as message boundary
+    records = _parse_short_date_text(text, source_group, year=year)
     if records:
         return records
 

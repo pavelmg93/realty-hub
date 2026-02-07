@@ -87,17 +87,19 @@ After every completed successful coding session, update `docs/SESSION_LOG.md`
 with the full session entry. Keep only the latest session's key recommendations
 below so this file stays concise. See `docs/SESSION_LOG.md` for complete history.
 
-**Latest session: #3 — 2026-02-06 — Kestra Docker Runner and AI Copilot**
+**Latest session: #5 — 2026-02-07 — ProMemo Web App: Full Frontend Implementation**
 
 Recommendations:
+- ProMemo web app at `localhost:8888` (Next.js 16, React 19, TypeScript, Tailwind v4).
+- `docker compose up -d` now starts the `web` service alongside other services.
+- For local dev: `cd web && npm run dev` (hot reload on port 8888).
+- Parse route is a stub — use Database View tab for structured field input.
+- TS parser port (Phase 4) is the next major milestone for freestyle parsing.
+- Feed supports 18 filter params; filters apply on "Apply" button click.
+- Messages poll every 5 seconds (no WebSocket yet).
+- After fresh DB, seed reference data then create an agent account via signup.
+- pgAdmin at `localhost:5050` for database browsing (auto-configured server).
 - Kestra runs as `user: "root"` (required for Docker socket / task containers).
-- Script tasks use Docker runner with `containerImage: python:3.12-slim`.
-- Must set `networkMode: re-nhatrang_re-nhatrang` on task runners for DB access.
-- Use `engine.begin()` for SQLAlchemy transactions (auto-commit), not `engine.connect()`.
-- Use `runIf` (not `if`) for conditional task execution in flows.
-- Kestra built-in logging (Logs tab) captures all `print()` output from tasks.
-- Push flows after editing: `KESTRA_USER=... ./scripts/kestra_flow_sync.sh push`
-- Run `./scripts/backup_kestra_db.sh` before `docker compose down -v`.
 - `uv` installed at `~/.local/bin/uv`; venv at `.venv/`.
 
 ## Documentation Style - ASCII Diagrams

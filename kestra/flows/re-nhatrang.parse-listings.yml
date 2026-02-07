@@ -24,6 +24,7 @@ tasks:
     beforeCommands:
       - pip install psycopg2-binary sqlalchemy
     script: |
+      import hashlib
       import os
       import re
       import sys
@@ -59,6 +60,11 @@ tasks:
           for kw in sorted(keywords, key=len, reverse=True):
               _PROPERTY_KEYWORD_MAP[kw] = ptype
 
+      _LAND_OVERRIDE_PATTERNS = re.compile(
+          r"(?:bán đất tặng nhà|ban dat tang nha|đất.*tặng nhà|dat.*tang nha)",
+          re.IGNORECASE,
+      )
+
       SELL_KEYWORDS = ["bán", "ban", "cần bán", "can ban", "bán gấp", "ban gap", "bán nhanh", "sang nhượng", "sang nhuong"]
       RENT_KEYWORDS = ["cho thuê", "cho thue", "cần thuê", "can thue", "thuê", "thue"]
 
@@ -72,40 +78,74 @@ tasks:
       FLOOR_PAT = re.compile(r"(\d+)\s*(?:tầng|tang|lầu|lau)\b", re.IGNORECASE)
       FRONTAGE_PAT = re.compile(r"(?:(?:mặt tiền|mat tien|mt|ngang)\s*(\d+[.,]?\d*)\s*m|(\d+[.,]?\d*)\s*m\s*(?:mặt tiền|mat tien|mt|ngang))\b", re.IGNORECASE)
 
+      # Access road patterns
+      ACCESS_ROAD_PATTERNS = [
+          (re.compile(r"mặt (?:tiền )?đường|mat (?:tien )?duong|mặt phố|mat pho", re.IGNORECASE), "mat_duong"),
+          (re.compile(r"hẻm ô tô\s*(?:rộng\s*)?(\d+[.,]?\d*)\s*m|hem o to\s*(?:rong\s*)?(\d+[.,]?\d*)\s*m", re.IGNORECASE), "hem_oto"),
+          (re.compile(r"hẻm ô tô|hem o to|đường ô tô|duong o to|ô tô (?:đỗ|ra vào|quay đầu|vào)", re.IGNORECASE), "hem_oto"),
+          (re.compile(r"hẻm thông|hem thong", re.IGNORECASE), "hem_thong"),
+          (re.compile(r"hẻm rộng|hem rong", re.IGNORECASE), "hem_rong"),
+          (re.compile(r"hẻm (?:xe máy|2[–-]?3m|nhỏ)|hem (?:xe may|nho)", re.IGNORECASE), "hem_nho"),
+          (re.compile(r"hẻm|hem\b", re.IGNORECASE), "hem"),
+      ]
+
+      FURNISHED_PATTERNS = [
+          (re.compile(r"full nội thất|full noi that|nội thất đầy đủ|noi that day du|đầy đủ nội thất|nội thất đẹp|noi that dep|nội thất xịn", re.IGNORECASE), "full"),
+          (re.compile(r"nội thất cơ bản|noi that co ban", re.IGNORECASE), "co_ban"),
+          (re.compile(r"nhà trống|nha trong|chưa có nội thất", re.IGNORECASE), "khong"),
+      ]
+
       NHA_TRANG_WARDS = [
           "Vĩnh Hòa", "Vĩnh Hải", "Vĩnh Phước", "Vĩnh Thọ",
-          "Xương Huân", "Vạn Thắng", "Vạn Thạnh", "Phương Sài",
-          "Phương Sơn", "Ngọc Hiệp", "Phước Hòa", "Phước Tân",
-          "Phước Tiến", "Phước Hải", "Phước Long", "Lộc Thọ",
-          "Tân Lập", "Vĩnh Nguyên", "Vĩnh Trường",
+          "Vạn Thạnh", "Phương Sài", "Ngọc Hiệp", "Phước Hòa",
+          "Tân Tiến", "Phước Hải", "Lộc Thọ", "Vĩnh Nguyên",
+          "Vĩnh Trường", "Phước Long",
+          "Phương Sơn", "Xương Huân", "Vạn Thắng",
+          "Phước Tiến", "Phước Tân", "Tân Lập",
+          "Vĩnh Lương", "Vĩnh Phương", "Vĩnh Ngọc",
+          "Vĩnh Thạnh", "Vĩnh Trung", "Vĩnh Hiệp",
+          "Vĩnh Thái", "Phước Đồng",
       ]
 
       def norm_num(s):
           return float(s.replace(",", "."))
+
+      def extract_property_type(text_input):
+          text_lower = text_input.lower()
+          if _LAND_OVERRIDE_PATTERNS.search(text_lower):
+              return "dat"
+          type_scores = {}
+          for kw, pt in _PROPERTY_KEYWORD_MAP.items():
+              if kw in text_lower:
+                  type_scores[pt] = type_scores.get(pt, 0) + 1
+          if not type_scores:
+              return None
+          if len(type_scores) == 1:
+              return next(iter(type_scores))
+          first_line = text_lower.split("\n")[0]
+          for kw, pt in _PROPERTY_KEYWORD_MAP.items():
+              if kw in first_line:
+                  return pt
+          return max(type_scores, key=lambda k: type_scores[k])
+
+      def extract_access_road(text_input):
+          for pattern, access_type in ACCESS_ROAD_PATTERNS:
+              if pattern.search(text_input):
+                  return access_type
+          return None
+
+      def extract_furnished(text_input):
+          for pattern, status in FURNISHED_PATTERNS:
+              if pattern.search(text_input):
+                  return status
+          return None
 
       def parse_listing(text):
           errors = []
           result = {}
 
           # Property type
-          text_lower = text.lower()
-          result["property_type"] = None
-          for kw, pt in _PROPERTY_KEYWORD_MAP.items():
-              if kw in text_lower:
-                  result["property_type"] = pt
-                  break
-
-          # Transaction type
-          result["transaction_type"] = None
-          for kw in SELL_KEYWORDS:
-              if kw in text_lower:
-                  result["transaction_type"] = "ban"
-                  break
-          if not result["transaction_type"]:
-              for kw in RENT_KEYWORDS:
-                  if kw in text_lower:
-                      result["transaction_type"] = "cho_thue"
-                      break
+          result["property_type"] = extract_property_type(text)
 
           # Price
           m = PRICE_PATTERN.search(text)
@@ -135,6 +175,7 @@ tasks:
                   result["area_m2"] = None
 
           # Location
+          text_lower = text.lower()
           result["ward"] = None
           result["street"] = None
           result["district"] = None
@@ -174,7 +215,27 @@ tasks:
           else:
               result["frontage_m"] = None
 
+          # Access road and furnished
+          result["access_road"] = extract_access_road(text)
+          result["furnished"] = extract_furnished(text)
+
           result["description"] = text.strip()
+
+          # Transaction type — default to "ban" if listing has property info
+          result["transaction_type"] = None
+          for kw in SELL_KEYWORDS:
+              if kw in text_lower:
+                  result["transaction_type"] = "ban"
+                  break
+          if not result["transaction_type"]:
+              for kw in RENT_KEYWORDS:
+                  if kw in text_lower:
+                      result["transaction_type"] = "cho_thue"
+                      break
+          if not result["transaction_type"]:
+              has_info = any([result["property_type"], result["price_vnd"], result["area_m2"]])
+              if has_info:
+                  result["transaction_type"] = "ban"
 
           # Confidence
           checks = [result["property_type"], result["transaction_type"], result["price_vnd"], result["area_m2"], result["ward"] or result["street"]]
@@ -190,13 +251,26 @@ tasks:
           result["parse_errors"] = "; ".join(errors) if errors else None
           return result
 
+      def compute_listing_hash(parsed):
+          """Compute MD5 dedup key from the most distinguishing parsed fields."""
+          parts = [
+              parsed.get("property_type") or "",
+              str(parsed["price_vnd"]) if parsed.get("price_vnd") is not None else "",
+              str(parsed["area_m2"]) if parsed.get("area_m2") is not None else "",
+              parsed.get("ward") or "",
+              parsed.get("street") or "",
+              str(parsed["num_bedrooms"]) if parsed.get("num_bedrooms") is not None else "",
+              str(parsed["num_floors"]) if parsed.get("num_floors") is not None else "",
+          ]
+          return hashlib.md5("".join(parts).encode()).hexdigest()
+
       # --- Main execution ---
 
       engine = create_engine(db_url)
-      counts = {"parsed": 0, "failed": 0, "total": 0}
+      counts = {"parsed": 0, "failed": 0, "skipped": 0, "total": 0}
 
       with engine.begin() as conn:
-          query = "SELECT id, message_text FROM raw_listings WHERE status = 'pending'"
+          query = "SELECT id, message_text, message_date FROM raw_listings WHERE status = 'pending'"
           params = {}
           if batch_id:
               query += " AND batch_id = :batch_id"
@@ -206,34 +280,49 @@ tasks:
           counts["total"] = len(rows)
 
           for row in rows:
-              raw_id, message_text = row[0], row[1]
+              raw_id, message_text, message_date = row[0], row[1], row[2]
               try:
                   parsed = parse_listing(message_text)
+                  listing_hash = compute_listing_hash(parsed)
 
-                  conn.execute(
+                  result = conn.execute(
                       text(
                           "INSERT INTO parsed_listings "
-                          "(raw_listing_id, property_type, transaction_type, "
+                          "(raw_listing_id, listing_hash, message_date, "
+                          "property_type, transaction_type, "
                           "price_raw, price_vnd, area_m2, address_raw, ward, street, "
                           "district, num_bedrooms, num_floors, frontage_m, "
+                          "access_road, furnished, "
                           "description, confidence, parse_errors) "
-                          "VALUES (:raw_listing_id, :property_type, :transaction_type, "
+                          "VALUES (:raw_listing_id, :listing_hash, :message_date, "
+                          ":property_type, :transaction_type, "
                           ":price_raw, :price_vnd, :area_m2, :address_raw, :ward, :street, "
                           ":district, :num_bedrooms, :num_floors, :frontage_m, "
-                          ":description, :confidence, :parse_errors)"
+                          ":access_road, :furnished, "
+                          ":description, :confidence, :parse_errors) "
+                          "ON CONFLICT (listing_hash) DO NOTHING"
                       ),
-                      {"raw_listing_id": raw_id, **parsed},
+                      {"raw_listing_id": raw_id, "listing_hash": listing_hash,
+                       "message_date": message_date, **parsed},
                   )
 
-                  new_status = "parsed" if parsed["confidence"] > 0 else "failed"
-                  conn.execute(
-                      text("UPDATE raw_listings SET status = :status WHERE id = :id"),
-                      {"status": new_status, "id": raw_id},
-                  )
-                  if new_status == "parsed":
-                      counts["parsed"] += 1
+                  if result.rowcount == 0:
+                      # Duplicate detected — skip
+                      conn.execute(
+                          text("UPDATE raw_listings SET status = 'skipped' WHERE id = :id"),
+                          {"id": raw_id},
+                      )
+                      counts["skipped"] += 1
                   else:
-                      counts["failed"] += 1
+                      new_status = "parsed" if parsed["confidence"] > 0 else "failed"
+                      conn.execute(
+                          text("UPDATE raw_listings SET status = :status WHERE id = :id"),
+                          {"status": new_status, "id": raw_id},
+                      )
+                      if new_status == "parsed":
+                          counts["parsed"] += 1
+                      else:
+                          counts["failed"] += 1
 
               except Exception as e:
                   conn.execute(
@@ -243,7 +332,7 @@ tasks:
                   counts["failed"] += 1
                   print(f"Error parsing listing {raw_id}: {e}", file=sys.stderr)
 
-      print(f"Parse complete: {counts['parsed']} parsed, {counts['failed']} failed, {counts['total']} total")
+      print(f"Parse complete: {counts['parsed']} parsed, {counts['failed']} failed, {counts['skipped']} skipped, {counts['total']} total")
     env:
       APP_DB_NAME: "{{ envs.APP_DB_NAME ?? 're_nhatrang' }}"
       APP_DB_USER: "{{ envs.APP_DB_USER ?? 're_nhatrang' }}"

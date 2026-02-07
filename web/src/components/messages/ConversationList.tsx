@@ -1,0 +1,63 @@
+"use client";
+
+import { Conversation } from "@/lib/types";
+
+interface Props {
+  conversations: Conversation[];
+  activeId?: number;
+  onSelect: (id: number) => void;
+}
+
+export default function ConversationList({
+  conversations,
+  activeId,
+  onSelect,
+}: Props) {
+  if (conversations.length === 0) {
+    return (
+      <div className="text-center py-8 text-gray-400 text-sm">
+        No conversations yet
+      </div>
+    );
+  }
+
+  return (
+    <div className="divide-y">
+      {conversations.map((c) => (
+        <button
+          key={c.id}
+          onClick={() => onSelect(c.id)}
+          className={`w-full text-left px-4 py-3 hover:bg-gray-50 transition-colors ${
+            activeId === c.id ? "bg-gray-50" : ""
+          }`}
+        >
+          <div className="flex items-center justify-between">
+            <span className="font-medium text-sm">
+              {c.other_agent_name || c.other_agent_username || "Agent"}
+            </span>
+            {(c.unread_count ?? 0) > 0 && (
+              <span className="bg-blue-600 text-white text-xs rounded-full px-1.5 py-0.5 min-w-[20px] text-center">
+                {c.unread_count}
+              </span>
+            )}
+          </div>
+          {c.last_message_preview && (
+            <p className="text-xs text-gray-500 mt-0.5 truncate">
+              {c.last_message_preview}
+            </p>
+          )}
+          {c.last_message_at && (
+            <p className="text-xs text-gray-400 mt-0.5">
+              {new Date(c.last_message_at).toLocaleDateString("en-US", {
+                month: "short",
+                day: "numeric",
+                hour: "numeric",
+                minute: "2-digit",
+              })}
+            </p>
+          )}
+        </button>
+      ))}
+    </div>
+  );
+}

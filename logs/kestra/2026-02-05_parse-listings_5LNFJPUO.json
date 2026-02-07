@@ -1,0 +1,12 @@
+{
+  "flow": "parse-listings",
+  "execution_id": "5LNFJPUOvGsbCzGEbDmPKn",
+  "timestamp": "2026-02-05T23:05:56.753289Z",
+  "status": "success",
+  "batch_id": "75wniU5hAQriuMxoFFI6sZ",
+  "total": 8,
+  "parsed": 8,
+  "failed": 0,
+  "success_rate": 1.0,
+  "sample_failures": []
+}

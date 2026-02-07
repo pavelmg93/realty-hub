@@ -115,48 +115,134 @@ RE Nha Trang is a pipeline-based system with four stages: **Ingestion**, **Parsi
 
 **Auth**: API key or JWT (TBD based on deployment model).
 
-### 6. Agent Dashboard (Frontend)
+### 6. ProMemo Web App (Frontend)
 
-**Purpose**: Web interface for buyer agents to manage their requirements and view matches.
+**Purpose**: Web interface for agents to manage listings, browse feeds, and communicate.
 
-**Planned features**:
-- Requirement CRUD (location, price range, property type, size)
-- Match feed with listing details
-- Listing search and browse
-- Notification preferences
+**Tech**: Next.js 16 (App Router), React 19, TypeScript, Tailwind CSS v4.
+**Auth**: bcrypt + JWT in httpOnly cookie, no NextAuth.
+**Database**: Raw pg Pool with SQL (no ORM, avoids migration conflicts).
 
-**Tech**: TBD — likely a lightweight framework (React, Vue, or server-rendered).
+**Features (implemented)**:
+- Agent signup/login with JWT auth
+- Listing CRUD with freestyle text input and structured database view
+- Feed with 18 filter parameters, sorting, and pagination
+- Agent-to-agent messaging with conversation threads
+- Responsive mobile layout
+
+**URL**: `http://localhost:8888`
 
 ## Data Model
 
-### Core Entities
+### Implemented (V1)
 
 ```
+Agent
+|-- id (serial)
+|-- name (string)
+|-- phone (string)
+|-- zalo_id (string)
+|-- email (string)
+|-- notes (text)
+|-- username (string, unique)
+|-- password_hash (string)
+|-- first_name (string)
+|-- last_name (string)
++-- created_at (timestamp)
+
 RawListing
-|-- id (UUID)
+|-- id (serial)
+|-- source (string)             # zalo_manual, api, etc.
 |-- source_group (string)       # Zalo group name/ID
-|-- raw_text (text)             # Original Vietnamese message
-|-- media_urls (jsonb)          # Attached images/files
-|-- captured_at (timestamp)
-+-- processed (boolean)
+|-- sender_name (string)
+|-- message_text (text)         # Original Vietnamese message
+|-- message_date (timestamp)
+|-- ingested_at (timestamp)
+|-- batch_id (string)
+|-- status (enum)               # pending, parsed, failed, skipped
++-- agent_id (FK -> Agent)
 
 ParsedListing
-|-- id (UUID)
+|-- id (serial)
 |-- raw_listing_id (FK)
-|-- property_type (enum)
+|-- listing_hash (char32)       # MD5 dedup key
+|-- message_date (timestamp)
+|-- property_type (string)      # nha, dat, can_ho, biet_thu, etc.
+|-- transaction_type (string)   # ban, cho_thue
+|-- price_raw (string)
 |-- price_vnd (bigint)
-|-- area_sqm (decimal)
-|-- location_ward (string)
-|-- location_street (string)
-|-- bedrooms (int)
-|-- bathrooms (int)
-|-- floors (int)
+|-- area_m2 (float)
+|-- address_raw (string)
+|-- ward (string)
+|-- street (string)
+|-- district (string)
+|-- num_bedrooms (smallint)
+|-- num_floors (smallint)
+|-- frontage_m (float)
+|-- access_road (string)        # mat_duong, hem_oto, hem_thong, etc.
+|-- furnished (string)          # full, co_ban, khong
 |-- description (text)
-|-- contact_phone (string)
-|-- confidence_score (float)    # Parsing confidence
-|-- embedding (vector)          # pgvector for semantic search
-+-- parsed_at (timestamp)
+|-- confidence (float)          # 0.0-1.0
+|-- parsed_at (timestamp)
+|-- parse_errors (text)
+|-- legal_status (string)       # so_hong, so_do, hoan_cong, tho_cu
+|-- num_bathrooms (smallint)
+|-- structure_type (string)     # me_duc, gac_lung, tret_lau, cap_4
+|-- direction (string)          # dong, tay, nam, bac, etc.
+|-- depth_m (float)
+|-- corner_lot (boolean)
+|-- price_per_m2 (bigint)
+|-- negotiable (boolean)
+|-- rental_income_vnd (bigint)
+|-- has_elevator (boolean)
+|-- nearby_amenities (jsonb)
+|-- investment_use_case (jsonb)
+|-- outdoor_features (jsonb)
+|-- special_rooms (jsonb)
+|-- feng_shui (string)
+|-- total_construction_area (float)
+|-- land_characteristics (string)
+|-- traffic_connectivity (string)
+|-- building_type (string)
+|-- agent_id (FK -> Agent)      # listing owner
+|-- status (string)             # for_sale, in_negotiations, etc.
+|-- archived_at (timestamp)
+|-- freestyle_text (text)
++-- updated_at (timestamp)
 
+Conversation
+|-- id (serial)
+|-- agent_1_id (FK -> Agent)    # ordered pair: agent_1_id < agent_2_id
+|-- agent_2_id (FK -> Agent)
+|-- created_at (timestamp)
++-- updated_at (timestamp)
+
+Message
+|-- id (serial)
+|-- conversation_id (FK -> Conversation)
+|-- sender_id (FK -> Agent)
+|-- body (text)
+|-- listing_id (FK -> ParsedListing, nullable)
+|-- created_at (timestamp)
++-- read_at (timestamp)
+
+NhaTrangWard (reference)
+|-- id (serial)
+|-- name (string)               # Vietnamese with diacritics
+|-- name_ascii (string)         # ASCII for fuzzy matching
+|-- ward_type (enum)            # phuong, xa
++-- osm_relation_id (bigint)
+
+NhaTrangStreet (reference)
+|-- id (serial)
+|-- name (string)
+|-- name_ascii (string)
++-- osm_way_id (bigint)
+```
+
+### Planned (V1.1+)
+
+```
 BuyerRequirement
 |-- id (UUID)
 |-- agent_id (FK)
@@ -166,7 +252,7 @@ BuyerRequirement
 |-- area_min_sqm (decimal)
 |-- locations (string[])        # Target wards/streets
 |-- min_bedrooms (int)
-|-- notes (text)                # Free-text preferences
+|-- notes (text)
 |-- active (boolean)
 +-- created_at (timestamp)
 
@@ -178,14 +264,6 @@ Match
 |-- notified (boolean)
 |-- notified_at (timestamp)
 +-- matched_at (timestamp)
-
-Agent
-|-- id (UUID)
-|-- name (string)
-|-- phone (string)
-|-- zalo_id (string)
-|-- email (string)
-+-- role (enum)                 # buyer_agent, seller_agent, both
 ```
 
 ## Infrastructure
@@ -234,13 +312,24 @@ Agent
 |  +----------------------------+    |   Vol: redis-data           |     |
 |                                    +----------------------------+     |
 |                                                                       |
+|  +----------------------------+    +----------------------------+     |
+|  |     kestra-restore         |    |         pgadmin            |     |
+|  |     (init container)       |    |                            |     |
+|  |                            |    |   pgAdmin 4 web UI         |     |
+|  |   Restores Kestra DB       |    |   Port: 5050 (host)        |     |
+|  |   from backup on fresh     |    |                            |     |
+|  |   startup, then exits      |--->|   Connects to app-postgres |     |
+|  +----------------------------+    |   Auto-configured server   |     |
+|                                    +----------------------------+     |
+|                                                                       |
 |  +----------------------------+                                       |
-|  |     kestra-restore         |                                       |
-|  |     (init container)       |                                       |
+|  |           web              |                                       |
 |  |                            |                                       |
-|  |   Restores Kestra DB       |                                       |
-|  |   from backup on fresh     |                                       |
-|  |   startup, then exits      |                                       |
+|  |   Next.js 16 (ProMemo)    |                                       |
+|  |   Port: 8888 (host)       |-----> app-postgres                    |
+|  |                            |                                       |
+|  |   Agent listings, feed,   |                                       |
+|  |   messaging UI             |                                       |
 |  +----------------------------+                                       |
 +-----------------------------------------------------------------------+
 ```
@@ -266,8 +355,9 @@ Agent
       |                   |        |   container)      |        |   raw_listings    |
       |  Reads CSV        |------->|  Reads pending    |------->|   parsed_listings |
       |  Inserts to DB    |        |  Parses Vietnamese|        |                   |
-      |  Prints summary   |        |  Updates status   |        |   Query via psql  |
-      +-------------------+        +-------------------+        +-------------------+
+      |  Prints summary   |        |  Updates status   |        |   Browse: pgAdmin |
+      +-------------------+        +-------------------+        |   localhost:5050  |
+                                                                +-------------------+
 ```
 
 ### Volumes

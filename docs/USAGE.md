@@ -34,6 +34,8 @@ You should see:
 - `app-postgres` (port 5432) — application database with pgvector
 - `kestra-postgres` (port 5433) — Kestra internal metadata
 - `kestra` (ports 8080, 8081) — workflow orchestration UI
+- `web` (port 8888) — ProMemo web app
+- `pgadmin` (port 5050) — database browser UI
 - `redis` (port 6379) — cache
 - `kestra-restore` — init container (runs once and exits)
 
@@ -70,8 +72,8 @@ start, creating the `raw_listings` and `parsed_listings` tables.
 +----------------------------+
 |   4. View results          |
 |                            |
-|   Query parsed_listings    |
-|   table via psql           |
+|   Browse in pgAdmin UI     |
+|   localhost:5050            |
 +----------------------------+
 ```
 
@@ -165,11 +167,21 @@ Make sure Docker services are running (`docker compose up -d`), then:
 
 ### Step 4: View Results
 
-Connect to the application database and query:
+**Option A: pgAdmin web UI (recommended)**
+
+Open **http://localhost:5050** in your browser. The app database server is
+pre-configured and appears in the left sidebar as "RE Nha Trang (App DB)".
+Enter the database password from your `.env` file when prompted.
+
+Navigate to: Servers > RE Nha Trang (App DB) > Databases > re_nhatrang >
+Schemas > public > Tables to browse `raw_listings` and `parsed_listings`.
+
+Use the **Query Tool** (Tools > Query Tool) to run SQL queries.
+
+**Option B: psql via Docker**
 
 ```bash
-# Connect via psql (password: see your .env file)
-psql -h localhost -p 5432 -U re_nhatrang -d re_nhatrang
+docker exec -it re-nhatrang-app-postgres-1 psql -U re_nhatrang -d re_nhatrang
 ```
 
 Useful queries:
@@ -229,6 +241,60 @@ WHERE pl.confidence < 0.4;
 | ty / ti | x 1,000,000,000 | "3.5 ty" = 3.5 billion VND |
 | trieu / tr | x 1,000,000 | "350 trieu" = 350 million VND |
 | t | x 1,000,000,000 | "3.5t" = 3.5 billion VND |
+
+## ProMemo Web App
+
+ProMemo is the agent-facing web interface at **http://localhost:8888**.
+
+### Getting Started
+
+1. Open http://localhost:8888 in your browser.
+2. **Sign up** with a username, first name, and password.
+3. You're redirected to the dashboard.
+
+### My Listings
+
+Navigate to **My Listings** to manage your property listings.
+
+- **Add New**: Click "+ Add New" to create a listing.
+  - **Freestyle Message** tab: Paste Vietnamese listing text and click "Parse Text" to auto-extract fields.
+  - **Database View** tab: Manually fill in structured fields (property type, price, area, location, etc.).
+- **Edit**: Click "Edit" on any active listing to modify it.
+- **Archive**: Click "Archive" then "Confirm" to archive a listing.
+- **Archived tab**: View archived listings. Re-activate or permanently delete them.
+
+### Feed
+
+Navigate to **Feed** to browse all active listings from all agents.
+
+- **Filters**: Click "Show Filters" to filter by property type, price range, area, ward, direction, legal status, and more (18 filter parameters).
+- **Sort**: By newest, recently updated, price, or area.
+- **Message**: Click "Message" on a listing to start a conversation with the listing owner.
+
+### Messages
+
+Navigate to **Messages** to view and manage conversations.
+
+- Each conversation is with one other agent.
+- Messages auto-refresh every 5 seconds.
+- Unread message counts are shown in the conversation list.
+- Press Enter to send, Shift+Enter for new line.
+
+### Running Locally (without Docker)
+
+```bash
+cd web
+npm install
+npm run dev
+# App starts on http://localhost:8888
+```
+
+Requires `DATABASE_URL` and `JWT_SECRET` environment variables. Create `web/.env.local`:
+
+```
+DATABASE_URL=postgresql://re_nhatrang:change_me_in_production@localhost:5432/re_nhatrang
+JWT_SECRET=dev-secret-change-me
+```
 
 ## Development
 
@@ -346,6 +412,8 @@ data/                              <-- Your raw exports and CSVs
     sample_listings.csv
   zalo_export_YYYY-MM-DD.txt       <-- Your raw Zalo exports
   zalo_export_YYYY-MM-DD.csv       <-- Transformed CSVs
+config/
+  pgadmin-servers.json             <-- pgAdmin auto-configured server
 kestra/
   flows/                           <-- Kestra flow definitions
     re-nhatrang.ingest-csv.yml
@@ -361,6 +429,18 @@ scripts/
   restore_kestra_db.sh            <-- Auto-restore (used by init container)
   transform_zalo_export.py        <-- Zalo text -> CSV transformer
   seed_sample_data.py             <-- Generate sample test data
+web/                               <-- ProMemo Next.js web app
+  src/
+    app/                           <-- Pages (App Router)
+      dashboard/                   <-- Auth-protected dashboard
+        listings/                  <-- My Listings CRUD
+        feed/                      <-- Feed browse
+        messages/                  <-- Messaging
+      api/                         <-- API routes
+    components/                    <-- React components
+    lib/                           <-- DB, auth, types, constants
+    hooks/                         <-- React hooks (useAuth)
+  Dockerfile                       <-- Dev container config
 docs/
   TESTING_LOG.md                   <-- Your manual testing observations
   SESSION_LOG.md                   <-- Coding session history
@@ -396,6 +476,11 @@ docs/
 - Look at `parsed_listings.parse_errors` for specific issues
 - The parser relies on Vietnamese keywords; heavily abbreviated or
   non-standard text may not parse well (confidence will be low)
+
+**pgAdmin not loading at localhost:5050**
+- pgAdmin can take 15-30 seconds to start on first boot
+- Check logs: `docker compose logs pgadmin`
+- The app database server is pre-configured; enter the DB password when prompted
 
 **Stale flows in Kestra after deleting files**
 - Deleting flow files from host does NOT remove them from Kestra's DB.

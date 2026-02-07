@@ -1,0 +1,13 @@
+{
+  "Servers": {
+    "1": {
+      "Name": "RE Nha Trang (App DB)",
+      "Group": "Servers",
+      "Host": "app-postgres",
+      "Port": 5432,
+      "MaintenanceDB": "re_nhatrang",
+      "Username": "re_nhatrang",
+      "SSLMode": "prefer"
+    }
+  }
+}

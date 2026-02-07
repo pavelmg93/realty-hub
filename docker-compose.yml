@@ -102,6 +102,42 @@ services:
     networks:
       - re-nhatrang
 
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_EMAIL:-admin@renhatrang.dev}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_PASSWORD:-admin}
+      PGADMIN_CONFIG_SERVER_MODE: "False"
+      PGADMIN_CONFIG_MASTER_PASSWORD_REQUIRED: "False"
+    ports:
+      - "${PGADMIN_PORT:-5050}:80"
+    volumes:
+      - ./config/pgadmin-servers.json:/pgadmin4/servers.json:ro
+    depends_on:
+      app-postgres:
+        condition: service_healthy
+    networks:
+      - re-nhatrang
+    restart: unless-stopped
+
+  web:
+    build: ./web
+    ports:
+      - "${WEB_PORT:-8888}:3000"
+    environment:
+      DATABASE_URL: postgresql://${APP_DB_USER:-re_nhatrang}:${APP_DB_PASSWORD:-change_me_in_production}@app-postgres:5432/${APP_DB_NAME:-re_nhatrang}
+      JWT_SECRET: ${JWT_SECRET:-dev-secret-change-me}
+      NEXT_PUBLIC_APP_NAME: ProMemo
+    volumes:
+      - ./web:/app
+      - /app/node_modules
+      - /app/.next
+    depends_on:
+      app-postgres:
+        condition: service_healthy
+    networks:
+      - re-nhatrang
+
   redis:
     image: redis:7-alpine
     ports:

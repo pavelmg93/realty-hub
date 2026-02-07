@@ -1,0 +1,13 @@
+{
+  "flow": "ingest-csv",
+  "execution_id": "75wniU5hAQriuMxoFFI6sZ",
+  "timestamp": "2026-02-05T23:05:55.689786Z",
+  "status": "success",
+  "rows_ingested": 8,
+  "empty_messages_warned": 0,
+  "source_groups": [
+    "BDS Nha Trang 24/7",
+    "Mua Ban BDS Nha Trang",
+    "BDS Nha Trang VIP"
+  ]
+}
