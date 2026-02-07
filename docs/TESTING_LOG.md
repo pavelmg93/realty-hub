@@ -2,6 +2,7 @@
 
 Human-authored observations from running the pipeline. Record edge cases,
 parser gaps, Zalo message quirks, and anything that should drive improvements.
+Newest entries first.
 
 For execution history, see the Kestra UI at localhost:8080 (Executions tab).
 
@@ -56,7 +57,7 @@ For execution history, see the Kestra UI at localhost:8080 (Executions tab).
  - Browsed data in pgadmin
 
 
-**Input source**: 
+**Input source**:
  - ancudean-2026-01_transformed.csv
  - Group (no really a group yet): An Cu Dean, my friend agent
  - 2026-01 and 2026 feb messages from
@@ -76,7 +77,7 @@ For execution history, see the Kestra UI at localhost:8080 (Executions tab).
       - Let's assume it is "for sale" given no other info, but still having property type info.
 - Patterns noticed:
    - Pattern like "duong o to" mean road good for cars (not only bikes).
-   - "Hem o to" -- same, alley wide enough for cars.  
+   - "Hem o to" -- same, alley wide enough for cars.
 
 **Parser gaps found**:
 - "HƯƠNG ĐIỀN 227M², h đầy đủ" - words after comma got placed into "District", but they mean "fully furnished",
