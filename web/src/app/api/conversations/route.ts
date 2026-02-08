@@ -14,7 +14,8 @@ export async function GET(request: NextRequest) {
 
     let query = `
       SELECT
-        c.id, c.agent_1_id, c.agent_2_id, c.created_at, c.updated_at,
+        c.id, c.agent_1_id, c.agent_2_id, c.listing_id,
+        c.created_at, c.updated_at,
         CASE
           WHEN c.agent_1_id = $1 THEN a2.name
           ELSE a1.name
@@ -23,12 +24,17 @@ export async function GET(request: NextRequest) {
           WHEN c.agent_1_id = $1 THEN a2.username
           ELSE a1.username
         END AS other_agent_username,
+        pl.property_type AS listing_property_type,
+        pl.ward AS listing_ward,
+        pl.price_vnd AS listing_price_vnd,
+        pl.area_m2 AS listing_area_m2,
         last_msg.body AS last_message_preview,
         last_msg.created_at AS last_message_at,
         COALESCE(unread.cnt, 0) AS unread_count
       FROM conversations c
       JOIN agents a1 ON a1.id = c.agent_1_id
       JOIN agents a2 ON a2.id = c.agent_2_id
+      JOIN parsed_listings pl ON pl.id = c.listing_id
       LEFT JOIN LATERAL (
         SELECT body, created_at
         FROM messages
@@ -50,11 +56,7 @@ export async function GET(request: NextRequest) {
     if (listingId) {
       const lid = parseInt(listingId, 10);
       if (!isNaN(lid)) {
-        query += `
-          AND EXISTS (
-            SELECT 1 FROM messages m
-            WHERE m.conversation_id = c.id AND m.listing_id = $2
-          )`;
+        query += ` AND c.listing_id = $2`;
         params.push(lid);
       }
     }
@@ -82,10 +84,18 @@ export async function POST(request: NextRequest) {
 
     const body = await request.json();
     const otherAgentId = body.other_agent_id;
+    const listingId = body.listing_id;
 
     if (!otherAgentId || typeof otherAgentId !== "number") {
       return NextResponse.json(
         { error: "other_agent_id is required and must be a number" },
+        { status: 400 },
+      );
+    }
+
+    if (!listingId || typeof listingId !== "number") {
+      return NextResponse.json(
+        { error: "listing_id is required and must be a number" },
         { status: 400 },
       );
     }
@@ -106,22 +116,34 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Agent not found" }, { status: 404 });
     }
 
+    // Verify the listing exists
+    const listingCheck = await pool.query(
+      `SELECT id FROM parsed_listings WHERE id = $1`,
+      [listingId],
+    );
+    if (listingCheck.rows.length === 0) {
+      return NextResponse.json(
+        { error: "Listing not found" },
+        { status: 404 },
+      );
+    }
+
     // Use LEAST/GREATEST to enforce the ordered pair constraint
     const agent1 = Math.min(auth.userId, otherAgentId);
     const agent2 = Math.max(auth.userId, otherAgentId);
 
     // INSERT ON CONFLICT DO NOTHING, then SELECT
     await pool.query(
-      `INSERT INTO conversations (agent_1_id, agent_2_id)
-       VALUES ($1, $2)
-       ON CONFLICT (agent_1_id, agent_2_id) DO NOTHING`,
-      [agent1, agent2],
+      `INSERT INTO conversations (agent_1_id, agent_2_id, listing_id)
+       VALUES ($1, $2, $3)
+       ON CONFLICT (agent_1_id, agent_2_id, listing_id) DO NOTHING`,
+      [agent1, agent2, listingId],
     );
 
     const result = await pool.query(
       `SELECT * FROM conversations
-       WHERE agent_1_id = $1 AND agent_2_id = $2`,
-      [agent1, agent2],
+       WHERE agent_1_id = $1 AND agent_2_id = $2 AND listing_id = $3`,
+      [agent1, agent2, listingId],
     );
 
     return NextResponse.json(

@@ -1,9 +1,20 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { ListingInput } from "@/lib/validation";
 import { Listing } from "@/lib/types";
+import {
+  PROPERTY_TYPES,
+  TRANSACTION_TYPES,
+  ACCESS_ROAD_TYPES,
+  FURNISHED_TYPES,
+  DIRECTION_TYPES,
+  LEGAL_STATUS_TYPES,
+  STRUCTURE_TYPES,
+  BUILDING_TYPES,
+  formatPrice,
+} from "@/lib/constants";
 import FreestyleEditor from "./FreestyleEditor";
 import DatabaseView from "./DatabaseView";
 
@@ -89,6 +100,76 @@ function listingToInput(listing: Listing): ListingInput {
   };
 }
 
+function lookup(
+  key: string | null | undefined,
+  map: Record<string, string>,
+): string | null {
+  if (!key) return null;
+  return map[key] ?? key;
+}
+
+/** Generate a human-readable text summary from structured listing fields. */
+function formDataToText(data: ListingInput): string {
+  const lines: string[] = [];
+
+  // Title line: transaction + property type + location
+  const parts: string[] = [];
+  if (data.transaction_type)
+    parts.push(lookup(data.transaction_type, TRANSACTION_TYPES) ?? "");
+  if (data.property_type)
+    parts.push(lookup(data.property_type, PROPERTY_TYPES) ?? "");
+  if (data.ward) parts.push(data.ward);
+  if (data.street) parts.push(data.street);
+  if (parts.length > 0) lines.push(parts.join(" - "));
+
+  // Price & Area
+  const priceArea: string[] = [];
+  if (data.price_vnd) priceArea.push(formatPrice(data.price_vnd));
+  else if (data.price_raw) priceArea.push(data.price_raw);
+  if (data.area_m2) priceArea.push(`${data.area_m2}m\u00B2`);
+  if (priceArea.length > 0) lines.push(priceArea.join(", "));
+
+  // Dimensions
+  const dims: string[] = [];
+  if (data.num_bedrooms) dims.push(`${data.num_bedrooms} bedrooms`);
+  if (data.num_bathrooms) dims.push(`${data.num_bathrooms} bathrooms`);
+  if (data.num_floors) dims.push(`${data.num_floors} floors`);
+  if (data.frontage_m) dims.push(`frontage ${data.frontage_m}m`);
+  if (data.depth_m) dims.push(`depth ${data.depth_m}m`);
+  if (data.total_construction_area)
+    dims.push(`construction ${data.total_construction_area}m\u00B2`);
+  if (dims.length > 0) lines.push(dims.join(", "));
+
+  // Features
+  const feats: string[] = [];
+  if (data.access_road)
+    feats.push(lookup(data.access_road, ACCESS_ROAD_TYPES) ?? "");
+  if (data.furnished)
+    feats.push(lookup(data.furnished, FURNISHED_TYPES) ?? "");
+  if (data.direction)
+    feats.push(`facing ${lookup(data.direction, DIRECTION_TYPES)}`);
+  if (data.structure_type)
+    feats.push(lookup(data.structure_type, STRUCTURE_TYPES) ?? "");
+  if (data.building_type)
+    feats.push(lookup(data.building_type, BUILDING_TYPES) ?? "");
+  if (data.legal_status)
+    feats.push(lookup(data.legal_status, LEGAL_STATUS_TYPES) ?? "");
+  if (data.corner_lot) feats.push("corner lot");
+  if (data.has_elevator) feats.push("elevator");
+  if (data.negotiable) feats.push("negotiable");
+  if (feats.length > 0) lines.push(feats.join(", "));
+
+  // Address
+  if (data.address_raw) lines.push(data.address_raw);
+
+  // Description (only if it adds info beyond what's already shown)
+  if (data.description && !lines.some((l) => l === data.description)) {
+    lines.push(data.description);
+  }
+
+  return lines.filter(Boolean).join("\n");
+}
+
 interface Props {
   existing?: Listing;
 }
@@ -107,16 +188,19 @@ export default function ListingForm({ existing }: Props) {
   const [saving, setSaving] = useState(false);
   const [parsing, setParsing] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  // Track what text was last parsed to avoid re-parsing unchanged text
+  const lastParsedText = useRef<string>("");
 
-  const handleParse = async () => {
-    if (!freestyleText.trim()) return;
+  const handleParse = async (text?: string) => {
+    const textToParse = text ?? freestyleText;
+    if (!textToParse.trim()) return;
     setParsing(true);
     setError(null);
     try {
       const res = await fetch("/api/parse", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ text: freestyleText }),
+        body: JSON.stringify({ text: textToParse }),
       });
       if (!res.ok) {
         setError("Failed to parse text");
@@ -130,13 +214,35 @@ export default function ListingForm({ existing }: Props) {
           (merged as Record<string, unknown>)[key] = value;
         }
       }
-      merged.freestyle_text = freestyleText;
+      merged.freestyle_text = textToParse;
       setFormData(merged);
+      lastParsedText.current = textToParse;
     } catch {
       setError("Parse request failed");
     } finally {
       setParsing(false);
     }
+  };
+
+  const switchMode = async (newMode: Mode) => {
+    if (newMode === mode) return;
+
+    if (newMode === "database" && freestyleText.trim()) {
+      // Freestyle → Database: auto-parse if text changed since last parse
+      if (freestyleText !== lastParsedText.current) {
+        setMode(newMode);
+        await handleParse();
+        return;
+      }
+    } else if (newMode === "freestyle") {
+      // Database → Freestyle: generate text from structured fields
+      const generated = formDataToText(formData);
+      if (generated.trim()) {
+        setFreestyleText(generated);
+      }
+    }
+
+    setMode(newMode);
   };
 
   const handleSave = async () => {
@@ -161,7 +267,14 @@ export default function ListingForm({ existing }: Props) {
 
       if (!res.ok) {
         const data = await res.json();
-        setError(data.error || "Failed to save listing");
+        let msg = data.error || "Failed to save listing";
+        if (data.details?.fieldErrors) {
+          const fields = Object.entries(data.details.fieldErrors)
+            .map(([k, v]) => `${k}: ${(v as string[]).join(", ")}`)
+            .join("; ");
+          msg += ` (${fields})`;
+        }
+        setError(msg);
         return;
       }
 
@@ -185,7 +298,8 @@ export default function ListingForm({ existing }: Props) {
       <div className="flex border rounded-lg overflow-hidden mb-4">
         <button
           type="button"
-          onClick={() => setMode("freestyle")}
+          onClick={() => switchMode("freestyle")}
+          disabled={parsing}
           className={`flex-1 px-4 py-2 text-sm font-medium ${
             mode === "freestyle"
               ? "bg-black text-white"
@@ -196,14 +310,15 @@ export default function ListingForm({ existing }: Props) {
         </button>
         <button
           type="button"
-          onClick={() => setMode("database")}
+          onClick={() => switchMode("database")}
+          disabled={parsing}
           className={`flex-1 px-4 py-2 text-sm font-medium ${
             mode === "database"
               ? "bg-black text-white"
               : "bg-white text-gray-600 hover:bg-gray-50"
           }`}
         >
-          Database View
+          {parsing ? "Parsing..." : "Database View"}
         </button>
       </div>
 
@@ -222,7 +337,7 @@ export default function ListingForm({ existing }: Props) {
         <button
           type="button"
           onClick={handleSave}
-          disabled={saving}
+          disabled={saving || parsing}
           className="px-6 py-2 bg-black text-white text-sm rounded-lg hover:bg-gray-800 disabled:opacity-50"
         >
           {saving

@@ -1,4 +1,38 @@
 import { NextRequest, NextResponse } from "next/server";
+import { spawn } from "child_process";
+import path from "path";
+
+function runPython(script: string, input: string): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const proc = spawn("python3", ["-c", script], {
+      env: { ...process.env, PYTHONIOENCODING: "utf-8" },
+      timeout: 10000,
+    });
+
+    let stdout = "";
+    let stderr = "";
+
+    proc.stdout.on("data", (data) => {
+      stdout += data.toString();
+    });
+    proc.stderr.on("data", (data) => {
+      stderr += data.toString();
+    });
+
+    proc.on("close", (code) => {
+      if (code === 0) {
+        resolve(stdout.trim());
+      } else {
+        reject(new Error(`Python exited with code ${code}: ${stderr}`));
+      }
+    });
+
+    proc.on("error", reject);
+
+    proc.stdin.write(input);
+    proc.stdin.end();
+  });
+}
 
 export async function POST(request: NextRequest) {
   try {
@@ -12,26 +46,31 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Stub response: will be replaced with actual TS parser when ready
-    return NextResponse.json({
-      parsed: {
-        property_type: null,
-        transaction_type: null,
-        price_raw: null,
-        price_vnd: null,
-        area_m2: null,
-        address_raw: null,
-        ward: null,
-        street: null,
-        district: null,
-        num_bedrooms: null,
-        num_floors: null,
-        frontage_m: null,
-        description: text,
-      },
-      message:
-        "Parser stub: full Vietnamese text parsing will be implemented in a future version",
-    });
+    const projectRoot = path.resolve(process.cwd(), "..");
+    const script = `
+import sys, json, dataclasses
+sys.path.insert(0, '${projectRoot}/src')
+from parsing.vietnamese_parser import parse_listing
+result = parse_listing(sys.stdin.read())
+d = dataclasses.asdict(result)
+if d.get('parse_errors'):
+    d['parse_errors'] = '; '.join(d['parse_errors'])
+else:
+    d['parse_errors'] = None
+print(json.dumps(d, ensure_ascii=False))
+`;
+
+    try {
+      const stdout = await runPython(script, text);
+      const parsed = JSON.parse(stdout);
+      return NextResponse.json({ parsed });
+    } catch (pyError) {
+      console.error("Python parser error:", pyError);
+      return NextResponse.json({
+        parsed: { description: text },
+        warning: "Parser unavailable, text saved as description only",
+      });
+    }
   } catch (error) {
     console.error("Parse error:", error);
     return NextResponse.json(

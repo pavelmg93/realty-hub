@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { Message, Conversation } from "@/lib/types";
 import { useAuth } from "@/hooks/useAuth";
+import { PROPERTY_TYPES, formatPrice } from "@/lib/constants";
 import MessageThread from "@/components/messages/MessageThread";
 import MessageInput from "@/components/messages/MessageInput";
 
@@ -65,7 +66,7 @@ export default function ConversationPage() {
       {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ body }),
+        body: JSON.stringify({ body, listing_id: conversation?.listing_id }),
       },
     );
     if (res.ok) {
@@ -107,7 +108,29 @@ export default function ConversationPage() {
         >
           &larr; Back
         </button>
-        <h2 className="font-semibold">{otherName}</h2>
+        <div>
+          <h2 className="font-semibold">{otherName}</h2>
+          {conversation && (
+            <p className="text-xs text-gray-500">
+              {[
+                conversation.listing_property_type
+                  ? PROPERTY_TYPES[
+                      conversation.listing_property_type as keyof typeof PROPERTY_TYPES
+                    ] || conversation.listing_property_type
+                  : null,
+                conversation.listing_ward,
+                conversation.listing_price_vnd
+                  ? formatPrice(conversation.listing_price_vnd)
+                  : null,
+                conversation.listing_area_m2
+                  ? `${conversation.listing_area_m2}m\u00B2`
+                  : null,
+              ]
+                .filter(Boolean)
+                .join(" \u00B7 ")}
+            </p>
+          )}
+        </div>
       </div>
 
       <MessageThread messages={messages} currentUserId={user?.id ?? 0} />

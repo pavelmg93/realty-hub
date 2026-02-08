@@ -87,17 +87,17 @@ After every completed successful coding session, update `docs/SESSION_LOG.md`
 with the full session entry. Keep only the latest session's key recommendations
 below so this file stays concise. See `docs/SESSION_LOG.md` for complete history.
 
-**Latest session: #5 — 2026-02-07 — ProMemo Web App: Full Frontend Implementation**
+**Latest session: #6 — 2026-02-08 — ProMemo Bug Fixes, Auto-Parse, Conversations Per Listing**
 
 Recommendations:
-- ProMemo web app at `localhost:8888` (Next.js 16, React 19, TypeScript, Tailwind v4).
-- `docker compose up -d` now starts the `web` service alongside other services.
-- For local dev: `cd web && npm run dev` (hot reload on port 8888).
-- Parse route is a stub — use Database View tab for structured field input.
-- TS parser port (Phase 4) is the next major milestone for freestyle parsing.
-- Feed supports 18 filter params; filters apply on "Apply" button click.
-- Messages poll every 5 seconds (no WebSocket yet).
-- After fresh DB, seed reference data then create an agent account via signup.
+- Clear `.next` cache (`rm -rf web/.next`) when routes return unexpected 404s — turbopack caches aggressively.
+- Parse API calls Python subprocess — requires python3 and src/parsing available from web/ parent dir.
+- Conversations are now per-listing (unique per agent_pair + listing_id).
+- Auto-parse on freestyle→database tab switch; reverse text generation on database→freestyle.
+- Validation uses z.preprocess coercion for BIGINT strings (node-postgres returns BIGINT as strings).
+- After `docker compose down -v && up -d`, run migrations 002-005 and seed_reference_data.sql.
+- Phase 4 (TypeScript Parser Port) is lower priority now that Python parser works via API.
+- Performance investigation still pending (dev server vs production build).
 - pgAdmin at `localhost:5050` for database browsing (auto-configured server).
 - Kestra runs as `user: "root"` (required for Docker socket / task containers).
 - `uv` installed at `~/.local/bin/uv`; venv at `.venv/`.

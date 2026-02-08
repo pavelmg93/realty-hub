@@ -121,7 +121,9 @@ export async function GET(request: NextRequest) {
       FROM parsed_listings pl
       JOIN agents a ON a.id = pl.agent_id
       LEFT JOIN conversations c ON (
-        (c.agent_1_id = LEAST(pl.agent_id, $${userIdParam}) AND c.agent_2_id = GREATEST(pl.agent_id, $${userIdParam}))
+        c.listing_id = pl.id
+        AND c.agent_1_id = LEAST(pl.agent_id, $${userIdParam})
+        AND c.agent_2_id = GREATEST(pl.agent_id, $${userIdParam})
       )
       WHERE ${whereClause}
       ORDER BY pl.${safeSort} ${safeOrder}

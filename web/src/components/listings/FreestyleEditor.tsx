@@ -3,7 +3,7 @@
 interface Props {
   value: string;
   onChange: (value: string) => void;
-  onParse: () => void;
+  onParse: () => Promise<void> | void;
   isParsing: boolean;
 }
 

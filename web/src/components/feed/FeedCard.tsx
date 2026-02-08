@@ -8,6 +8,9 @@ import {
   LEGAL_STATUS_TYPES,
   ACCESS_ROAD_TYPES,
   DIRECTION_TYPES,
+  FURNISHED_TYPES,
+  STRUCTURE_TYPES,
+  BUILDING_TYPES,
 } from "@/lib/constants";
 import StatusBadge from "@/components/listings/StatusBadge";
 
@@ -57,6 +60,7 @@ export default function FeedCard({ listing, currentUserId, onMessage }: Props) {
           {listing.num_bathrooms && <span>{listing.num_bathrooms} bath</span>}
           {listing.num_floors && <span>{listing.num_floors} floor</span>}
           {listing.frontage_m && <span>{listing.frontage_m}m front</span>}
+          {listing.depth_m && <span>{listing.depth_m}m deep</span>}
         </div>
       </div>
 
@@ -88,6 +92,27 @@ export default function FeedCard({ listing, currentUserId, onMessage }: Props) {
             ] || listing.access_road}
           </span>
         )}
+        {listing.furnished && (
+          <span className="text-xs px-1.5 py-0.5 bg-gray-100 text-gray-600 rounded">
+            {FURNISHED_TYPES[
+              listing.furnished as keyof typeof FURNISHED_TYPES
+            ] || listing.furnished}
+          </span>
+        )}
+        {listing.structure_type && (
+          <span className="text-xs px-1.5 py-0.5 bg-gray-100 text-gray-600 rounded">
+            {STRUCTURE_TYPES[
+              listing.structure_type as keyof typeof STRUCTURE_TYPES
+            ] || listing.structure_type}
+          </span>
+        )}
+        {listing.building_type && (
+          <span className="text-xs px-1.5 py-0.5 bg-gray-100 text-gray-600 rounded">
+            {BUILDING_TYPES[
+              listing.building_type as keyof typeof BUILDING_TYPES
+            ] || listing.building_type}
+          </span>
+        )}
         {listing.corner_lot && (
           <span className="text-xs px-1.5 py-0.5 bg-gray-100 text-gray-600 rounded">
             Corner
@@ -104,6 +129,12 @@ export default function FeedCard({ listing, currentUserId, onMessage }: Props) {
           </span>
         )}
       </div>
+
+      {listing.description && (
+        <p className="text-xs text-gray-500 mb-3 line-clamp-2">
+          {listing.description}
+        </p>
+      )}
 
       <div className="flex items-center justify-between text-xs pt-2 border-t">
         <div className="text-gray-500">

@@ -141,10 +141,11 @@ CREATE TABLE IF NOT EXISTS conversations (
     id              SERIAL PRIMARY KEY,
     agent_1_id      INTEGER NOT NULL REFERENCES agents(id),
     agent_2_id      INTEGER NOT NULL REFERENCES agents(id),
+    listing_id      INTEGER NOT NULL REFERENCES parsed_listings(id),
     created_at      TIMESTAMP NOT NULL DEFAULT NOW(),
     updated_at      TIMESTAMP NOT NULL DEFAULT NOW(),
     CONSTRAINT ck_conversations_ordered CHECK (agent_1_id < agent_2_id),
-    CONSTRAINT uq_conversations_pair UNIQUE (agent_1_id, agent_2_id)
+    CONSTRAINT uq_conversations_listing UNIQUE (agent_1_id, agent_2_id, listing_id)
 );
 
 CREATE TABLE IF NOT EXISTS messages (
@@ -159,6 +160,7 @@ CREATE TABLE IF NOT EXISTS messages (
 
 CREATE INDEX IF NOT EXISTS idx_conversations_agent1 ON conversations(agent_1_id);
 CREATE INDEX IF NOT EXISTS idx_conversations_agent2 ON conversations(agent_2_id);
+CREATE INDEX IF NOT EXISTS idx_conversations_listing ON conversations(listing_id);
 CREATE INDEX IF NOT EXISTS idx_messages_conversation ON messages(conversation_id);
 CREATE INDEX IF NOT EXISTS idx_messages_sender ON messages(sender_id);
 CREATE INDEX IF NOT EXISTS idx_messages_listing ON messages(listing_id);

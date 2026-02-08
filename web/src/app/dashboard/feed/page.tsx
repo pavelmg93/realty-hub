@@ -71,7 +71,10 @@ export default function FeedPage() {
       const res = await fetch("/api/conversations", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ other_agent_id: listing.agent_id }),
+        body: JSON.stringify({
+          other_agent_id: listing.agent_id,
+          listing_id: listing.id,
+        }),
       });
       if (res.ok) {
         const data = await res.json();

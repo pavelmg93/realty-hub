@@ -1,6 +1,7 @@
 "use client";
 
 import { Conversation } from "@/lib/types";
+import { PROPERTY_TYPES, formatPrice } from "@/lib/constants";
 
 interface Props {
   conversations: Conversation[];
@@ -41,6 +42,20 @@ export default function ConversationList({
               </span>
             )}
           </div>
+          <p className="text-xs text-gray-500 mt-0.5">
+            {[
+              c.listing_property_type
+                ? PROPERTY_TYPES[
+                    c.listing_property_type as keyof typeof PROPERTY_TYPES
+                  ] || c.listing_property_type
+                : null,
+              c.listing_ward,
+              c.listing_price_vnd ? formatPrice(c.listing_price_vnd) : null,
+              c.listing_area_m2 ? `${c.listing_area_m2}m²` : null,
+            ]
+              .filter(Boolean)
+              .join(" · ")}
+          </p>
           {c.last_message_preview && (
             <p className="text-xs text-gray-500 mt-0.5 truncate">
               {c.last_message_preview}

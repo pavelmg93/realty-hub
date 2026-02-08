@@ -8,6 +8,46 @@ For execution history, see the Kestra UI at localhost:8080 (Executions tab).
 
 ---
 
+### 2026-02-08 — ProMemo Web App: Session 6 Bug Fix Verification
+
+**What I tested**:
+- Edited listing transaction_type from blank to "for_sale" (previously caused validation error)
+- Verified 5 cho_thue listings corrected to "ban" after migration 005
+- Tested per-listing conversations (messaging Dean on different listings creates separate threads)
+- Tested auto-parse: typed Vietnamese listing text in freestyle, switched to database view
+- Tested reverse sync: edited fields in database view, switched to freestyle — text regenerated
+- Verified FeedCard shows new tags (furnished, structure_type, building_type, depth, description)
+
+**Observations**:
+- What worked:
+    - Validation fix works — can now edit and save listings with BIGINT price fields
+    - Per-listing conversations work — each listing gets independent "Message"/"Messages" button
+    - Auto-parse triggers correctly on tab switch, "Parsing..." state shows
+    - Reverse text generation produces readable summary from structured fields
+    - FeedCard tags render correctly for new fields
+    - ConversationList shows listing context (property type, ward, price, area)
+
+- What didn't:
+    - **Turbopack cache** caused multiple issues during development — routes returning 404 or stale responses despite code changes. Required `rm -rf web/.next` and dev server restart each time.
+    - **Performance still slow** on dev server — needs production build testing
+
+- Patterns noticed:
+    - node-postgres returns BIGINT as string — must use z.preprocess coercion in Zod schemas
+    - Turbopack dev server caches aggressively — always clear `.next` when routes misbehave
+
+**Action items**:
+- [x] Fix BIGINT validation (z.preprocess coercion helpers)
+- [x] Fix cho_thue → ban (migration 005)
+- [x] Per-listing conversations (migration 005 + API/UI updates)
+- [x] Auto-parse on tab switch
+- [x] Reverse text generation (database → freestyle)
+- [x] FeedCard feature tags
+- [ ] Performance investigation (dev server vs production build)
+- [ ] Add more filters to feed (furnished, structure_type, etc.)
+- [ ] Port TypeScript parser (lower priority now that Python parser works via API)
+
+---
+
 ### 2026-02-07 — ProMemo Web App: First Manual Test
 
 **What I tested**:
