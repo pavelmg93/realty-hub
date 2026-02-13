@@ -58,6 +58,7 @@ def parse_pending_listings(db_url: str, batch_id: str | None = None) -> dict[str
                         "outdoor_features, special_rooms, "
                         "feng_shui, total_construction_area, "
                         "land_characteristics, traffic_connectivity, building_type, "
+                        "road_width_m, num_frontages, distance_to_beach_m, "
                         "description, confidence, parse_errors) "
                         "VALUES (:raw_listing_id, :property_type, :transaction_type, "
                         ":price_raw, :price_vnd, :area_m2, :address_raw, :ward, :street, "
@@ -70,6 +71,7 @@ def parse_pending_listings(db_url: str, batch_id: str | None = None) -> dict[str
                         ":outdoor_features, :special_rooms, "
                         ":feng_shui, :total_construction_area, "
                         ":land_characteristics, :traffic_connectivity, :building_type, "
+                        ":road_width_m, :num_frontages, :distance_to_beach_m, "
                         ":description, :confidence, :parse_errors)"
                     ),
                     {
@@ -123,6 +125,9 @@ def parse_pending_listings(db_url: str, batch_id: str | None = None) -> dict[str
                         "land_characteristics": parsed.land_characteristics,
                         "traffic_connectivity": parsed.traffic_connectivity,
                         "building_type": parsed.building_type,
+                        "road_width_m": parsed.road_width_m,
+                        "num_frontages": parsed.num_frontages,
+                        "distance_to_beach_m": parsed.distance_to_beach_m,
                         "description": parsed.description,
                         "confidence": parsed.confidence,
                         "parse_errors": (

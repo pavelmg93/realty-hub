@@ -79,11 +79,11 @@ function FilterSelect({
 }) {
   return (
     <div>
-      <label className="block text-xs text-gray-500 mb-0.5">{label}</label>
+      <label className="block text-xs text-slate-500 mb-0.5">{label}</label>
       <select
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className="w-full border rounded px-2 py-1.5 text-sm bg-white"
+        className="w-full border border-slate-200 rounded-lg px-2 py-1.5 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-accent/30 focus:border-accent"
       >
         <option value="">All</option>
         {Object.entries(options).map(([k, v]) => (
@@ -111,16 +111,16 @@ export default function FeedFilters({
   ).length;
 
   return (
-    <div className="bg-white border rounded-lg p-4 mb-4">
+    <div className="bg-white border border-slate-200 rounded-xl p-4 mb-4">
       <div className="flex items-center justify-between mb-3">
-        <h3 className="text-sm font-semibold text-gray-700">
+        <h3 className="text-sm font-semibold text-slate-700">
           Filters{activeCount > 0 && ` (${activeCount})`}
         </h3>
         <div className="flex gap-2">
           {activeCount > 0 && (
             <button
               onClick={onReset}
-              className="text-xs text-gray-500 hover:text-gray-700"
+              className="text-xs text-slate-500 hover:text-slate-700"
             >
               Reset
             </button>
@@ -192,7 +192,7 @@ export default function FeedFilters({
           onChange={(v) => set("building_type", v)}
         />
         <div>
-          <label className="block text-xs text-gray-500 mb-0.5">
+          <label className="block text-xs text-slate-500 mb-0.5">
             Min Price (VND)
           </label>
           <input
@@ -200,11 +200,11 @@ export default function FeedFilters({
             value={filters.price_min}
             onChange={(e) => set("price_min", e.target.value)}
             placeholder="0"
-            className="w-full border rounded px-2 py-1.5 text-sm"
+            className="w-full border border-slate-200 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-accent/30 focus:border-accent"
           />
         </div>
         <div>
-          <label className="block text-xs text-gray-500 mb-0.5">
+          <label className="block text-xs text-slate-500 mb-0.5">
             Max Price (VND)
           </label>
           <input
@@ -212,11 +212,11 @@ export default function FeedFilters({
             value={filters.price_max}
             onChange={(e) => set("price_max", e.target.value)}
             placeholder="Any"
-            className="w-full border rounded px-2 py-1.5 text-sm"
+            className="w-full border border-slate-200 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-accent/30 focus:border-accent"
           />
         </div>
         <div>
-          <label className="block text-xs text-gray-500 mb-0.5">
+          <label className="block text-xs text-slate-500 mb-0.5">
             Min Area (m²)
           </label>
           <input
@@ -224,11 +224,11 @@ export default function FeedFilters({
             value={filters.area_min}
             onChange={(e) => set("area_min", e.target.value)}
             placeholder="0"
-            className="w-full border rounded px-2 py-1.5 text-sm"
+            className="w-full border border-slate-200 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-accent/30 focus:border-accent"
           />
         </div>
         <div>
-          <label className="block text-xs text-gray-500 mb-0.5">
+          <label className="block text-xs text-slate-500 mb-0.5">
             Max Area (m²)
           </label>
           <input
@@ -236,11 +236,11 @@ export default function FeedFilters({
             value={filters.area_max}
             onChange={(e) => set("area_max", e.target.value)}
             placeholder="Any"
-            className="w-full border rounded px-2 py-1.5 text-sm"
+            className="w-full border border-slate-200 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-accent/30 focus:border-accent"
           />
         </div>
         <div>
-          <label className="block text-xs text-gray-500 mb-0.5">
+          <label className="block text-xs text-slate-500 mb-0.5">
             Min Beds
           </label>
           <input
@@ -249,7 +249,7 @@ export default function FeedFilters({
             onChange={(e) => set("num_bedrooms_min", e.target.value)}
             placeholder="Any"
             min="0"
-            className="w-full border rounded px-2 py-1.5 text-sm"
+            className="w-full border border-slate-200 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-accent/30 focus:border-accent"
           />
         </div>
         <div className="flex flex-col gap-1 justify-end">
@@ -260,7 +260,7 @@ export default function FeedFilters({
               onChange={(e) =>
                 set("corner_lot", e.target.checked ? "true" : "")
               }
-              className="rounded"
+              className="rounded accent-accent"
             />
             Corner Lot
           </label>
@@ -271,7 +271,7 @@ export default function FeedFilters({
               onChange={(e) =>
                 set("has_elevator", e.target.checked ? "true" : "")
               }
-              className="rounded"
+              className="rounded accent-accent"
             />
             Elevator
           </label>
@@ -282,23 +282,23 @@ export default function FeedFilters({
               onChange={(e) =>
                 set("negotiable", e.target.checked ? "true" : "")
               }
-              className="rounded"
+              className="rounded accent-accent"
             />
             Negotiable
           </label>
         </div>
       </div>
 
-      <div className="flex items-center justify-between mt-3 pt-3 border-t">
+      <div className="flex items-center justify-between mt-3 pt-3 border-t border-slate-100">
         <div>
-          <label className="text-xs text-gray-500 mr-2">Sort by:</label>
+          <label className="text-xs text-slate-500 mr-2">Sort by:</label>
           <select
             value={`${filters.sort}-${filters.order}`}
             onChange={(e) => {
               const [s, o] = e.target.value.split("-");
               onChange({ ...filters, sort: s, order: o });
             }}
-            className="text-sm border rounded px-2 py-1 bg-white"
+            className="text-sm border border-slate-200 rounded-lg px-2 py-1 bg-white focus:outline-none focus:ring-2 focus:ring-accent/30 focus:border-accent"
           >
             <option value="created_at-desc">Newest</option>
             <option value="updated_at-desc">Recently Updated</option>
@@ -310,7 +310,7 @@ export default function FeedFilters({
         </div>
         <button
           onClick={onApply}
-          className="px-4 py-1.5 bg-black text-white text-sm rounded-lg hover:bg-gray-800"
+          className="px-4 py-1.5 bg-accent text-white text-sm rounded-lg hover:bg-accent-hover transition-colors font-medium"
         >
           Apply
         </button>

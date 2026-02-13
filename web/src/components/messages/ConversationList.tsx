@@ -16,33 +16,33 @@ export default function ConversationList({
 }: Props) {
   if (conversations.length === 0) {
     return (
-      <div className="text-center py-8 text-gray-400 text-sm">
+      <div className="text-center py-8 text-slate-400 text-sm">
         No conversations yet
       </div>
     );
   }
 
   return (
-    <div className="divide-y">
+    <div className="divide-y divide-slate-100">
       {conversations.map((c) => (
         <button
           key={c.id}
           onClick={() => onSelect(c.id)}
-          className={`w-full text-left px-4 py-3 hover:bg-gray-50 transition-colors ${
-            activeId === c.id ? "bg-gray-50" : ""
+          className={`w-full text-left px-4 py-3 hover:bg-slate-50 transition-colors ${
+            activeId === c.id ? "bg-navy/5" : ""
           }`}
         >
           <div className="flex items-center justify-between">
-            <span className="font-medium text-sm">
+            <span className="font-medium text-sm text-slate-800">
               {c.other_agent_name || c.other_agent_username || "Agent"}
             </span>
             {(c.unread_count ?? 0) > 0 && (
-              <span className="bg-blue-600 text-white text-xs rounded-full px-1.5 py-0.5 min-w-[20px] text-center">
+              <span className="bg-accent text-white text-xs rounded-full px-1.5 py-0.5 min-w-[20px] text-center font-medium">
                 {c.unread_count}
               </span>
             )}
           </div>
-          <p className="text-xs text-gray-500 mt-0.5">
+          <p className="text-xs text-slate-500 mt-0.5">
             {[
               c.listing_property_type
                 ? PROPERTY_TYPES[
@@ -57,12 +57,12 @@ export default function ConversationList({
               .join(" · ")}
           </p>
           {c.last_message_preview && (
-            <p className="text-xs text-gray-500 mt-0.5 truncate">
+            <p className="text-xs text-slate-500 mt-0.5 truncate">
               {c.last_message_preview}
             </p>
           )}
           {c.last_message_at && (
-            <p className="text-xs text-gray-400 mt-0.5">
+            <p className="text-xs text-slate-400 mt-0.5">
               {new Date(c.last_message_at).toLocaleDateString("en-US", {
                 month: "short",
                 day: "numeric",

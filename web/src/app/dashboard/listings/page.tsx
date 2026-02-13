@@ -62,33 +62,33 @@ export default function ListingsPage() {
   return (
     <div>
       <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold">My Listings</h1>
+        <h1 className="text-2xl font-bold text-slate-800">My Listings</h1>
         <Link
           href="/dashboard/listings/new"
-          className="px-4 py-2 bg-black text-white text-sm rounded-lg hover:bg-gray-800"
+          className="px-4 py-2 bg-accent text-white text-sm rounded-lg hover:bg-accent-hover font-medium transition-colors"
         >
           + Add New
         </Link>
       </div>
 
       <div className="flex items-center gap-4 mb-4">
-        <div className="flex border rounded-lg overflow-hidden">
+        <div className="flex border border-slate-200 rounded-lg overflow-hidden">
           <button
             onClick={() => setTab("active")}
-            className={`px-4 py-2 text-sm font-medium ${
+            className={`px-4 py-2 text-sm font-medium transition-colors ${
               tab === "active"
-                ? "bg-black text-white"
-                : "bg-white text-gray-600 hover:bg-gray-50"
+                ? "bg-navy text-white"
+                : "bg-white text-slate-600 hover:bg-slate-50"
             }`}
           >
             Active
           </button>
           <button
             onClick={() => setTab("archived")}
-            className={`px-4 py-2 text-sm font-medium ${
+            className={`px-4 py-2 text-sm font-medium transition-colors ${
               tab === "archived"
-                ? "bg-black text-white"
-                : "bg-white text-gray-600 hover:bg-gray-50"
+                ? "bg-navy text-white"
+                : "bg-white text-slate-600 hover:bg-slate-50"
             }`}
           >
             Archived
@@ -105,7 +105,7 @@ export default function ListingsPage() {
             setSortField(field);
             setSortOrder(order);
           }}
-          className="text-sm border rounded-lg px-3 py-2 bg-white"
+          className="text-sm border border-slate-200 rounded-lg px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-accent/30 focus:border-accent"
         >
           <option value="updated_at-desc">Recently Updated</option>
           <option value="created_at-desc">Newest First</option>
@@ -114,9 +114,9 @@ export default function ListingsPage() {
       </div>
 
       {loading ? (
-        <div className="text-center py-12 text-gray-400">Loading...</div>
+        <div className="text-center py-12 text-slate-400">Loading...</div>
       ) : listings.length === 0 ? (
-        <div className="text-center py-12 text-gray-400">
+        <div className="text-center py-12 text-slate-400">
           {tab === "active"
             ? "No active listings. Create your first one!"
             : "No archived listings."}

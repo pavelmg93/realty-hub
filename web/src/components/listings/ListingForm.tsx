@@ -57,6 +57,8 @@ const EMPTY_LISTING: ListingInput = {
   land_characteristics: null,
   traffic_connectivity: null,
   building_type: null,
+  latitude: null,
+  longitude: null,
 };
 
 function listingToInput(listing: Listing): ListingInput {
@@ -97,6 +99,8 @@ function listingToInput(listing: Listing): ListingInput {
     land_characteristics: listing.land_characteristics,
     traffic_connectivity: listing.traffic_connectivity,
     building_type: listing.building_type,
+    latitude: listing.latitude,
+    longitude: listing.longitude,
   };
 }
 
@@ -159,14 +163,6 @@ function formDataToText(data: ListingInput): string {
   if (data.negotiable) feats.push("negotiable");
   if (feats.length > 0) lines.push(feats.join(", "));
 
-  // Address
-  if (data.address_raw) lines.push(data.address_raw);
-
-  // Description (only if it adds info beyond what's already shown)
-  if (data.description && !lines.some((l) => l === data.description)) {
-    lines.push(data.description);
-  }
-
   return lines.filter(Boolean).join("\n");
 }
 
@@ -177,11 +173,9 @@ interface Props {
 export default function ListingForm({ existing }: Props) {
   const router = useRouter();
   const [mode, setMode] = useState<Mode>(
-    existing?.freestyle_text ? "freestyle" : "database",
+    existing ? "database" : "freestyle",
   );
-  const [freestyleText, setFreestyleText] = useState(
-    existing?.freestyle_text ?? "",
-  );
+  const [freestyleText, setFreestyleText] = useState("");
   const [formData, setFormData] = useState<ListingInput>(
     existing ? listingToInput(existing) : { ...EMPTY_LISTING },
   );
@@ -192,7 +186,7 @@ export default function ListingForm({ existing }: Props) {
   const lastParsedText = useRef<string>("");
 
   const handleParse = async (text?: string) => {
-    const textToParse = text ?? freestyleText;
+    const textToParse = typeof text === "string" ? text : freestyleText;
     if (!textToParse.trim()) return;
     setParsing(true);
     setError(null);
@@ -224,23 +218,14 @@ export default function ListingForm({ existing }: Props) {
     }
   };
 
-  const switchMode = async (newMode: Mode) => {
+  const switchMode = (newMode: Mode) => {
     if (newMode === mode) return;
 
-    if (newMode === "database" && freestyleText.trim()) {
-      // Freestyle → Database: auto-parse if text changed since last parse
-      if (freestyleText !== lastParsedText.current) {
-        setMode(newMode);
-        await handleParse();
-        return;
-      }
-    } else if (newMode === "freestyle") {
-      // Database → Freestyle: generate text from structured fields
-      const generated = formDataToText(formData);
-      if (generated.trim()) {
-        setFreestyleText(generated);
-      }
+    if (newMode === "freestyle") {
+      // Database → Freestyle: generate a clean summary from structured fields
+      setFreestyleText(formDataToText(formData));
     }
+    // Freestyle → Database: no auto-parse. User clicks "Parse Text" explicitly.
 
     setMode(newMode);
   };
@@ -251,7 +236,7 @@ export default function ListingForm({ existing }: Props) {
     try {
       const payload = {
         ...formData,
-        freestyle_text: freestyleText || null,
+        freestyle_text: mode === "freestyle" ? freestyleText || null : null,
       };
 
       const url = existing
@@ -290,20 +275,20 @@ export default function ListingForm({ existing }: Props) {
   return (
     <div>
       {error && (
-        <div className="mb-4 p-3 bg-red-50 text-red-700 text-sm rounded-lg">
+        <div className="mb-4 p-3 bg-red-50 text-red-700 text-sm rounded-lg border border-red-100">
           {error}
         </div>
       )}
 
-      <div className="flex border rounded-lg overflow-hidden mb-4">
+      <div className="flex border border-slate-200 rounded-lg overflow-hidden mb-4">
         <button
           type="button"
           onClick={() => switchMode("freestyle")}
           disabled={parsing}
-          className={`flex-1 px-4 py-2 text-sm font-medium ${
+          className={`flex-1 px-4 py-2 text-sm font-medium transition-colors ${
             mode === "freestyle"
-              ? "bg-black text-white"
-              : "bg-white text-gray-600 hover:bg-gray-50"
+              ? "bg-navy text-white"
+              : "bg-white text-slate-600 hover:bg-slate-50"
           }`}
         >
           Freestyle Message
@@ -312,10 +297,10 @@ export default function ListingForm({ existing }: Props) {
           type="button"
           onClick={() => switchMode("database")}
           disabled={parsing}
-          className={`flex-1 px-4 py-2 text-sm font-medium ${
+          className={`flex-1 px-4 py-2 text-sm font-medium transition-colors ${
             mode === "database"
-              ? "bg-black text-white"
-              : "bg-white text-gray-600 hover:bg-gray-50"
+              ? "bg-navy text-white"
+              : "bg-white text-slate-600 hover:bg-slate-50"
           }`}
         >
           {parsing ? "Parsing..." : "Database View"}
@@ -333,12 +318,12 @@ export default function ListingForm({ existing }: Props) {
         <DatabaseView data={formData} onChange={setFormData} />
       )}
 
-      <div className="flex items-center gap-3 mt-6 pt-4 border-t">
+      <div className="flex items-center gap-3 mt-6 pt-4 border-t border-slate-200">
         <button
           type="button"
           onClick={handleSave}
           disabled={saving || parsing}
-          className="px-6 py-2 bg-black text-white text-sm rounded-lg hover:bg-gray-800 disabled:opacity-50"
+          className="px-6 py-2 bg-accent text-white text-sm rounded-lg hover:bg-accent-hover disabled:opacity-50 font-medium transition-colors"
         >
           {saving
             ? "Saving..."
@@ -349,7 +334,7 @@ export default function ListingForm({ existing }: Props) {
         <button
           type="button"
           onClick={() => router.push("/dashboard/listings")}
-          className="px-4 py-2 text-sm text-gray-600 hover:text-gray-800"
+          className="px-4 py-2 text-sm text-slate-600 hover:text-slate-800"
         >
           Cancel
         </button>

@@ -22,8 +22,17 @@ export async function GET(
       );
     }
 
+    // Any authenticated user can view any listing (read-only)
+    // Ownership is checked for PUT/DELETE only
     const result = await pool.query(
-      `SELECT * FROM parsed_listings WHERE id = $1`,
+      `SELECT pl.*,
+        a.username AS owner_username,
+        a.first_name AS owner_first_name,
+        a.phone AS owner_phone,
+        a.email AS owner_email
+      FROM parsed_listings pl
+      LEFT JOIN agents a ON a.id = pl.agent_id
+      WHERE pl.id = $1`,
       [listingId],
     );
 
@@ -34,12 +43,7 @@ export async function GET(
       );
     }
 
-    const listing = result.rows[0];
-    if (listing.agent_id !== auth.userId) {
-      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-    }
-
-    return NextResponse.json({ listing });
+    return NextResponse.json({ listing: result.rows[0] });
   } catch (error) {
     console.error("Listing GET error:", error);
     return NextResponse.json(
@@ -106,8 +110,10 @@ export async function PUT(
         nearby_amenities = $28, investment_use_case = $29, outdoor_features = $30,
         special_rooms = $31, feng_shui = $32, total_construction_area = $33,
         land_characteristics = $34, traffic_connectivity = $35, building_type = $36,
+        latitude = $37, longitude = $38,
+        road_width_m = $39, num_frontages = $40, distance_to_beach_m = $41,
         updated_at = NOW()
-      WHERE id = $37
+      WHERE id = $42
       RETURNING *`,
       [
         data.property_type ?? null,
@@ -148,6 +154,11 @@ export async function PUT(
         data.land_characteristics ?? null,
         data.traffic_connectivity ?? null,
         data.building_type ?? null,
+        data.latitude ?? null,
+        data.longitude ?? null,
+        data.road_width_m ?? null,
+        data.num_frontages ?? null,
+        data.distance_to_beach_m ?? null,
         listingId,
       ],
     );

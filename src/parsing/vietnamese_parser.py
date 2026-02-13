@@ -4,7 +4,6 @@ Extracts structured fields (price, area, property type, location, etc.)
 from Vietnamese-language listing text using regex patterns.
 """
 
-import json
 import re
 from dataclasses import dataclass, field
 
@@ -278,7 +277,12 @@ ELEVATOR_PATTERN = re.compile(
 
 # Nearby amenities keywords
 AMENITY_PATTERNS: list[tuple[re.Pattern[str], str]] = [
-    (re.compile(r"gần biển|gan bien|cách biển|cach bien|sát biển|view biển", re.IGNORECASE), "bien"),
+    (
+        re.compile(
+            r"gần biển|gan bien|cách biển|cach bien|sát biển|view biển", re.IGNORECASE
+        ),
+        "bien",
+    ),
     (re.compile(r"gần chợ|gan cho|cách chợ|cach cho|sát chợ", re.IGNORECASE), "cho"),
     (
         re.compile(
@@ -315,7 +319,12 @@ AMENITY_PATTERNS: list[tuple[re.Pattern[str], str]] = [
 INVESTMENT_PATTERNS: list[tuple[re.Pattern[str], str]] = [
     (re.compile(r"đầu tư|dau tu", re.IGNORECASE), "dau_tu"),
     (re.compile(r"kinh doanh|kinh doang", re.IGNORECASE), "kinh_doanh"),
-    (re.compile(r"cho thuê phòng|cho thue phong|cho thuê lại|cho thue lai", re.IGNORECASE), "cho_thue"),
+    (
+        re.compile(
+            r"cho thuê phòng|cho thue phong|cho thuê lại|cho thue lai", re.IGNORECASE
+        ),
+        "cho_thue",
+    ),
     (re.compile(r"homestay", re.IGNORECASE), "homestay"),
     (re.compile(r"văn phòng|van phong|VP\b", re.IGNORECASE), "van_phong"),
     (re.compile(r"an cư|an cu|để ở|de o|vừa ở|vua o", re.IGNORECASE), "an_cu"),
@@ -370,7 +379,12 @@ LAND_CHAR_PATTERNS: list[tuple[re.Pattern[str], str]] = [
 
 # Traffic connectivity
 TRAFFIC_PATTERNS: list[tuple[re.Pattern[str], str]] = [
-    (re.compile(r"trung tâm\s*(?:thành phố|tp)|trung tam\s*(?:thanh pho|tp)", re.IGNORECASE), "trung_tam"),
+    (
+        re.compile(
+            r"trung tâm\s*(?:thành phố|tp)|trung tam\s*(?:thanh pho|tp)", re.IGNORECASE
+        ),
+        "trung_tam",
+    ),
     (re.compile(r"gần sân bay|gan san bay", re.IGNORECASE), "gan_san_bay"),
     (re.compile(r"gần quốc lộ|gan quoc lo", re.IGNORECASE), "gan_quoc_lo"),
     (
@@ -387,8 +401,40 @@ BUILDING_TYPE_PATTERNS: list[tuple[re.Pattern[str], str]] = [
     (re.compile(r"xây mới|xay moi|mới xây|moi xay", re.IGNORECASE), "xay_moi"),
     (re.compile(r"xây kiên cố|xay kien co|kiên cố|kien co", re.IGNORECASE), "kien_co"),
     (re.compile(r"nhà cũ|nha cu|cũ|cu\b", re.IGNORECASE), "nha_cu"),
-    (re.compile(r"mới sửa|moi sua|sửa chữa|sua chua|tân trang|tan trang", re.IGNORECASE), "moi_sua"),
+    (
+        re.compile(
+            r"mới sửa|moi sua|sửa chữa|sua chua|tân trang|tan trang", re.IGNORECASE
+        ),
+        "moi_sua",
+    ),
 ]
+
+# Road width: "đường rộng 20m", "đường 15m", "lộ 12m", "lộ rộng 8m"
+ROAD_WIDTH_PATTERN = re.compile(
+    r"(?:đường|duong|lộ|lo)\s*(?:rộng\s*)?(\d+[.,]?\d*)\s*m\b",
+    re.IGNORECASE,
+)
+
+# Distance to beach: "cách biển 300m", "cách biển chỉ 500m"
+DISTANCE_TO_BEACH_PATTERN = re.compile(
+    r"cách\s*biển\s*(?:chỉ\s*)?(\d+[.,]?\d*)\s*m\b",
+    re.IGNORECASE,
+)
+
+# Number of frontages: "2 mặt tiền", "3 MT", "hai mặt tiền"
+NUM_FRONTAGES_PATTERN = re.compile(
+    r"(\d+)\s*(?:mặt tiền|mat tien|mt)\b",
+    re.IGNORECASE,
+)
+
+# Vietnamese word-form numbers for frontages
+_VIET_NUM_WORDS: dict[str, int] = {
+    "hai": 2, "ba": 3, "bốn": 4, "bon": 4,
+}
+NUM_FRONTAGES_WORD_PATTERN = re.compile(
+    r"(hai|ba|bốn|bon)\s*(?:mặt tiền|mat tien|mt)\b",
+    re.IGNORECASE,
+)
 
 
 # Nha Trang wards (phường) and communes (xã) — comprehensive list
@@ -470,6 +516,10 @@ class ParsedListing:
     land_characteristics: str | None = None
     traffic_connectivity: str | None = None
     building_type: str | None = None
+    # Session 9: scraping-derived fields
+    road_width_m: float | None = None
+    num_frontages: int | None = None
+    distance_to_beach_m: float | None = None
 
 
 def _normalize_number(s: str) -> float:
@@ -552,7 +602,12 @@ def extract_location(text: str) -> dict[str, str | None]:
 
     street_match = STREET_PATTERN.search(text)
     if street_match:
-        location["street"] = street_match.group(1).strip()
+        street_val = street_match.group(1).strip()
+        # Reject false positives: "đường rộng 20m" (road width), not a street name
+        if not re.match(
+            r"^(?:rộng|rong|lớn|lon|nhỏ|nho)\b", street_val, re.IGNORECASE
+        ):
+            location["street"] = street_val
 
     district_match = DISTRICT_PATTERN.search(text)
     if district_match:
@@ -1036,6 +1091,57 @@ def extract_building_type(text: str) -> str | None:
     return None
 
 
+def extract_road_width(text: str) -> float | None:
+    """Extract road/street width in meters from Vietnamese text.
+
+    Args:
+        text: Vietnamese listing text.
+
+    Returns:
+        Road width in meters or None.
+    """
+    match = ROAD_WIDTH_PATTERN.search(text)
+    if match:
+        return _normalize_number(match.group(1))
+    return None
+
+
+def extract_distance_to_beach(text: str) -> float | None:
+    """Extract distance to beach in meters from Vietnamese text.
+
+    Args:
+        text: Vietnamese listing text.
+
+    Returns:
+        Distance to beach in meters or None.
+    """
+    match = DISTANCE_TO_BEACH_PATTERN.search(text)
+    if match:
+        return _normalize_number(match.group(1))
+    return None
+
+
+def extract_num_frontages(text: str) -> int | None:
+    """Extract number of road-facing frontages from Vietnamese text.
+
+    Args:
+        text: Vietnamese listing text.
+
+    Returns:
+        Number of frontages (2, 3, etc.) or None.
+    """
+    # Try digit form first: "2 mặt tiền"
+    match = NUM_FRONTAGES_PATTERN.search(text)
+    if match:
+        return int(match.group(1))
+    # Try word form: "hai mặt tiền"
+    match = NUM_FRONTAGES_WORD_PATTERN.search(text)
+    if match:
+        word = match.group(1).lower()
+        return _VIET_NUM_WORDS.get(word)
+    return None
+
+
 def parse_listing(text: str) -> ParsedListing:
     """Extract all structured fields from a Vietnamese listing text.
 
@@ -1093,6 +1199,11 @@ def parse_listing(text: str) -> ParsedListing:
     result.land_characteristics = extract_land_characteristics(text)
     result.traffic_connectivity = extract_traffic_connectivity(text)
     result.building_type = extract_building_type(text)
+
+    # Session 9: new scraping-derived extractors
+    result.road_width_m = extract_road_width(text)
+    result.num_frontages = extract_num_frontages(text)
+    result.distance_to_beach_m = extract_distance_to_beach(text)
 
     # Compute price_per_m2 if not stated explicitly but price and area are known
     if not result.price_per_m2 and result.price_vnd and result.area_m2:

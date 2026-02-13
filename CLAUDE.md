@@ -87,20 +87,20 @@ After every completed successful coding session, update `docs/SESSION_LOG.md`
 with the full session entry. Keep only the latest session's key recommendations
 below so this file stays concise. See `docs/SESSION_LOG.md` for complete history.
 
-**Latest session: #6 — 2026-02-08 — ProMemo Bug Fixes, Auto-Parse, Conversations Per Listing**
+**Latest session: #9b — 2026-02-14 — Web Scraping Pipeline Bug Fixes**
 
 Recommendations:
-- Clear `.next` cache (`rm -rf web/.next`) when routes return unexpected 404s — turbopack caches aggressively.
-- Parse API calls Python subprocess — requires python3 and src/parsing available from web/ parent dir.
-- Conversations are now per-listing (unique per agent_pair + listing_id).
-- Auto-parse on freestyle→database tab switch; reverse text generation on database→freestyle.
-- Validation uses z.preprocess coercion for BIGINT strings (node-postgres returns BIGINT as strings).
-- After `docker compose down -v && up -d`, run migrations 002-005 and seed_reference_data.sql.
-- Phase 4 (TypeScript Parser Port) is lower priority now that Python parser works via API.
-- Performance investigation still pending (dev server vs production build).
-- pgAdmin at `localhost:5050` for database browsing (auto-configured server).
-- Kestra runs as `user: "root"` (required for Docker socket / task containers).
+- **Migration 007** adds `source_url`, `source_listing_id` to raw_listings; `road_width_m`, `num_frontages`, `distance_to_beach_m` to parsed_listings.
+- After `docker compose down -v && up -d`, run migrations 002-007 and seed_reference_data.sql.
+- Create agent before scraping: `./scripts/create_agent.sh chauloan "Chau Loan" bdsntorg 0901953889`
+- Run scraper: `python -m src.scraping.cli --site batdongsannhatrang --agent-phone 0901953889 --max-listings 5`
+- Scraper dependencies: `uv pip install -e ".[scraping]"` + `playwright install chromium`
+- Photos stored in `./uploads/listings/<parsed_id>/` with content-hashed filenames.
+- Scraper overlays structured JSON from site on top of Vietnamese parser results.
+- Re-running scraper skips already-imported URLs (unique index on source_url).
 - `uv` installed at `~/.local/bin/uv`; venv at `.venv/`.
+- Docker container name: `re-nhatrang-app-postgres-1` (not `renhatrang-postgres`).
+- DB credentials: user=re_nhatrang, db=re_nhatrang (underscores, not plain).
 
 ## Documentation Style - ASCII Diagrams
 - Use pure ASCII only: `+`, `-`, `|`, `>`, `<`, `v`, `^`

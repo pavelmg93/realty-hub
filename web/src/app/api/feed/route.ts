@@ -56,6 +56,8 @@ export async function GET(request: NextRequest) {
       { key: "corner_lot", column: "pl.corner_lot", type: "bool" },
       { key: "has_elevator", column: "pl.has_elevator", type: "bool" },
       { key: "negotiable", column: "pl.negotiable", type: "bool" },
+      { key: "num_frontages_min", column: "pl.num_frontages", type: "gte" },
+      { key: "distance_to_beach_max", column: "pl.distance_to_beach_m", type: "lte" },
     ];
 
     for (const filter of filters) {
@@ -117,7 +119,9 @@ export async function GET(request: NextRequest) {
         a.first_name AS owner_first_name,
         a.phone AS owner_phone,
         a.email AS owner_email,
-        c.id AS existing_conversation_id
+        c.id AS existing_conversation_id,
+        (SELECT COUNT(*) FROM listing_photos lp WHERE lp.listing_id = pl.id) AS photo_count,
+        (SELECT lp.file_path FROM listing_photos lp WHERE lp.listing_id = pl.id ORDER BY lp.display_order LIMIT 1) AS primary_photo
       FROM parsed_listings pl
       JOIN agents a ON a.id = pl.agent_id
       LEFT JOIN conversations c ON (

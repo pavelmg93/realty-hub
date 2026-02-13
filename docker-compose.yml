@@ -128,10 +128,12 @@ services:
       DATABASE_URL: postgresql://${APP_DB_USER:-re_nhatrang}:${APP_DB_PASSWORD:-change_me_in_production}@app-postgres:5432/${APP_DB_NAME:-re_nhatrang}
       JWT_SECRET: ${JWT_SECRET:-dev-secret-change-me}
       NEXT_PUBLIC_APP_NAME: ProMemo
+      UPLOAD_DIR: /app/uploads
     volumes:
       - ./web:/app
       - /app/node_modules
       - /app/.next
+      - ./uploads:/app/uploads
     depends_on:
       app-postgres:
         condition: service_healthy
@@ -157,6 +159,7 @@ volumes:
   kestra-pg-data:
   app-pg-data:
   redis-data:
+  uploads-data:
 
 networks:
   re-nhatrang:

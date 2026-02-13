@@ -80,7 +80,9 @@ export async function POST(request: NextRequest) {
         has_elevator, nearby_amenities, investment_use_case,
         outdoor_features, special_rooms, feng_shui,
         total_construction_area, land_characteristics,
-        traffic_connectivity, building_type
+        traffic_connectivity, building_type,
+        latitude, longitude,
+        road_width_m, num_frontages, distance_to_beach_m
       ) VALUES (
         $1, $2,
         $3, $4, $5, $6,
@@ -92,7 +94,9 @@ export async function POST(request: NextRequest) {
         $29, $30, $31,
         $32, $33, $34,
         $35, $36,
-        $37, $38
+        $37, $38,
+        $39, $40,
+        $41, $42, $43
       ) RETURNING *`,
       [
         auth.userId,
@@ -135,6 +139,11 @@ export async function POST(request: NextRequest) {
         data.land_characteristics ?? null,
         data.traffic_connectivity ?? null,
         data.building_type ?? null,
+        data.latitude ?? null,
+        data.longitude ?? null,
+        data.road_width_m ?? null,
+        data.num_frontages ?? null,
+        data.distance_to_beach_m ?? null,
       ],
     );
 

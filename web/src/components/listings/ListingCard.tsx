@@ -30,17 +30,17 @@ export default function ListingCard({
     ] || listing.transaction_type;
 
   return (
-    <div className="bg-white border rounded-lg p-4 hover:shadow-sm transition-shadow">
-      <div className="flex items-start justify-between gap-2 mb-2">
+    <div className="bg-white border border-slate-200 rounded-xl p-5 hover:shadow-md transition-shadow">
+      <div className="flex items-start justify-between gap-2 mb-3">
         <div className="flex flex-wrap gap-1.5">
           <StatusBadge status={listing.status} />
           {propertyLabel && (
-            <span className="text-xs px-2 py-0.5 bg-blue-50 text-blue-700 rounded-full">
+            <span className="text-xs px-2 py-0.5 bg-navy/5 text-navy rounded-full font-medium">
               {propertyLabel}
             </span>
           )}
           {txLabel && (
-            <span className="text-xs px-2 py-0.5 bg-purple-50 text-purple-700 rounded-full">
+            <span className="text-xs px-2 py-0.5 bg-accent/10 text-accent rounded-full font-medium">
               {txLabel}
             </span>
           )}
@@ -49,10 +49,10 @@ export default function ListingCard({
 
       <div className="mb-2">
         {listing.price_vnd && (
-          <p className="text-lg font-semibold">{formatPrice(listing.price_vnd)}</p>
+          <p className="text-xl font-bold text-navy">{formatPrice(listing.price_vnd)}</p>
         )}
-        <div className="flex gap-3 text-sm text-gray-600 mt-1">
-          {listing.area_m2 && <span>{listing.area_m2}m²</span>}
+        <div className="flex gap-3 text-sm text-slate-600 mt-1">
+          {listing.area_m2 && <span className="font-medium">{listing.area_m2}m²</span>}
           {listing.num_bedrooms && <span>{listing.num_bedrooms} bed</span>}
           {listing.num_bathrooms && <span>{listing.num_bathrooms} bath</span>}
           {listing.num_floors && <span>{listing.num_floors} floor</span>}
@@ -60,12 +60,16 @@ export default function ListingCard({
       </div>
 
       {(listing.ward || listing.street) && (
-        <p className="text-sm text-gray-500 mb-3">
+        <p className="text-sm text-slate-500 mb-3 flex items-center gap-1">
+          <svg className="w-3.5 h-3.5 text-slate-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+          </svg>
           {[listing.street, listing.ward].filter(Boolean).join(", ")}
         </p>
       )}
 
-      <div className="flex items-center justify-between text-xs text-gray-400 pt-2 border-t">
+      <div className="flex items-center justify-between text-xs text-slate-400 pt-3 border-t border-slate-100">
         <span>
           Updated{" "}
           {new Date(listing.updated_at).toLocaleDateString("en-US", {
@@ -77,8 +81,14 @@ export default function ListingCard({
           {!isArchived ? (
             <>
               <Link
+                href={`/dashboard/listings/${listing.id}/view`}
+                className="px-3 py-1.5 text-xs border border-slate-200 text-slate-600 rounded-lg hover:bg-slate-50 font-medium transition-colors"
+              >
+                View
+              </Link>
+              <Link
                 href={`/dashboard/listings/${listing.id}/edit`}
-                className="px-3 py-1 text-xs bg-gray-100 hover:bg-gray-200 rounded"
+                className="px-3 py-1.5 text-xs border border-navy/20 text-navy rounded-lg hover:bg-navy/5 font-medium transition-colors"
               >
                 Edit
               </Link>
@@ -98,7 +108,7 @@ export default function ListingCard({
                   label="Re-activate"
                   confirmLabel="Confirm"
                   onConfirm={() => onReactivate(listing.id)}
-                  className="text-green-600 hover:bg-green-50"
+                  className="text-emerald-600 hover:bg-emerald-50"
                 />
               )}
               {onDelete && (
@@ -106,7 +116,7 @@ export default function ListingCard({
                   label="Delete"
                   confirmLabel="Confirm"
                   onConfirm={() => onDelete(listing.id)}
-                  className="text-red-600 hover:bg-red-50"
+                  className="text-rose-600 hover:bg-rose-50"
                 />
               )}
             </>
@@ -140,7 +150,7 @@ function ConfirmButton({
       </button>
       <button
         onClick={() => setConfirming(false)}
-        className="px-2 py-1 text-xs text-gray-400 hover:text-gray-600"
+        className="px-2 py-1 text-xs text-slate-400 hover:text-slate-600"
       >
         Cancel
       </button>

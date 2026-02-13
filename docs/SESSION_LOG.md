@@ -5,6 +5,286 @@ successful session. **Newest sessions first.**
 
 ---
 
+## Session 9 — 2026-02-13 — Web Scraping Pipeline (batdongsannhatrang.org)
+
+### Summary
+Built a Playwright-based web scraping pipeline for ingesting Vietnamese real estate listings from batdongsannhatrang.org. Added 3 new parser extractors (road width, frontage count, beach distance), created a reusable scraper framework with base class + site-specific implementation, and CLI entry point.
+
+### Changes Made
+
+#### Database Migration 007
+- `raw_listings`: Added `source_url VARCHAR(500)` with unique index, `source_listing_id VARCHAR(100)` for provenance tracking
+- `parsed_listings`: Added `road_width_m DOUBLE PRECISION`, `num_frontages SMALLINT`, `distance_to_beach_m DOUBLE PRECISION`
+
+#### Vietnamese Parser Enhancements
+- `extract_road_width(text)`: Parses "duong rong 20m", "lo 12m" -> float
+- `extract_num_frontages(text)`: Parses "2 mat tien", "hai mat tien" -> int
+- `extract_distance_to_beach(text)`: Parses "cach bien 300m" -> float
+- Added 3 fields to `ParsedListing` dataclass + wired into `parse_listing()`
+
+#### Scraping Module (`src/scraping/`)
+- `base_scraper.py`: Abstract `BaseScraper` with `ScrapedListing` dataclass. Handles DB insertion (raw + parsed), photo downloading, dedup by source_url, Playwright lifecycle.
+- `batdongsannhatrang.py`: Site-specific scraper. Discovers listings from category pages + pagination. Extracts embedded `languageText.jsonProductIndex` JSON for structured data, description text, and photos.
+- `photo_downloader.py`: Async httpx photo downloader with content-hashed filenames for dedup.
+- `cli.py`: Click CLI entry point: `python -m src.scraping.cli --site batdongsannhatrang --agent-phone 0901953889`
+- `__main__.py`: Module runner support.
+
+#### Dependencies
+- Added `[project.optional-dependencies] scraping` with `playwright>=1.40`, `httpx>=0.27`
+- Installed Chromium headless shell via `playwright install chromium`
+
+#### Web App Updates
+- Validation schema: Added `road_width_m`, `num_frontages`, `distance_to_beach_m` to Zod listingSchema
+- POST/PUT API routes: Added 3 new columns to INSERT/UPDATE statements
+- Feed API: Added `num_frontages_min` and `distance_to_beach_max` filter params
+
+#### Documentation
+- `SPECIFICATIONS.md`: Added "Data Acquisition" section with architecture diagram, scraper how-to, dedup strategy
+- Updated `CLAUDE.md` and `SESSION_LOG.md`
+
+#### Bug Fixes (Session 9b — 2026-02-14)
+- Photo extraction: Fixed `[data-img]` selector grabbing ALL images on page (40-60 per listing), now filters by `product/{listing_id}_` URL pattern — yields 1-2 photos per listing (correct)
+- Photo dedup: Fixed duplicate registration when same photo URL appears in both `data-img` and `src` attributes (post-JS lazy load)
+- Photo URL encoding: Added `urllib.parse.quote()` for filenames with spaces (e.g., `chauloan88 (0).png`)
+- Street extraction: Rejected false-positive matches where "duong rong 20m" (road width) was captured as street name
+- CLI DB URL: Fixed default credentials to match Docker Compose config
+
+### Key Recommendations
+- **Migration 007** must be run before scraper: `docker exec -i re-nhatrang-app-postgres-1 psql -U re_nhatrang -d re_nhatrang < src/db/migrations/007_scraping_fields.sql`
+- Create agent Chau Loan before scraping: `./scripts/create_agent.sh chauloan "Chau Loan" bdsntorg 0901953889`
+- Run scraper: `python -m src.scraping.cli --site batdongsannhatrang --agent-phone 0901953889 --max-listings 5`
+- Use `--no-headless` flag for debugging to see the browser
+- Photos are stored in `./uploads/listings/<parsed_id>/` with content-hashed filenames
+- The scraper overlays structured JSON data from the site on top of parser results (site data wins for price, area, direction)
+- Re-running the scraper safely skips already-imported URLs (unique index on source_url)
+- Docker container name: `re-nhatrang-app-postgres-1` (not `renhatrang-postgres`)
+- DB credentials: user=re_nhatrang, password=change_me_in_production, db=re_nhatrang
+
+---
+
+## Session 8 — 2026-02-12 — Maps, Photos, Documents, Auth Cleanup
+
+### Summary
+Major feature session: OpenStreetMap integration (per-listing map + feed map view), photo uploads, document management per listing, auth simplification (login-only, no public signup), listing detail page, and 14 sample listings with real Nha Trang addresses and GPS coordinates.
+
+### Changes Made
+
+#### Database Migration 006
+- `parsed_listings`: Added `latitude DOUBLE PRECISION`, `longitude DOUBLE PRECISION` columns
+- Created `listing_photos` table (id, listing_id FK, file_path, original_name, file_size, display_order, created_at) with CASCADE delete
+- Created `listing_documents` table (id, listing_id FK, file_path, file_name, original_name, file_size, mime_type, category CHECK, notes, created_at)
+- Document categories: ownership_cert, floorplan, property_sketch, use_permit, construction_permit, proposal, other
+- Indexes on listing_id, (listing_id, category), and partial coordinate index
+
+#### File Upload Infrastructure
+- `docker-compose.yml`: Added `uploads-data` named volume mounted at `/app/uploads`, `UPLOAD_DIR` env var
+- `POST /api/upload`: Multipart form data handler, generates unique filenames, validates file types (images for photos, images+PDF for documents), 20MB limit
+- `GET /api/files/[...path]`: Serves uploaded files with proper MIME types, directory traversal prevention, immutable cache headers
+- `next.config.ts`: Set `serverActions.bodySizeLimit` to 20MB
+
+#### Photo Feature
+- `POST/GET/DELETE /api/listings/[id]/photos`: CRUD with ownership verification, auto display_order
+- `PhotoUploader` component: Drag-and-drop upload, photo grid with primary badge, delete on hover, responsive 2/3/4 column grid
+- Feed API: Added subquery for `photo_count` and `primary_photo` per listing
+- `FeedCard`: Shows photo thumbnail with photo count badge at top of card
+- Edit page: Tabbed interface (Listing Data | Photos | Documents)
+
+#### Document Feature
+- `POST/GET/DELETE /api/listings/[id]/documents`: CRUD with category validation and ownership checks
+- `DocumentManager` component: Category-grouped display, PDF/image icons, upload form with category selector and notes, view/delete actions
+- `DOCUMENT_CATEGORIES` constant added to `constants.ts`
+
+#### OpenStreetMap Integration
+- Installed `react-leaflet`, `leaflet`, `@types/leaflet`
+- `ListingMap` component: Single marker map with click-to-place, Nha Trang center default (12.2388, 109.1967)
+- `FeedMap` component: Multi-marker map with popups showing listing info + photo, auto-bounds to fit markers
+- `DynamicListingMap` / `DynamicFeedMap`: SSR-safe dynamic imports with loading states
+- `DatabaseView`: Added lat/lng number fields + `LocationPicker` with Nominatim geocoding and interactive map
+- `GET /api/geocode`: Nominatim proxy with "Nha Trang, Khanh Hoa, Vietnam" suffix
+- Feed page: Grid/Map toggle with SVG icons; map mode fetches up to 200 listings
+
+#### Listing Detail Page
+- `GET /dashboard/listings/[id]/view`: Read-only detail page with tabbed interface (Details | Photos | Documents | Map)
+- Hero photo gallery (primary + grid), price banner, two-column property/details specs, description, agent contact
+- Photos tab reuses PhotoUploader in readOnly mode
+- Documents tab reuses DocumentManager in readOnly mode
+- Map tab shows ListingMap with popup
+- `ListingCard`: Added "View" link alongside "Edit"
+- `FeedCard`: Entire card is clickable, navigates to detail page; message buttons use stopPropagation
+
+#### Auth Simplification
+- Removed signup tab from login page — login only with "Contact your admin" note
+- Login now redirects to `/dashboard/feed` instead of `/dashboard/listings`
+- Signup API route kept (used by admin script)
+- `scripts/create_agent.sh`: CLI script for manual account creation via signup API
+
+#### Sample Data
+- `scripts/seed_sample_listings.sql`: 14 listings with real Nha Trang addresses
+- Covers: beachfront villas (Tran Phu), houses (Nguyen Thien Thuat, Hung Vuong, Pasteur, Thai Nguyen), apartments (Gold Coast, Muong Thanh, VCN), land plots (Le Hong Phong, 2 Thang 4, Phuoc Dong), commercial (Yersin)
+- All with GPS coordinates, diverse wards, realistic prices (850M to 25B VND)
+
+### New Files (15)
+- `src/db/migrations/006_photos_documents_coordinates.sql`
+- `web/src/app/api/upload/route.ts`
+- `web/src/app/api/files/[...path]/route.ts`
+- `web/src/app/api/geocode/route.ts`
+- `web/src/app/api/listings/[id]/photos/route.ts`
+- `web/src/app/api/listings/[id]/documents/route.ts`
+- `web/src/components/photos/PhotoUploader.tsx`
+- `web/src/components/documents/DocumentManager.tsx`
+- `web/src/components/map/ListingMap.tsx`
+- `web/src/components/map/FeedMap.tsx`
+- `web/src/components/map/DynamicListingMap.tsx`
+- `web/src/components/map/DynamicFeedMap.tsx`
+- `web/src/app/dashboard/listings/[id]/view/page.tsx`
+- `scripts/create_agent.sh`
+- `scripts/seed_sample_listings.sql`
+
+### Modified Files (15)
+- `docker-compose.yml` — uploads volume
+- `web/package.json` — leaflet, react-leaflet deps
+- `web/next.config.ts` — body size limit
+- `web/src/lib/types.ts` — lat/lng, ListingPhoto, ListingDocument types
+- `web/src/lib/validation.ts` — lat/lng fields
+- `web/src/lib/constants.ts` — DOCUMENT_CATEGORIES
+- `web/src/app/api/listings/route.ts` — lat/lng in INSERT
+- `web/src/app/api/listings/[id]/route.ts` — lat/lng in UPDATE
+- `web/src/app/api/feed/route.ts` — photo_count, primary_photo subqueries
+- `web/src/app/page.tsx` — login-only, no signup tab
+- `web/src/app/dashboard/feed/page.tsx` — grid/map toggle
+- `web/src/app/dashboard/listings/[id]/edit/page.tsx` — tabbed with photos/docs
+- `web/src/components/feed/FeedCard.tsx` — photo thumbnail, clickable, stopPropagation
+- `web/src/components/listings/ListingCard.tsx` — View link
+- `web/src/components/listings/ListingForm.tsx` — lat/lng mapping
+- `web/src/components/listings/DatabaseView.tsx` — lat/lng fields, LocationPicker
+
+### Setup After Fresh DB
+```bash
+# After docker compose down -v && up -d:
+docker exec -i <container> psql -U re_nhatrang -d re_nhatrang < src/db/seed_reference_data.sql
+docker exec -i <container> psql -U re_nhatrang -d re_nhatrang < src/db/migrations/002_add_listing_hash_and_message_date.sql
+docker exec -i <container> psql -U re_nhatrang -d re_nhatrang < src/db/migrations/003_add_agents_access_road_furnished_locations.sql
+docker exec -i <container> psql -U re_nhatrang -d re_nhatrang < src/db/migrations/004_promemo_schema.sql
+docker exec -i <container> psql -U re_nhatrang -d re_nhatrang < src/db/migrations/005_conversations_per_listing.sql
+docker exec -i <container> psql -U re_nhatrang -d re_nhatrang < src/db/migrations/006_photos_documents_coordinates.sql
+# Create agent account:
+./scripts/create_agent.sh dean Dean password123 0868331111
+# Seed sample listings:
+docker exec -i <container> psql -U re_nhatrang -d re_nhatrang < scripts/seed_sample_listings.sql
+```
+
+### Bug Fixes (late session)
+- **GET /api/listings/[id]**: Was blocking non-owners with 403, causing all detail views to fallback and display the same listing. Fixed: any authenticated user can now view any listing (ownership check only on PUT/DELETE).
+- **FeedMap marker click**: Marker `eventHandlers.click` was navigating immediately instead of opening the popup. Fixed: removed eventHandlers, navigation now only via "View Details" button inside popup.
+- **Listing detail fallback**: Removed broken fallback to `/api/feed?listing_id=${id}` (feed API doesn't support `listing_id` param). No longer needed since GET endpoint works for all auth users.
+- **Docker build**: Created `web/.dockerignore` (excludes `node_modules`, `.next`) to fix build failures from `.next` cache files.
+- **Note**: Web container must be restarted (`docker compose restart web`) to pick up these fixes.
+
+### Recommendations for Next Session
+- **First thing**: restart web container to apply the 3 bug fixes above
+- Leaflet default marker icons loaded from unpkg CDN — consider bundling locally for offline/production
+- Nominatim geocoding is rate-limited (1 req/sec) — add client-side debounce if needed
+- Photo reordering (drag-to-sort) not implemented yet — currently ordered by upload time
+- Document preview (inline PDF viewer) not implemented — currently opens in new tab
+- Consider adding image compression/thumbnails for performance
+- Test with Docker Desktop running: full upload→serve→display cycle
+- Public hosting setup: need to configure CORS, HTTPS, and domain
+
+---
+
+## Session 7 — 2026-02-09 — Front-End Redesign (FIDT Navy+Orange Theme)
+
+### Summary
+Complete visual redesign of ProMemo web app inspired by FIDT.vn corporate color scheme. Replaced plain black/gray UI with professional navy (#032759) + orange (#ff914d) branding. Added fixed left sidebar navigation, redesigned all cards/forms/messages, and fixed several freestyle↔database editing bugs discovered during testing.
+
+### Changes Made
+
+#### Theme Foundation
+- **`globals.css`** — Defined FIDT theme colors as CSS custom properties via `@theme inline`: navy, navy-light, navy-dark, accent, accent-hover, slate scale
+- **`constants.ts`** — Updated status badge colors: emerald (for sale), amber (negotiations), orange (pending), rose (sold), slate (not for sale)
+
+#### Sidebar Navigation (layout.tsx)
+- Replaced top navbar with fixed left sidebar (`w-60`, dark navy `#032759`)
+- Inline SVG icons for Feed, My Listings, Messages nav items
+- Active state: white text on navy-light bg with orange left border
+- Orange "New Listing" CTA button at bottom of nav
+- User avatar + logout icon at sidebar bottom
+- Mobile: hamburger triggers slide-out overlay sidebar with backdrop
+- Content area uses `lg:ml-60` + `pt-14 lg:pt-0` for responsive layout
+
+#### Login Page (page.tsx)
+- Split layout: navy branding section (left on desktop, top on mobile) with feature checklist
+- White form card with orange accent tab underlines and submit button
+- Focus rings use `focus:ring-accent/40`
+
+#### Card Redesign (FeedCard, ListingCard)
+- Larger price display in navy color (`text-xl font-bold text-navy`)
+- Property type badges: navy-tinted (`bg-navy/5 text-navy`)
+- Transaction badges: orange-tinted (`bg-accent/10 text-accent`)
+- Feature tags: navy-tinted backgrounds (`bg-navy/5 text-navy/70`)
+- Map pin SVG icon for location display
+- Orange message button, navy outline edit button
+- Rounded-xl cards with `border-slate-200` and `hover:shadow-md`
+
+#### Messages Redesign
+- Own messages: navy background (`bg-navy text-white`)
+- Other messages: light slate (`bg-slate-100 text-slate-800`)
+- Orange send button, orange unread count badges
+- SVG chevron back arrow instead of `&larr;` text
+
+#### Form Redesign (ListingForm, DatabaseView, FreestyleEditor)
+- Navy mode tabs (Freestyle/Database View), orange save button
+- Navy section headers in DatabaseView
+- Navy "Parse Text" button in FreestyleEditor
+- All inputs: `border-slate-200 rounded-lg focus:ring-accent/30 focus:border-accent`
+
+#### Bug Fixes
+- **FreestyleEditor onClick** — Changed `onClick={onParse}` to `onClick={() => onParse()}` to avoid passing MouseEvent as text arg
+- **handleParse defense** — Added `typeof text === "string"` check to prevent `.trim()` on non-string
+- **Feedback loop fix** — Removed `description` and `address_raw` from `formDataToText()` which caused infinite text duplication on mode switches
+- **Edit mode default** — Existing listings always open in Database View (structured data = source of truth)
+- **Save from DB mode** — Sets `freestyle_text = null` to prevent stale text from overwriting edits on re-edit
+- **Freestyle text init** — No longer loads old `freestyle_text` from DB; starts empty for existing listings
+- **Auto-parse removed** — Freestyle→Database switch no longer auto-parses; user clicks "Parse Text" explicitly
+- **Edit page cache** — Added `cache: "no-store"` to prevent stale listing data
+- **Price field sync** — Bidirectional sync on blur between `price_raw` and `price_vnd` using `parseRawPrice()`/`formatVndToRaw()` helpers; reads from `e.target.value` to avoid stale React closures
+
+### Files Changed (18 files)
+- `web/src/app/globals.css` — FIDT theme CSS custom properties
+- `web/src/lib/constants.ts` — Status badge colors (emerald/amber/orange/rose/slate)
+- `web/src/app/dashboard/layout.tsx` — Fixed left sidebar navigation
+- `web/src/app/page.tsx` — Split-layout login page with navy branding
+- `web/src/app/dashboard/feed/page.tsx` — Themed feed page with inline count
+- `web/src/components/feed/FeedFilters.tsx` — Orange apply button, themed inputs
+- `web/src/components/feed/FeedCard.tsx` — Navy/orange card redesign with icons
+- `web/src/app/dashboard/listings/page.tsx` — Navy tabs, orange add button
+- `web/src/components/listings/ListingCard.tsx` — Matching card design
+- `web/src/components/listings/StatusBadge.tsx` — (uses updated constants)
+- `web/src/app/dashboard/messages/page.tsx` — Themed heading
+- `web/src/app/dashboard/messages/[conversationId]/page.tsx` — SVG back arrow, themed header
+- `web/src/components/messages/ConversationList.tsx` — Navy active bg, orange unread
+- `web/src/components/messages/MessageThread.tsx` — Navy own bubbles
+- `web/src/components/messages/MessageInput.tsx` — Orange send button
+- `web/src/app/dashboard/listings/new/page.tsx` — Themed heading
+- `web/src/app/dashboard/listings/[id]/edit/page.tsx` — Themed heading, cache-busting
+- `web/src/components/listings/ListingForm.tsx` — Navy tabs, orange save, editing fixes
+- `web/src/components/listings/DatabaseView.tsx` — Navy sections, price sync helpers
+- `web/src/components/listings/FreestyleEditor.tsx` — Navy parse button, onClick fix
+
+### Known Issues
+- Existing listings may have bloated `description` fields from pre-fix feedback loop — need manual cleanup in Database View
+- Price raw↔VND sync needs further testing (user reported it not working, fix applied but not verified)
+- Performance investigation still pending (dev server vs production build)
+
+### Recommendations for Next Session
+- Verify price_raw↔price_vnd bidirectional sync works after server restart
+- Clean up bloated description fields on existing test listings
+- Test full create→edit→re-edit cycle to confirm freestyle_text feedback loop is fully resolved
+- Consider adding a "Clear Description" button or auto-detect bloated descriptions
+- Phase 4 (TypeScript Parser Port) remains lower priority
+
+---
+
 ## Session 6 — 2026-02-08 — ProMemo Bug Fixes, Auto-Parse, Conversations Per Listing
 
 ### Summary

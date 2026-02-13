@@ -32,7 +32,7 @@ export default function MessageInput({ onSend, disabled }: Props) {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="border-t p-3 flex gap-2">
+    <form onSubmit={handleSubmit} className="border-t border-slate-200 p-3 flex gap-2">
       <textarea
         value={text}
         onChange={(e) => setText(e.target.value)}
@@ -40,12 +40,12 @@ export default function MessageInput({ onSend, disabled }: Props) {
         placeholder="Type a message..."
         rows={1}
         disabled={disabled}
-        className="flex-1 border rounded-lg px-3 py-2 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-black/20"
+        className="flex-1 border border-slate-200 rounded-lg px-3 py-2 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-accent/30 focus:border-accent"
       />
       <button
         type="submit"
         disabled={!text.trim() || sending || disabled}
-        className="px-4 py-2 bg-black text-white text-sm rounded-lg hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed"
+        className="px-4 py-2 bg-accent text-white text-sm rounded-lg hover:bg-accent-hover disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium"
       >
         Send
       </button>

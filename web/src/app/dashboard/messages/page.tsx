@@ -32,12 +32,12 @@ export default function MessagesPage() {
 
   return (
     <div className="max-w-2xl mx-auto">
-      <h1 className="text-2xl font-bold mb-6">Messages</h1>
+      <h1 className="text-2xl font-bold text-slate-800 mb-6">Messages</h1>
 
       {loading ? (
-        <div className="text-center py-12 text-gray-400">Loading...</div>
+        <div className="text-center py-12 text-slate-400">Loading...</div>
       ) : (
-        <div className="bg-white border rounded-lg overflow-hidden">
+        <div className="bg-white border border-slate-200 rounded-xl overflow-hidden">
           <ConversationList
             conversations={conversations}
             onSelect={handleSelect}

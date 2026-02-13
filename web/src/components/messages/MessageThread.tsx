@@ -17,7 +17,7 @@ export default function MessageThread({ messages, currentUserId }: Props) {
 
   if (messages.length === 0) {
     return (
-      <div className="flex-1 flex items-center justify-center text-gray-400 text-sm">
+      <div className="flex-1 flex items-center justify-center text-slate-400 text-sm">
         No messages yet. Start the conversation!
       </div>
     );
@@ -35,8 +35,8 @@ export default function MessageThread({ messages, currentUserId }: Props) {
             <div
               className={`max-w-[75%] rounded-lg px-3 py-2 ${
                 isMine
-                  ? "bg-black text-white"
-                  : "bg-gray-100 text-gray-900"
+                  ? "bg-navy text-white"
+                  : "bg-slate-100 text-slate-800"
               }`}
             >
               {!isMine && msg.sender_name && (
@@ -47,7 +47,7 @@ export default function MessageThread({ messages, currentUserId }: Props) {
               <p className="text-sm whitespace-pre-wrap">{msg.body}</p>
               <p
                 className={`text-xs mt-1 ${
-                  isMine ? "text-gray-300" : "text-gray-400"
+                  isMine ? "text-white/50" : "text-slate-400"
                 }`}
               >
                 {new Date(msg.created_at).toLocaleTimeString("en-US", {
