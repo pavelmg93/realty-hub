@@ -118,10 +118,18 @@ class BaseScraper(ABC):
                                 http_client, photo_url, photo_dir
                             )
                             if result:
-                                file_path, file_size = result
+                                abs_path, file_size = result
+                                # Store path relative to uploads_dir
+                                # (web app joins UPLOAD_DIR + file_path)
+                                try:
+                                    rel_path = str(
+                                        Path(abs_path).relative_to(self.uploads_dir)
+                                    )
+                                except ValueError:
+                                    rel_path = abs_path
                                 self.register_photo(
                                     parsed_id,
-                                    file_path,
+                                    rel_path,
                                     photo_url.rsplit("/", 1)[-1],
                                     file_size,
                                     order,

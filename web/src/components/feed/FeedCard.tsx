@@ -37,18 +37,22 @@ export default function FeedCard({ listing, currentUserId, onMessage, onClick }:
       onClick={onClick}
     >
       {/* Photo thumbnail */}
-      {listing.primary_photo && (
+      {listing.primary_photo ? (
         <div className="aspect-[16/9] bg-slate-100 relative">
           <img
             src={`/api/files/${listing.primary_photo}`}
             alt=""
             className="w-full h-full object-cover"
           />
-          {listing.photo_count && listing.photo_count > 1 && (
+          {listing.photo_count && listing.photo_count > 0 && (
             <span className="absolute bottom-2 right-2 text-xs px-2 py-0.5 bg-black/60 text-white rounded-full">
-              {listing.photo_count} photos
+              {listing.photo_count} {listing.photo_count === 1 ? "photo" : "photos"}
             </span>
           )}
+        </div>
+      ) : (
+        <div className="aspect-[16/9] bg-slate-100 flex items-center justify-center text-slate-300 text-sm">
+          No photo
         </div>
       )}
 

@@ -36,11 +36,14 @@ export default function ListingViewPage() {
   const [listing, setListing] = useState<Listing | null>(null);
   const [photos, setPhotos] = useState<ListingPhoto[]>([]);
   const [documents, setDocuments] = useState<ListingDocument[]>([]);
+  const [adjacentIds, setAdjacentIds] = useState<{ prev: number | null; next: number | null }>({ prev: null, next: null });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<"details" | "photos" | "documents" | "map">("details");
+  const [activePhotoIdx, setActivePhotoIdx] = useState(0);
 
   useEffect(() => {
+    setActivePhotoIdx(0);
     async function fetchData() {
       try {
         const [listingRes, photosRes, docsRes] = await Promise.all([
@@ -58,6 +61,12 @@ export default function ListingViewPage() {
         } else {
           const data = await listingRes.json();
           setListing(data.listing);
+          // Fetch adjacent listing IDs for prev/next navigation
+          const adjRes = await fetch(`/api/listings/${id}/adjacent`);
+          if (adjRes.ok) {
+            const adj = await adjRes.json();
+            setAdjacentIds(adj);
+          }
         }
 
         if (photosRes.ok) {
@@ -121,6 +130,24 @@ export default function ListingViewPage() {
           )}
         </div>
         <div className="flex gap-2">
+          {adjacentIds.prev && (
+            <button
+              onClick={() => router.push(`/dashboard/listings/${adjacentIds.prev}/view`)}
+              className="px-3 py-2 text-sm border border-slate-200 text-slate-600 rounded-lg hover:bg-slate-50 transition-colors"
+              title="Previous listing"
+            >
+              &larr; Prev
+            </button>
+          )}
+          {adjacentIds.next && (
+            <button
+              onClick={() => router.push(`/dashboard/listings/${adjacentIds.next}/view`)}
+              className="px-3 py-2 text-sm border border-slate-200 text-slate-600 rounded-lg hover:bg-slate-50 transition-colors"
+              title="Next listing"
+            >
+              Next &rarr;
+            </button>
+          )}
           {isOwner && (
             <button
               onClick={() =>
@@ -140,29 +167,51 @@ export default function ListingViewPage() {
         </div>
       </div>
 
-      {/* Primary photo + gallery */}
+      {/* Photo carousel */}
       {photos.length > 0 && (
         <div className="mb-6">
           <div className="relative aspect-video bg-slate-100 rounded-xl overflow-hidden mb-3">
             <img
-              src={`/api/files/${photos[0].file_path}`}
-              alt=""
+              src={`/api/files/${photos[activePhotoIdx]?.file_path}`}
+              alt={photos[activePhotoIdx]?.original_name || ""}
               className="w-full h-full object-cover"
             />
+            {photos.length > 1 && (
+              <>
+                <button
+                  onClick={() => setActivePhotoIdx((i) => (i - 1 + photos.length) % photos.length)}
+                  className="absolute left-2 top-1/2 -translate-y-1/2 w-10 h-10 bg-black/50 hover:bg-black/70 text-white rounded-full flex items-center justify-center transition-colors text-lg"
+                >
+                  &lt;
+                </button>
+                <button
+                  onClick={() => setActivePhotoIdx((i) => (i + 1) % photos.length)}
+                  className="absolute right-2 top-1/2 -translate-y-1/2 w-10 h-10 bg-black/50 hover:bg-black/70 text-white rounded-full flex items-center justify-center transition-colors text-lg"
+                >
+                  &gt;
+                </button>
+              </>
+            )}
+            <span className="absolute bottom-2 right-2 text-xs px-2 py-0.5 bg-black/60 text-white rounded-full">
+              {activePhotoIdx + 1} / {photos.length}
+            </span>
           </div>
           {photos.length > 1 && (
             <div className="grid grid-cols-4 sm:grid-cols-6 gap-2">
-              {photos.slice(1).map((photo, idx) => (
-                <div
+              {photos.map((photo, idx) => (
+                <button
                   key={photo.id}
-                  className="aspect-square bg-slate-100 rounded-lg overflow-hidden"
+                  onClick={() => setActivePhotoIdx(idx)}
+                  className={`aspect-square bg-slate-100 rounded-lg overflow-hidden border-2 transition-colors ${
+                    idx === activePhotoIdx ? "border-navy" : "border-transparent hover:border-slate-300"
+                  }`}
                 >
                   <img
                     src={`/api/files/${photo.file_path}`}
-                    alt={photo.original_name || `Photo ${idx + 2}`}
+                    alt={photo.original_name || `Photo ${idx + 1}`}
                     className="w-full h-full object-cover"
                   />
-                </div>
+                </button>
               ))}
             </div>
           )}
