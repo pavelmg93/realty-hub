@@ -8,7 +8,7 @@
 set -e
 
 HOST="${WEB_HOST:-localhost}"
-PORT="${WEB_PORT:-8888}"
+PORT="${WEB_PORT:-3000}"
 BASE_URL="http://${HOST}:${PORT}"
 
 USERNAME="${1:?Usage: create_agent.sh <username> <first_name> <password> [phone] [email]}"
