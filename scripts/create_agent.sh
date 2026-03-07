@@ -1,43 +1,56 @@
 #!/bin/bash
-# Create a new agent account via the signup API.
+# scripts/create_agent.sh — Create a new ProMemo agent account
 # Usage: ./scripts/create_agent.sh <username> <first_name> <password> [phone] [email]
 #
-# Example:
-#   ./scripts/create_agent.sh dean Dean password123 0868331111 dean@example.com
+# PORT env var controls which port to call (default: 8888 for Docker)
+# Use PORT=3000 if running against local npm run dev:
+#   PORT=3000 ./scripts/create_agent.sh dean "Dean" demo123
 
 set -e
 
-HOST="${WEB_HOST:-localhost}"
-PORT="${WEB_PORT:-3000}"
-BASE_URL="http://${HOST}:${PORT}"
-
-USERNAME="${1:?Usage: create_agent.sh <username> <first_name> <password> [phone] [email]}"
-FIRST_NAME="${2:?Usage: create_agent.sh <username> <first_name> <password> [phone] [email]}"
-PASSWORD="${3:?Usage: create_agent.sh <username> <first_name> <password> [phone] [email]}"
+USERNAME="$1"
+FIRST_NAME="$2"
+PASSWORD="$3"
 PHONE="${4:-}"
 EMAIL="${5:-}"
+PORT="${PORT:-8888}"     # ← default 8888 (Docker). Override: PORT=3000 ./create_agent.sh ...
 
-echo "Creating agent: ${USERNAME} (${FIRST_NAME})"
-echo "Target: ${BASE_URL}/api/auth/signup"
+if [ -z "$USERNAME" ] || [ -z "$FIRST_NAME" ] || [ -z "$PASSWORD" ]; then
+  echo "Usage: $0 <username> <first_name> <password> [phone] [email]"
+  echo "       PORT=3000 $0 <username> <first_name> <password>  (for local npm run dev)"
+  exit 1
+fi
 
-RESPONSE=$(curl -s -w "\n%{http_code}" -X POST "${BASE_URL}/api/auth/signup" \
+BASE_URL="http://localhost:${PORT}"
+
+echo "Creating agent '$USERNAME' at $BASE_URL..."
+
+RESPONSE=$(curl -s -w "\n%{http_code}" -X POST "$BASE_URL/api/auth/signup" \
   -H "Content-Type: application/json" \
   -d "{
-    \"username\": \"${USERNAME}\",
-    \"first_name\": \"${FIRST_NAME}\",
-    \"password\": \"${PASSWORD}\",
-    \"phone\": \"${PHONE}\",
-    \"email\": \"${EMAIL}\"
+    \"username\": \"$USERNAME\",
+    \"first_name\": \"$FIRST_NAME\",
+    \"password\": \"$PASSWORD\"
+    ${PHONE:+, \"phone\": \"$PHONE\"}
+    ${EMAIL:+, \"email\": \"$EMAIL\"}
   }")
 
-HTTP_CODE=$(echo "$RESPONSE" | tail -1)
-BODY=$(echo "$RESPONSE" | sed '$ d')
+HTTP_CODE=$(echo "$RESPONSE" | tail -n1)
+BODY=$(echo "$RESPONSE" | head -n-1)
 
-if [ "$HTTP_CODE" = "201" ]; then
-  echo "Agent created successfully!"
-  echo "$BODY" | python3 -m json.tool 2>/dev/null || echo "$BODY"
+if [ "$HTTP_CODE" = "200" ] || [ "$HTTP_CODE" = "201" ]; then
+  echo "✅ Agent created successfully: $USERNAME"
+  echo "   First name: $FIRST_NAME"
+  [ -n "$PHONE" ] && echo "   Phone: $PHONE"
+  [ -n "$EMAIL" ] && echo "   Email: $EMAIL"
+  echo "   Password: $PASSWORD"
 else
-  echo "Error (HTTP ${HTTP_CODE}):"
-  echo "$BODY" | python3 -m json.tool 2>/dev/null || echo "$BODY"
+  echo "❌ Failed (HTTP $HTTP_CODE)"
+  echo "   Response: $BODY"
+  echo ""
+  echo "Troubleshooting:"
+  echo "  - Docker running? Try: docker compose ps"
+  echo "  - Using npm run dev? Try: PORT=3000 $0 $*"
+  echo "  - Port 8888 bound? Try: curl http://localhost:8888"
   exit 1
 fi

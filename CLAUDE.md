@@ -2,14 +2,31 @@
 
 ## Project Overview
 
-RE Nha Trang is a Real Estate Agent Matching Platform for the Nha Trang market. It ingests listings from Zalo groups, normalizes them, and matches them to buyer agent requirements.
+This is **ProMemo** — the Wealth Realty internal real estate agent platform by fidt.vn.
+It is also the broader **RE Nha Trang** data pipeline project. Both live in this repo.
+
+**ProMemo** (primary active development):
+- Next.js 15 web app for agents: listings, feed, messaging, CRM
+- Located in `web/`
+- Accessed at http://localhost:8888 (Docker) or http://localhost:3000 (local dev)
+
+**Pipeline** (set aside for Demo, active for MVP):
+- Python 3.12 Vietnamese parser, Playwright scraper
+- Kestra orchestration (commented out in docker-compose for Demo)
+- Located in `src/`
 
 ## Tech Stack
 
+**Web app (ProMemo):**
+- Next.js 15, React 19, TypeScript, Tailwind v4
+- PostgreSQL via raw pg Pool (no ORM)
+- bcrypt + JWT in httpOnly cookie (login only — NO public signup)
+- react-leaflet + Leaflet for maps (OSM/Nominatim)
+
+**Pipeline:**
 - Python 3.12+, PostgreSQL (pgvector), Redis
-- Kestra for workflow orchestration (replaces Celery for V1)
-- Regex/rule-based Vietnamese text extraction (V1); LLM-based planned for V2
-- Docker Compose for local development
+- Kestra for orchestration (disabled for Demo)
+- Regex/rule-based Vietnamese parser (V1)
 - uv for Python dependency management
 
 ## Code Conventions
@@ -61,6 +78,10 @@ ruff format src/ tests/
 # Start development services (Kestra + Postgres + Redis)
 docker compose up -d
 
+# Web app available at:
+# http://localhost:8888  (via Docker port mapping 8888→3000)
+# http://localhost:3000  (when running `npm run dev` locally, outside Docker)
+
 # Stop services
 docker compose down
 
@@ -69,7 +90,24 @@ python scripts/transform_zalo_export.py data/my_export.txt -g "Group Name"
 
 # Generate sample data for testing
 python scripts/seed_sample_data.py
+
+# Create a new agent account (NO public signup — admin only)
+./scripts/create_agent.sh <username> <first_name> <password> [phone] [email]
+# Example: ./scripts/create_agent.sh dean "Duy (Dean) Pham" demo123 0868331111 dean@fidt.vn
+
+# Run migrations (after docker compose down -v && up -d)
+docker exec -i re-nhatrang-app-postgres-1 psql -U re_nhatrang -d re_nhatrang \
+  < src/db/seed_reference_data.sql
+docker exec -i re-nhatrang-app-postgres-1 psql -U re_nhatrang -d re_nhatrang \
+  < src/db/migrations/002_add_listing_hash_and_message_date.sql
+# ... through 007 and 008 (CRM schema)
+
+# Python pipeline (set aside for Demo)
+source .venv/bin/activate
+pytest tests/ -v
+python -m src.scraping.cli --site batdongsannhatrang --agent-phone 0901953889
 ```
+
 
 ## Important Warnings
 
@@ -87,7 +125,9 @@ After every completed successful coding session, update `docs/SESSION_LOG.md`
 with the full session entry. Keep only the latest session's key recommendations
 below so this file stays concise. See `docs/SESSION_LOG.md` for complete history.
 
-**Latest session: #9b — 2026-02-14 — Web Scraping Pipeline Bug Fixes**
+**Latest web app session: #8 — 2026-02-12 — Maps, Photos, Auth Simplification**
+**Latest pipeline session: #9b — 2026-02-14 — Web Scraping Bug Fixes**
+**Planning session: 2026-03 — Demo roadmap, GCP infra, CURSOR.md created**
 
 Recommendations:
 - **Migration 007** adds `source_url`, `source_listing_id` to raw_listings; `road_width_m`, `num_frontages`, `distance_to_beach_m` to parsed_listings.

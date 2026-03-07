@@ -120,9 +120,10 @@ RE Nha Trang is a pipeline-based system with four stages: **Ingestion**, **Parsi
 **Purpose**: Web interface for agents to manage listings, browse feeds, and communicate.
 
 **Tech**: Next.js 16 (App Router), React 19, TypeScript, Tailwind CSS v4.
-**Auth**: bcrypt + JWT in httpOnly cookie, no NextAuth.
+**Auth**: Login-only with bcrypt + JWT (httpOnly cookie "promemo_token").
+  No public signup — accounts created via scripts/create_agent.sh.
+**Version**: Next.js 15 (App Router)
 **Database**: Raw pg Pool with SQL (no ORM, avoids migration conflicts).
-
 **Features (implemented)**:
 - Agent signup/login with JWT auth
 - Listing CRUD with freestyle text input and structured database view
@@ -130,7 +131,7 @@ RE Nha Trang is a pipeline-based system with four stages: **Ingestion**, **Parsi
 - Agent-to-agent messaging with conversation threads
 - Responsive mobile layout
 
-**URL**: `http://localhost:8888`
+**URL**: `http://localhost:8888` (Docker) | `http://localhost:3000` (local dev, npm run dev)
 
 ## Data Model
 
@@ -285,6 +286,7 @@ Match
 |  +----------------------------+    +----------------------------+     |
 |  |         kestra             |    |      kestra-postgres       |     |
 |  |                            |    |                            |     |
+|  |   DEMO: disabled           |    |   DEMO: disabled           |     |
 |  |   Kestra server            |    |   PostgreSQL 16            |     |
 |  |   (runs as root)           |--->|   Kestra metadata DB       |     |
 |  |   Port: 8080 (UI)          |    |   Port: 5433 (host)        |     |
@@ -296,39 +298,39 @@ Match
 |  |   Vol: /tmp/kestra-wd      |    |      app-postgres          |     |
 |  +-------------+--------------+    |                            |     |
 |                |                   |   PostgreSQL 16 + pgvector |     |
-|                | spawns            |   Application data DB      |     |
-|                v                   |   Port: 5432 (host)        |     |
-|  +----------------------------+    |                            |     |
-|  |   Task Container           |    |   Vol: app-pg-data         |     |
-|  |   (ephemeral)              |--->|   Init: init_db.sql        |     |
-|  |                            |    +----------------------------+     |
-|  |   python:3.12-slim         |                                       |
-|  |   networkMode:             |    +----------------------------+     |
-|  |    re-nhatrang_re-nhatrang |    |         redis              |     |
-|  |                            |    |                            |     |
-|  |   Runs: pip install +      |    |   Redis 7 Alpine           |     |
-|  |         inline Python      |    |   Port: 6379 (host)        |     |
-|  |   Shares: /tmp/kestra-wd   |    |                            |     |
-|  +----------------------------+    |   Vol: redis-data           |     |
-|                                    +----------------------------+     |
-|                                                                       |
-|  +----------------------------+    +----------------------------+     |
-|  |     kestra-restore         |    |         pgadmin            |     |
-|  |     (init container)       |    |                            |     |
-|  |                            |    |   pgAdmin 4 web UI         |     |
-|  |   Restores Kestra DB       |    |   Port: 5050 (host)        |     |
-|  |   from backup on fresh     |    |                            |     |
-|  |   startup, then exits      |--->|   Connects to app-postgres |     |
-|  +----------------------------+    |   Auto-configured server   |     |
-|                                    +----------------------------+     |
-|                                                                       |
-|  +----------------------------+                                       |
-|  |           web              |                                       |
+|                | spawns            |   Application data DB      |<-   |
+|                v                   |   Port: 5432 (host)        | |   |
+|  +----------------------------+    |                            | |   |
+|  |   Task Container           |    |   Vol: app-pg-data         | |   |
+|  |   (ephemeral)              |--->|   Init: init_db.sql        | |   |
+|  |                            |    +----------------------------+ |   |
+|  |   python:3.12-slim         |                                   |   |
+|  |   networkMode:             |    +----------------------------+ |   |
+|  |    re-nhatrang_re-nhatrang |    |         redis              | |   |
+|  |                            |    |                            | |   |
+|  |   Runs: pip install +      |    |   Redis 7 Alpine           | |   |
+|  |         inline Python      |    |   Port: 6379 (host)        | |   |
+|  |   Shares: /tmp/kestra-wd   |    |                            | |   |
+|  +----------------------------+    |   Vol: redis-data          | |   |
+|                                    +----------------------------+ |   |
+|                                                                   |   |
+|  +----------------------------+    +----------------------------+ |   |
+|  |     kestra-restore         |    |         pgadmin            | |   |
+|  |     (init container)       |    |                            | |   |
+|  |                            |    |   pgAdmin 4 web UI         | |   |
+|  |   Restores Kestra DB       |    |   Port: 5050 (host)        |--   |
+|  |   from backup on fresh     |    |                            | |   |
+|  |   startup, then exits      |--->|   Connects to app-postgres | |   |
+|  +----------------------------+    |   Auto-configured server   | |   |
+|                                    +----------------------------+ |   |
+|                                                                   |   |
+|  +----------------------------+                                   |   |
+|  |           web              |                                   |   |
+|  |                            |                                   |   |
+|  |   Next.js 16 (ProMemo)     |                                   |   |
+|  |   Port: 8888 (host)        |-----> (app-postgres) -------------|   |
 |  |                            |                                       |
-|  |   Next.js 16 (ProMemo)    |                                       |
-|  |   Port: 8888 (host)       |-----> app-postgres                    |
-|  |                            |                                       |
-|  |   Agent listings, feed,   |                                       |
+|  |   Agent listings, feed,    |                                       |
 |  |   messaging UI             |                                       |
 |  +----------------------------+                                       |
 +-----------------------------------------------------------------------+

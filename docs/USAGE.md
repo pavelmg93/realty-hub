@@ -32,12 +32,15 @@ docker compose ps
 
 You should see:
 - `app-postgres` (port 5432) — application database with pgvector
-- `kestra-postgres` (port 5433) — Kestra internal metadata
-- `kestra` (ports 8080, 8081) — workflow orchestration UI
-- `web` (port 8888) — ProMemo web app
+# - `kestra-postgres` (port 5433) — Kestra internal metadata -- NOT IN DEMO
+# - `kestra` (ports 8080, 8081) — workflow orchestration UI -- NOT IN DEMO
+- `web` (port 8888 → internal 3000) — ProMemo web app
 - `pgadmin` (port 5050) — database browser UI
 - `redis` (port 6379) — cache
 - `kestra-restore` — init container (runs once and exits)
+
+# DEMO NOTE: Kestra services are commented out:
+# kestra-postgres, kestra — re-enable for MVP pipeline work
 
 The `app-postgres` container automatically runs `src/db/init_db.sql` on first
 start, creating the `raw_listings` and `parsed_listings` tables.
@@ -248,9 +251,29 @@ ProMemo is the agent-facing web interface at **http://localhost:8888**.
 
 ### Getting Started
 
-1. Open http://localhost:8888 in your browser.
-2. **Sign up** with a username, first name, and password.
-3. You're redirected to the dashboard.
+1. Open http://localhost:8888 in your browser (when running via Docker).
+   Or http://localhost:3000 if running `npm run dev` locally.
+2. Log in with demo credentials (see USAGE.md Demo Accounts section below).
+   There is no public signup — accounts are created by admin via create_agent.sh.
+
+## Demo Accounts
+
+The following accounts are pre-created for demo purposes. Password: `demo123`
+
+| Username | Name           | Role            | City      | Email              |
+|----------|----------------|-----------------|-----------|--------------------|
+| dean     | Duy Dean Pham  | Senior Broker   | Nha Trang | dean@fidt.vn       |
+| sarah    | Sarah Tran     | Associate       | HCMC      | sarah@fidt.vn      |
+| minh     | Minh Le        | Junior Agent    | Hanoi     | minh@fidt.vn       |
+
+To create additional accounts (admin only):
+./scripts/create_agent.sh <username> <name> <password> [phone] [email]
+
+# When using Docker (default):
+./scripts/create_agent.sh dean "Dean Nguyen" demo123 0868331111 dean@fidt.vn
+
+# When using npm run dev (no Docker):
+PORT=3000 ./scripts/create_agent.sh dean "Dean Nguyen" demo123 0868331111 dean@fidt.vn
 
 ### My Listings
 
@@ -283,10 +306,9 @@ Navigate to **Messages** to view and manage conversations.
 ### Running Locally (without Docker)
 
 ```bash
-cd web
-npm install
-npm run dev
-# App starts on http://localhost:8888
+cd web && npm install && npm run dev
+# App starts on http://localhost:3000  (Next.js default dev port)
+# Port 8888 is only used when running through Docker Compose
 ```
 
 Requires `DATABASE_URL` and `JWT_SECRET` environment variables. Create `web/.env.local`:

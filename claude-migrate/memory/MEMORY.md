@@ -1,5 +1,16 @@
 # Project Memory
 
+## Current Status — Demo Build (2026-03)
+
+- Demo scope: UI polish + CRM. AI features scaffolded only.
+- See `CURSOR.md` for full Cursor IDE build instructions.
+- Kestra disabled in docker-compose for Demo.
+- Three demo users: dean / sarah / minh (password: demo123)
+- GCP chosen for deployment: Cloud Run + Cloud SQL + GCS
+- EN/VN language switcher planned (LanguageContext + i18n.ts)
+- Per-listing translate button (Google Cloud Translation API, scaffolded)
+- Migration 008 planned: persons, person_listings, deals, deal_events tables
+
 ## ProMemo Implementation Status (Session 9b — 2026-02-14)
 - See [promemo_progress.md](promemo_progress.md) for detailed implementation status
 - **ALL PHASES DONE** except Phase 4 (TypeScript Parser Port)
@@ -39,7 +50,8 @@
 - pgAdmin server auto-configured via config/pgadmin-servers.json
 - Always use `docker exec` for psql, not host psql (not installed)
 - Docker in WSL2: use `docker.exe` (Docker Desktop must be running on Windows)
-- **ProMemo web app** at port 8888 (Next.js, in docker-compose as `web` service)
+- **ProMemo web app** internal port 3000, mapped to host port 8888 via Docker.
+  Access at http://localhost:8888 (Docker) or http://localhost:3000 (npm run dev).
 - **uploads-data** volume: mounted at `/app/uploads` in web container
 
 ## Next.js Web App (ProMemo)

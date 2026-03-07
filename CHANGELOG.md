@@ -7,8 +7,8 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ## [Unreleased]
 
 ### Added
-- **ProMemo web app** (Next.js 16, React 19, TypeScript, Tailwind v4) at port 8888
-  - Agent signup/login with bcrypt + JWT auth
+- **ProMemo web app** (Next.js 15, React 19, TypeScript, Tailwind v4) at port 8888
+  - Agent login with bcrypt + JWT auth (httpOnly cookie). Account creation via admin script only.
   - Listing CRUD with freestyle text input and structured database view
   - Feed with 18 filter parameters, sorting, and pagination
   - Agent-to-agent messaging with conversation threads, 5s polling
@@ -69,6 +69,8 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ### Removed
 - `full-pipeline` flow (merged into `ingest-csv` with `auto_parse` toggle)
 - Custom JSON execution log files from flows (redundant with Kestra UI)
+- Public agent signup (`/api/auth/signup` still exists for script use, UI tab removed)
+- Signup tab from login page (Session 8) — login-only, contact admin for account creation
 
 ## [0.1.0-dev] - 2025-02-04
 
