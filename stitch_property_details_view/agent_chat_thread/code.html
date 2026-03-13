@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Agent Chat Thread - FIDT.vn Wealth Realty</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#F58A42", // FIDT Orange
+                        "primary-dark": "#d9702b",
+                        "brand-blue": "#0A2540", // FIDT Navy Blue
+                        "background-light": "#f6f7f8",
+                        "background-dark": "#101822",
+                        "surface-dark": "#1e293b", 
+                        "incoming-bubble": "#273546", 
+                    },
+                    fontFamily: {
+                        "display": ["Inter", "sans-serif"]
+                    },
+                    borderRadius: { "DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "2xl": "1rem", "full": "9999px" },
+                },
+            },
+        }
+    </script>
+<style>.scrollbar-hide::-webkit-scrollbar {
+            display: none;
+        }
+        .scrollbar-hide {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }.safe-pb {
+            padding-bottom: env(safe-area-inset-bottom);
+        }
+    </style>
+<style>
+        body {
+            min-height: max(884px, 100dvh);
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark font-display text-slate-800 dark:text-slate-100 antialiased h-screen w-full flex justify-center overflow-hidden">
+<main class="w-full h-full max-w-md bg-background-light dark:bg-background-dark relative flex flex-col shadow-2xl overflow-hidden mx-auto border-x border-slate-200 dark:border-slate-800">
+<div class="flex-none bg-white pt-12 pb-2 px-4 flex justify-center items-center z-30 border-b border-slate-100 dark:border-slate-800">
+<img alt="FIDT Logo" class="h-8 object-contain" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBxFHHSKH1Rs2tTETJhs-p4gozcZNGDgbjXA8GHeR8LXOzw7HGTjeeycFgW-8Lthnu1OCM58nqLGRHOCoZPStYHHnkl0ztoM-RKtudRP-7RcOLxTceNe8zIFxZINAtpM3cwB1zzMR5AF5S_bK81Xf5mMLXv8D1zkCUZiZLy-QF2pqGRwzGN8EuALfoEKmb3mF_o_vZpdPPQu9-hA_dIp8EmCjxFmmojRNXkz2e4iByZL4uDC3W2FxX7-zBojMY0AwfSqMT_osFxGnuE"/>
+</div>
+<header class="flex-none bg-white dark:bg-background-dark/95 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 py-3 px-4 z-20">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-3">
+<button class="text-slate-500 hover:text-primary transition-colors -ml-2 p-2 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800">
+<span class="material-icons text-2xl">chevron_left</span>
+</button>
+<div class="relative">
+<img alt="Professional woman agent portrait" class="w-10 h-10 rounded-full object-cover border-2 border-slate-100 dark:border-slate-700" data-alt="Professional woman agent portrait" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBCN0LyOsbC5iEFL_OCChj4c5ptnD2ddvqT-WhHbB4u-gMUhqwAYYg5rbdm_ZHSd7-I4xzy-QugUlY6HRM6onqJ-ApW-dU5vTPN-4kqRJFSlFKUlNzejNMuXpNtu-Lzc6MshZ1RK6tWTICufKqfAbRYwUDwLxL4uIgI5o8PzWZEW5AeaBLpg9_o8OmMHUZ3fmnvPYhoi1gLSd1bI5gKDTfdNr8D8s0v2mq9VKmrHSgvC-w8Vo4usj4g7dXKLPXLDWe3rmRArSwbDYbP"/>
+<div class="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-white dark:border-background-dark rounded-full"></div>
+</div>
+<div>
+<h1 class="text-base font-semibold leading-tight text-slate-900 dark:text-white">Sarah Nguyen</h1>
+<p class="text-xs text-slate-500 dark:text-slate-400">Senior Broker • Online</p>
+</div>
+</div>
+<div class="flex items-center gap-2">
+<button class="p-2 text-primary hover:bg-primary/10 rounded-full transition-colors">
+<span class="material-icons text-[22px]">phone</span>
+</button>
+<button class="p-2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 rounded-full transition-colors">
+<span class="material-icons text-[22px]">more_vert</span>
+</button>
+</div>
+</div>
+</header>
+<div class="flex-none bg-slate-50 dark:bg-surface-dark border-b border-slate-200 dark:border-slate-700/50 px-4 py-3 z-10 shadow-sm">
+<div class="flex gap-3 items-center">
+<img alt="Modern villa exterior with pool" class="w-16 h-12 rounded-lg object-cover shadow-sm flex-none" data-alt="Modern villa exterior with pool" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAGJn665s1he4NAH0pOIHZIMOC9OKwMTZwgwuucQuyLqIIEGo-hx156UsxL67HkCNeJiXZaiADYNuKIjTvf6zN9bfa5t2uwsG-9vt07TeysOEMhJRTyzJzjwuSy9ViMIwGIM9hBklB8jIfWpOiUhbmS8VbdXLK2vaFOPGzJI5-uNjAWJTDdTXPhaa_6bRGvOJb8WV18tsVHMc4FSNF4ODtkd7Q5XRcQqYGISj0tZX6NTnaHjnQKHZs6EuwN9GuSDSswKl0ZqoWXmP9O"/>
+<div class="flex-1 min-w-0">
+<div class="flex justify-between items-start">
+<h2 class="text-sm font-semibold truncate text-slate-900 dark:text-slate-100 pr-2">Villa Riviera, District 2</h2>
+<span class="px-2 py-0.5 rounded text-[10px] font-medium bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400 border border-amber-200 dark:border-amber-800/50">
+                        Negotiating
+                    </span>
+</div>
+<div class="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+<span class="font-medium text-brand-blue dark:text-blue-400">$1,200,000</span>
+<span>•</span>
+<span>4 Bed, 3 Bath</span>
+</div>
+</div>
+<button class="p-1.5 text-slate-400 hover:text-primary dark:hover:text-primary transition-colors">
+<span class="material-icons text-xl">info</span>
+</button>
+</div>
+</div>
+<div class="flex-1 overflow-y-auto p-4 space-y-6 scrollbar-hide bg-background-light dark:bg-background-dark" id="chat-container">
+<div class="flex justify-center">
+<span class="text-[11px] font-medium text-slate-400 dark:text-slate-500 bg-slate-200/50 dark:bg-slate-800/50 px-3 py-1 rounded-full uppercase tracking-wide">
+                Yesterday
+            </span>
+</div>
+<div class="flex gap-3 items-end group">
+<img alt="Sarah agent avatar" class="w-8 h-8 rounded-full mb-1 object-cover border border-slate-200 dark:border-slate-700" data-alt="Sarah agent avatar" src="https://lh3.googleusercontent.com/aida-public/AB6AXuATiBkbK4r6FTZo2wGz-_EtwmHm3yVnuIzkg-BQB4ZdhW2dcx2Jr7CKKuec5Vx1ADBInces9EragH0rKSvDW_xbLuN6RAv2H3_tiEaQMxWm4OUBgTCybn4citZ1E9P9iMO4Xwhsyt8yTyydob-50TijsLBfVnzaQjmnFMNtUOQVChnylL090uA2npOQB1-wwb0ze9V22dh8BqPlNwcfH8QABDdP0iAe6ZHPTdbq8x7l8zTgQNrHNLPLMTFJxpHKVHakWFOSwhJDT4CQ"/>
+<div class="flex flex-col gap-1 max-w-[75%]">
+<div class="bg-white dark:bg-incoming-bubble text-slate-800 dark:text-slate-200 px-4 py-3 rounded-2xl rounded-bl-sm shadow-sm border border-slate-100 dark:border-transparent">
+<p class="text-sm leading-relaxed">Hi Mike, just following up on the Riviera property. Has the client reviewed the counter-offer we sent yesterday morning?</p>
+</div>
+<span class="text-[10px] text-slate-400 ml-1">10:23 AM</span>
+</div>
+</div>
+<div class="flex flex-col items-end gap-1">
+<div class="max-w-[75%] bg-primary text-white px-4 py-3 rounded-2xl rounded-br-sm shadow-md shadow-primary/10">
+<p class="text-sm leading-relaxed">Hey Sarah. Yes, I just spoke with them. They are generally happy with the terms but had one question about the closing date.</p>
+</div>
+<div class="flex items-center gap-1 mr-1">
+<span class="text-[10px] text-slate-400">10:45 AM</span>
+<span class="material-icons text-[12px] text-primary">done_all</span>
+</div>
+</div>
+<div class="flex justify-center mt-6">
+<span class="text-[11px] font-medium text-slate-400 dark:text-slate-500 bg-slate-200/50 dark:bg-slate-800/50 px-3 py-1 rounded-full uppercase tracking-wide">
+                Today
+            </span>
+</div>
+<div class="flex gap-3 items-end group">
+<img alt="Sarah agent avatar" class="w-8 h-8 rounded-full mb-1 object-cover border border-slate-200 dark:border-slate-700" data-alt="Sarah agent avatar" src="https://lh3.googleusercontent.com/aida-public/AB6AXuA-o0-PfVJEvUH0GZ2uDrl0UteoeMfkmm9ixvLXCMGpepGfp6MQovwrDxcl_JsUdxhh7NbPw8GSPa419DvpQ4DBpK2ItgHwrDLtlbkJzaE30vUvIR8tCz6_IyT8LietGiw_OE99uMcv3TWoAL22dC9Tmt-GSdTW3sz8lEW3vpBHZD1FMbpKS3v31Um1BMuMjRKFnWZr7IIlFFEKAA2N9AbAIgLcG_93x1gobuVmvIBEE1a_34_75Anve0vUbinV4Il3bF5gt3_qZsik"/>
+<div class="flex flex-col gap-1 max-w-[75%]">
+<div class="bg-white dark:bg-incoming-bubble text-slate-800 dark:text-slate-200 px-4 py-3 rounded-2xl rounded-bl-sm shadow-sm border border-slate-100 dark:border-transparent">
+<p class="text-sm leading-relaxed">Great! We can be flexible on the closing date if they can sign by Friday.</p>
+</div>
+<span class="text-[10px] text-slate-400 ml-1">09:15 AM</span>
+</div>
+</div>
+<div class="flex flex-col items-end gap-1">
+<div class="max-w-[80%] bg-primary text-white p-1 rounded-2xl rounded-br-sm shadow-md shadow-primary/10">
+<div class="px-3 pt-2 pb-1">
+<p class="text-sm leading-relaxed">Perfect. They just signed. I'm uploading the document now.</p>
+</div>
+<div class="bg-white/10 rounded-xl p-3 mt-1 flex items-center gap-3 backdrop-blur-sm cursor-pointer hover:bg-white/20 transition-colors">
+<div class="w-10 h-10 bg-white rounded-lg flex items-center justify-center shrink-0">
+<span class="material-icons text-red-500 text-xl">picture_as_pdf</span>
+</div>
+<div class="overflow-hidden">
+<p class="text-sm font-medium text-white truncate">Signed_Counter_Offer_v2.pdf</p>
+<p class="text-[10px] text-white/70">2.4 MB • PDF</p>
+</div>
+</div>
+</div>
+<div class="flex items-center gap-1 mr-1">
+<span class="text-[10px] text-slate-400">09:20 AM</span>
+<span class="material-icons text-[12px] text-slate-500">done</span>
+</div>
+</div>
+<div class="flex gap-3 items-end animate-pulse">
+<img alt="Sarah agent avatar" class="w-8 h-8 rounded-full mb-1 object-cover border border-slate-200 dark:border-slate-700" data-alt="Sarah agent avatar" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDBX3NyjTT3gZGXVO4Me51JfpyZugHmHcze3fW9IJGj-Q6Ln8QqQGBbOJLfPKtmDUIrrQQeGLaaMg0iZlHWL6gA57Df1ZtUFZNM0Cd4jVsRUccdfH0XSXkBeJf9WQAhD0JeBoGuS3Hf99Mwco7_RS9pvsgE8hI3-PEDDOpg117XHtoocj23NpQxXVdfHJyImfXDlaLR5F0LONvgEdlFZuSl-6fvnkKPoASXzXXslSBbI1X79auRgm9OS9DJdmiY--Gb6jbUHTqGUzuB"/>
+<div class="bg-white dark:bg-incoming-bubble px-4 py-3 rounded-2xl rounded-bl-sm shadow-sm border border-slate-100 dark:border-transparent w-16 flex items-center justify-center gap-1">
+<div class="w-1.5 h-1.5 bg-slate-400 rounded-full animate-bounce" style="animation-delay: 0s;"></div>
+<div class="w-1.5 h-1.5 bg-slate-400 rounded-full animate-bounce" style="animation-delay: 0.1s;"></div>
+<div class="w-1.5 h-1.5 bg-slate-400 rounded-full animate-bounce" style="animation-delay: 0.2s;"></div>
+</div>
+</div>
+<div class="h-2"></div>
+</div>
+<div class="flex-none bg-white dark:bg-surface-dark border-t border-slate-200 dark:border-slate-800 px-4 py-3 z-20">
+<div class="flex items-end gap-3">
+<button class="flex-none text-slate-400 hover:text-primary dark:text-slate-400 dark:hover:text-primary p-2 -ml-2 rounded-full transition-colors self-center">
+<span class="material-icons text-2xl transform rotate-45">attach_file</span>
+</button>
+<div class="flex-1 min-h-[44px] bg-slate-100 dark:bg-background-dark rounded-xl flex items-center border border-transparent focus-within:border-primary/50 focus-within:ring-1 focus-within:ring-primary/50 transition-all">
+<input class="w-full bg-transparent border-none text-sm text-slate-900 dark:text-white placeholder-slate-400 px-4 py-2 focus:ring-0 focus:outline-none h-full" placeholder="Type a message..." type="text"/>
+<button class="p-2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors mr-1">
+<span class="material-icons text-xl">sentiment_satisfied_alt</span>
+</button>
+</div>
+<button class="flex-none bg-primary hover:bg-primary-dark text-white w-11 h-11 rounded-full flex items-center justify-center shadow-lg shadow-primary/20 transition-all hover:scale-105 active:scale-95 self-center">
+<span class="material-icons text-xl ml-0.5">send</span>
+</button>
+</div>
+<div class="flex gap-3 mt-3 overflow-x-auto pb-1 scrollbar-hide">
+<button class="flex-none px-3 py-1.5 bg-slate-100 dark:bg-background-dark border border-slate-200 dark:border-slate-700 rounded-lg text-xs font-medium text-slate-600 dark:text-slate-300 whitespace-nowrap hover:bg-slate-200 dark:hover:bg-slate-800 transition-colors">
+                Schedule Viewing
+            </button>
+<button class="flex-none px-3 py-1.5 bg-slate-100 dark:bg-background-dark border border-slate-200 dark:border-slate-700 rounded-lg text-xs font-medium text-slate-600 dark:text-slate-300 whitespace-nowrap hover:bg-slate-200 dark:hover:bg-slate-800 transition-colors">
+                Share Contract
+            </button>
+<button class="flex-none px-3 py-1.5 bg-slate-100 dark:bg-background-dark border border-slate-200 dark:border-slate-700 rounded-lg text-xs font-medium text-slate-600 dark:text-slate-300 whitespace-nowrap hover:bg-slate-200 dark:hover:bg-slate-800 transition-colors">
+                Request Info
+            </button>
+</div>
+</div>
+<nav class="flex-none bg-white dark:bg-surface-dark border-t border-slate-200 dark:border-slate-800 safe-pb z-30">
+<div class="flex justify-around items-center pt-2 pb-1">
+<button class="flex flex-col items-center gap-1 p-2 w-16 group">
+<span class="material-symbols-outlined text-slate-400 group-hover:text-primary transition-colors text-2xl">feed</span>
+<span class="text-[10px] font-medium text-slate-400 group-hover:text-primary transition-colors">Feed</span>
+</button>
+<button class="flex flex-col items-center gap-1 p-2 w-16 group">
+<span class="material-symbols-outlined text-slate-400 group-hover:text-primary transition-colors text-2xl">home_work</span>
+<span class="text-[10px] font-medium text-slate-400 group-hover:text-primary transition-colors">My Listings</span>
+</button>
+<button class="flex flex-col items-center gap-1 p-2 w-16">
+<div class="relative">
+<span class="material-symbols-outlined text-primary text-2xl">chat_bubble</span>
+<span class="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-white dark:border-surface-dark"></span>
+</div>
+<span class="text-[10px] font-medium text-primary">Inquiries</span>
+</button>
+<button class="flex flex-col items-center gap-1 p-2 w-16 group">
+<span class="material-symbols-outlined text-slate-400 group-hover:text-primary transition-colors text-2xl">people</span>
+<span class="text-[10px] font-medium text-slate-400 group-hover:text-primary transition-colors">CRM</span>
+</button>
+<button class="flex flex-col items-center gap-1 p-2 w-16 group">
+<span class="material-symbols-outlined text-slate-400 group-hover:text-primary transition-colors text-2xl">person</span>
+<span class="text-[10px] font-medium text-slate-400 group-hover:text-primary transition-colors">My Profile</span>
+</button>
+</div>
+</nav>
+</main>
+<script>
+    // Simple script to keep scroll at bottom on load
+    window.onload = function() {
+        var objDiv = document.getElementById("chat-container");
+        objDiv.scrollTop = objDiv.scrollHeight;
+    }
+</script>
+
+</body></html>

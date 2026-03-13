@@ -96,7 +96,14 @@ export default function PhotoUploader({
   return (
     <div>
       {error && (
-        <div className="mb-3 p-2 bg-red-50 text-red-700 text-sm rounded-lg border border-red-100">
+        <div
+          className="mb-3 p-2 text-sm rounded-lg border"
+          style={{
+            backgroundColor: "rgba(239, 68, 68, 0.15)",
+            color: "var(--error)",
+            borderColor: "var(--error)",
+          }}
+        >
           {error}
         </div>
       )}
@@ -107,7 +114,8 @@ export default function PhotoUploader({
           {photos.map((photo, idx) => (
             <div
               key={photo.id}
-              className="relative group aspect-square bg-slate-100 rounded-lg overflow-hidden"
+              className="relative group aspect-square rounded-lg overflow-hidden"
+              style={{ backgroundColor: "var(--bg-elevated)" }}
             >
               <img
                 src={`/api/files/${photo.file_path}`}
@@ -115,14 +123,18 @@ export default function PhotoUploader({
                 className="w-full h-full object-cover"
               />
               {idx === 0 && (
-                <span className="absolute top-2 left-2 text-xs px-2 py-0.5 bg-accent text-white rounded-full font-medium">
+                <span
+                  className="absolute top-2 left-2 text-xs px-2 py-0.5 rounded-full font-medium text-white"
+                  style={{ backgroundColor: "var(--orange)" }}
+                >
                   Primary
                 </span>
               )}
               {!readOnly && (
                 <button
                   onClick={() => handleDelete(photo.id)}
-                  className="absolute top-2 right-2 w-7 h-7 bg-red-500/80 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-sm"
+                  className="absolute top-2 right-2 w-7 h-7 rounded-full opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-sm text-white"
+                  style={{ backgroundColor: "var(--error)" }}
                 >
                   &times;
                 </button>
@@ -138,7 +150,11 @@ export default function PhotoUploader({
           onDrop={handleDrop}
           onDragOver={(e) => e.preventDefault()}
           onClick={() => fileInputRef.current?.click()}
-          className="border-2 border-dashed border-slate-300 rounded-lg p-8 text-center cursor-pointer hover:border-accent/50 hover:bg-accent/5 transition-colors"
+          className="border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-colors hover:border-[var(--orange)]"
+          style={{
+            borderColor: "var(--border)",
+            backgroundColor: "var(--bg-surface)",
+          }}
         >
           <input
             ref={fileInputRef}
@@ -152,7 +168,7 @@ export default function PhotoUploader({
             }}
           />
           <svg
-            className="w-10 h-10 mx-auto mb-3 text-slate-400"
+            className="w-10 h-10 mx-auto mb-3 text-[var(--text-muted)]"
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
@@ -165,13 +181,13 @@ export default function PhotoUploader({
             />
           </svg>
           {uploading ? (
-            <p className="text-sm text-slate-500">Uploading...</p>
+            <p className="text-sm text-[var(--text-muted)]">Uploading...</p>
           ) : (
             <>
-              <p className="text-sm font-medium text-slate-600">
+              <p className="text-sm font-medium text-[var(--text-secondary)]">
                 Click or drag photos here
               </p>
-              <p className="text-xs text-slate-400 mt-1">
+              <p className="text-xs text-[var(--text-muted)] mt-1">
                 JPEG, PNG, WebP, GIF (max 20MB each)
               </p>
             </>
@@ -180,7 +196,7 @@ export default function PhotoUploader({
       )}
 
       {photos.length === 0 && readOnly && (
-        <p className="text-sm text-slate-400 italic">No photos uploaded</p>
+        <p className="text-sm text-[var(--text-muted)] italic">No photos uploaded</p>
       )}
     </div>
   );

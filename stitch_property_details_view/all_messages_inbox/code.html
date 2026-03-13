@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Inquiries Inbox - FIDT Wealth Realty</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#ff914d", // Updated orange/yellow highlight
+                        "primary-dark": "#e67329",
+                        "secondary": "#0a2540", // Dark blue from logo
+                        "background-light": "#f6f7f8",
+                        "background-dark": "#101822",
+                        "surface-dark": "#1c2633",
+                        "surface-hover": "#253040",
+                    },
+                    fontFamily: {
+                        "display": ["Inter", "sans-serif"]
+                    },
+                    borderRadius: { "DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "2xl": "1rem", "full": "9999px" },
+                },
+            },
+        }
+    </script>
+<style>.no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+    </style>
+<style>
+        body {
+          min-height: max(884px, 100dvh);
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-white font-display min-h-screen flex justify-center">
+<div class="w-full max-w-md h-screen bg-background-light dark:bg-background-dark flex flex-col relative overflow-hidden shadow-2xl">
+<header class="pt-8 pb-4 px-5 bg-background-light dark:bg-background-dark sticky top-0 z-20">
+<div class="flex justify-center items-center mb-6 bg-white dark:bg-white/5 py-3 rounded-xl shadow-sm">
+<img alt="FIDT Logo" class="h-8 object-contain" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAPTKyQpRDhdgXXihJxWnV0VKBaLGs41GBIlz_wmy8LH9llocCjIS1vBIJwU3YDlkgzb26l6_7ThL1UZBGQnDxrl-jCRJXAxFNM2w556se0AvIPtmQJtl6VPAhlcD3fDwJ5EmZgeJSHYiJ22fXAOcrI3Opdb1MKWHsUsyXD3VOEsWesLSlMWS1Nd6XlTxb9xK5pOX3XLaRzB3NCTuCAU7rGdH7l7OGhp6orPy4pejtOrR_od2P125KK5HsIKMxUlhKt-dioV1duUj5e"/>
+</div>
+<div class="flex justify-between items-center mb-4">
+<h1 class="text-3xl font-bold tracking-tight text-slate-900 dark:text-white">Inquiries</h1>
+<button class="p-2 rounded-full bg-slate-200 dark:bg-surface-dark text-slate-600 dark:text-slate-400 hover:bg-slate-300 dark:hover:bg-surface-hover transition-colors">
+<span class="material-icons-round text-2xl">edit_square</span>
+</button>
+</div>
+<div class="relative group mb-4">
+<div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+<span class="material-icons-round text-slate-400 text-xl group-focus-within:text-primary transition-colors">search</span>
+</div>
+<input class="block w-full pl-10 pr-3 py-3 border-none rounded-xl bg-white dark:bg-surface-dark text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-primary shadow-sm text-sm" placeholder="Search agent, property or P-ID..." type="text"/>
+</div>
+<div class="flex gap-2 overflow-x-auto no-scrollbar pb-1">
+<button class="flex items-center gap-1.5 px-4 py-2 rounded-full bg-primary text-white text-sm font-medium whitespace-nowrap shadow-md shadow-primary/20">
+                    All Chats
+                </button>
+<button class="flex items-center gap-1.5 px-4 py-2 rounded-full bg-white dark:bg-surface-dark border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 text-sm font-medium whitespace-nowrap hover:bg-slate-50 dark:hover:bg-surface-hover transition-colors">
+<span class="material-icons-round text-base text-slate-400">person</span>
+                    Agents
+                </button>
+<button class="flex items-center gap-1.5 px-4 py-2 rounded-full bg-white dark:bg-surface-dark border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 text-sm font-medium whitespace-nowrap hover:bg-slate-50 dark:hover:bg-surface-hover transition-colors">
+<span class="material-icons-round text-base text-slate-400">domain</span>
+                    Properties
+                </button>
+<button class="flex items-center gap-1.5 px-4 py-2 rounded-full bg-white dark:bg-surface-dark border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 text-sm font-medium whitespace-nowrap hover:bg-slate-50 dark:hover:bg-surface-hover transition-colors">
+<span class="material-icons-round text-base text-slate-400">mark_email_unread</span>
+                    Unread
+                </button>
+</div>
+</header>
+<main class="flex-1 overflow-y-auto px-4 pb-24 space-y-3">
+<div class="flex items-center gap-2 px-2 mt-2 mb-1">
+<span class="material-icons-round text-primary text-sm">push_pin</span>
+<span class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Priority Deals</span>
+</div>
+<div class="relative group">
+<div class="absolute -inset-0.5 bg-gradient-to-r from-primary to-orange-300 rounded-2xl opacity-20 group-hover:opacity-40 transition duration-300 blur-sm"></div>
+<div class="relative p-4 rounded-xl bg-white dark:bg-surface-dark border-l-4 border-primary shadow-sm hover:shadow-md transition-all cursor-pointer">
+<div class="flex items-start gap-3">
+<div class="relative">
+<img alt="Professional real estate agent portrait" class="w-12 h-12 rounded-full object-cover ring-2 ring-white dark:ring-background-dark" data-alt="Woman in business suit smiling" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDfZNLmXQ_YhNPAvGSXbXnH1jKXKJpe1sN0M3fW5qmTnVIfOyomtEyR1H2iDFyn7UkLZEnkOUYrLvZxMWuvLvZr4MRZCaQZVt0DRSAqUkYX8trJB0UX6-1ZLwAV5ojV_qLxMEYhfUjj0NcWa772vqeypLqbKzrH5phDoP92b26-UStiEv4J8E-Z5Q3P_qx8B_NqlAI3XYu2Bck_G4dl5G0uyEFW0WXW3vHRFlJxLRwihD9biwEqvygrV2wYNcgECm1EgLBDzIa0l5g4"/>
+<span class="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-white dark:border-surface-dark rounded-full"></span>
+</div>
+<div class="flex-1 min-w-0">
+<div class="flex justify-between items-start mb-0.5">
+<h3 class="font-semibold text-slate-900 dark:text-white truncate pr-2">Sarah Nguyen</h3>
+<span class="text-xs font-medium text-primary whitespace-nowrap">10:42 AM</span>
+</div>
+<div class="flex items-center gap-2 mb-1">
+<span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-700">
+                                    #FIDT-8821
+                                </span>
+<span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-bold bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 border border-amber-200 dark:border-amber-800/50">
+                                    Negotiation
+                                </span>
+</div>
+<p class="text-sm font-semibold text-slate-900 dark:text-white truncate">Has the client sent the deposit yet? We need to lock this down.</p>
+</div>
+<div class="w-2.5 h-2.5 rounded-full bg-primary mt-2 flex-shrink-0 animate-pulse"></div>
+</div>
+</div>
+</div>
+<div class="p-4 rounded-xl bg-white dark:bg-surface-dark shadow-sm active:scale-[0.98] transition-transform cursor-pointer">
+<div class="flex items-start gap-3">
+<div class="relative">
+<img alt="Male real estate broker portrait" class="w-12 h-12 rounded-full object-cover ring-2 ring-transparent" data-alt="Man in suit portrait" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDdoqnpUgO9_pS1c7Je2D3iq55_U9nUc4XXoxfwW1-Vhe1HUSBkpfMS8nqNaPCR4cBQGgN8ZZWFcVusi7Vocrbce1MsDPZccWTt-Lbit-fR5U_UxW94yJrYV_Mi_v8zl6AOED3e2i6qEISCtc81-ctu8AmBNyO-impj1D0cWhCbs4nUjoVqHoDDSEJFTWPtmqM73v07w1UThuzrBx_WbM_JA8z6snNwrqri2IkvlAv-rn1sAcdsSdpNoWeOmxkjrC1eRbzCeZj278CA"/>
+</div>
+<div class="flex-1 min-w-0">
+<div class="flex justify-between items-start mb-0.5">
+<h3 class="font-semibold text-slate-900 dark:text-white truncate">Michael Tran</h3>
+<span class="text-xs text-slate-500 dark:text-slate-400">Yesterday</span>
+</div>
+<div class="flex items-center gap-2 mb-1">
+<span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-700">
+                                #FIDT-9901
+                            </span>
+<span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-bold bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800/50">
+                                Viewing
+                            </span>
+</div>
+<p class="text-sm text-slate-500 dark:text-slate-400 truncate">Meeting confirmed for 2 PM at the villa entrance.</p>
+</div>
+</div>
+</div>
+<div class="p-4 rounded-xl bg-white dark:bg-surface-dark shadow-sm active:scale-[0.98] transition-transform cursor-pointer opacity-75">
+<div class="flex items-start gap-3">
+<div class="relative">
+<div class="w-12 h-12 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white font-bold ring-2 ring-transparent">
+                            TV
+                        </div>
+</div>
+<div class="flex-1 min-w-0">
+<div class="flex justify-between items-start mb-0.5">
+<h3 class="font-semibold text-slate-900 dark:text-white truncate">Thanh Vo</h3>
+<span class="text-xs text-slate-500 dark:text-slate-400">Tue</span>
+</div>
+<div class="flex items-center gap-2 mb-1">
+<span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-700">
+                                #FIDT-1024
+                            </span>
+<span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-bold bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-600">
+                                Inquiry
+                            </span>
+</div>
+<p class="text-sm text-slate-500 dark:text-slate-400 truncate">Are the floor plans available for unit 4B?</p>
+</div>
+</div>
+</div>
+<div class="flex items-center gap-2 px-2 mt-4 mb-1">
+<span class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Older Messages</span>
+</div>
+<div class="p-4 rounded-xl bg-white dark:bg-surface-dark shadow-sm active:scale-[0.98] transition-transform cursor-pointer opacity-60">
+<div class="flex items-start gap-3">
+<div class="relative">
+<img alt="Older agent profile" class="w-12 h-12 rounded-full object-cover grayscale" data-alt="Man with glasses smiling" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDVTxqOsNx_Ncak6-GChWIq6GTB0QX_eumts_ivfi9-9O9ICiYQaFtj2XA1oWSFSwuw2DOIpyt7K3L-096j1hhKPRAYbhWJUQm0GEQ9ogInydrr0SlvFI7OiBbOWq1PXq9nJ9BSXVUlOxL9y_WL0NkWXPRwM1kl38UqPj0gmm-j5piWQlUQqD7qI1NlAPjeNuNhd2ZIuwkxu1cn7yZJh9s7WR67pkIaV_a35fqgqq5lmNkx_POl-GilMqcsJRu4BreTnAUPKZK2uZ2B"/>
+</div>
+<div class="flex-1 min-w-0">
+<div class="flex justify-between items-start mb-0.5">
+<h3 class="font-semibold text-slate-900 dark:text-white truncate">David Chen</h3>
+<span class="text-xs text-slate-500 dark:text-slate-400">Oct 24</span>
+</div>
+<div class="flex items-center gap-2 mb-1">
+<span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-700">
+                                #FIDT-7740
+                            </span>
+<span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-bold bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 border border-blue-200 dark:border-blue-800/50">
+                                Closed
+                            </span>
+</div>
+<p class="text-sm text-slate-500 dark:text-slate-400 truncate">Great work on closing that deal! Documents signed.</p>
+</div>
+</div>
+</div>
+<div class="p-4 rounded-xl bg-white dark:bg-surface-dark shadow-sm active:scale-[0.98] transition-transform cursor-pointer opacity-60">
+<div class="flex items-start gap-3">
+<div class="relative">
+<img alt="Real estate partner" class="w-12 h-12 rounded-full object-cover grayscale" data-alt="Woman with short hair portrait" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAApUQumkfJ5f4x-4O5cktpM6JV9sa57U0CASZ_CJ8ABZRwYxeUX3SWxWdnnYpvbB308YO7-LSgRgDFOLj2INn-UB958LfORGlxlebohRQAFOXGu2NXhGLsfJq5snQpD4Uko4yxsvNLMmx_6oypctkzSvYg4CdoC2Xz2bv2CEl4nF6v8tM8P-ox1HBqOxRgh63Lo8tn_CXDwD7RyIzkSKPfRRMKmVy-7WkrlA9-CXQ2MjDKx3XXy12Y8GbXxwGelVE8cSHism4OOUZ7"/>
+</div>
+<div class="flex-1 min-w-0">
+<div class="flex justify-between items-start mb-0.5">
+<h3 class="font-semibold text-slate-900 dark:text-white truncate">Elena Gomez</h3>
+<span class="text-xs text-slate-500 dark:text-slate-400">Oct 20</span>
+</div>
+<div class="flex items-center gap-2 mb-1">
+<span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-700">
+                                #FIDT-6621
+                            </span>
+<span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-bold bg-rose-100 dark:bg-rose-900/30 text-rose-700 dark:text-rose-400 border border-rose-200 dark:border-rose-800/50">
+                                Cancelled
+                            </span>
+</div>
+<p class="text-sm text-slate-500 dark:text-slate-400 truncate">Client decided to withdraw the offer.</p>
+</div>
+</div>
+</div>
+</main>
+<nav class="absolute bottom-0 w-full bg-white dark:bg-surface-dark border-t border-slate-200 dark:border-slate-800 pb-5 pt-2 px-4 shadow-lg z-30">
+<div class="flex justify-between items-center">
+<button class="flex flex-col items-center gap-1 w-1/5 text-slate-400 hover:text-primary transition-colors">
+<span class="material-icons-round text-2xl">feed</span>
+<span class="text-[10px] font-medium">Feed</span>
+</button>
+<button class="flex flex-col items-center gap-1 w-1/5 text-slate-400 hover:text-primary transition-colors">
+<span class="material-icons-round text-2xl">apartment</span>
+<span class="text-[10px] font-medium">My Listings</span>
+</button>
+<button class="flex flex-col items-center gap-1 w-1/5 text-primary">
+<span class="material-icons-round text-2xl">chat_bubble</span>
+<span class="text-[10px] font-medium">Inquiries</span>
+</button>
+<button class="flex flex-col items-center gap-1 w-1/5 text-slate-400 hover:text-primary transition-colors">
+<span class="material-icons-round text-2xl">people</span>
+<span class="text-[10px] font-medium">CRM</span>
+</button>
+<button class="flex flex-col items-center gap-1 w-1/5 text-slate-400 hover:text-primary transition-colors">
+<span class="material-icons-round text-2xl">person</span>
+<span class="text-[10px] font-medium">My Profile</span>
+</button>
+</div>
+</nav>
+</div>
+
+</body></html>

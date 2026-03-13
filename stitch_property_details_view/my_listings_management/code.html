@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>My Listings Management - fidt.vn Wealth Realty</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#FF9F5A", // Updated to logo orange/yellow highlight
+                        "primary-hover": "#e88e4d",
+                        "secondary": "#0d2b56", // Dark blue from logo
+                        "background-light": "#f6f7f8",
+                        "background-dark": "#101822",
+                        "surface-dark": "#1c2632",
+                        "surface-darker": "#16202a"
+                    },
+                    fontFamily: {
+                        "display": ["Inter", "sans-serif"]
+                    },
+                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style>.no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }.no-scrollbar {
+            -ms-overflow-style: none;scrollbar-width: none;}
+        body {
+            min-height: max(884px, 100dvh);
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark font-display text-gray-900 dark:text-gray-100 min-h-screen flex flex-col antialiased selection:bg-primary selection:text-white">
+<div class="mx-auto w-full max-w-md bg-background-light dark:bg-background-dark min-h-screen flex flex-col relative shadow-2xl overflow-hidden">
+<div class="bg-white dark:bg-white pt-12 pb-2 px-5 flex justify-center items-center sticky top-0 z-40 border-b border-gray-100 dark:border-gray-800">
+<img alt="FIDT Logo" class="h-10 object-contain" src="https://lh3.googleusercontent.com/aida-public/AB6AXuClJiKSzEmmZ6NaU_N_w1ZJ1c5xZEmsmlRCr74CHhvHjzmL6Vx3PiViEppK7TNGD76vJZ1gm5SXY9UZ24nVR6qoGrn8fE9RVxuaKkGwuGNlAr6iguRnhbcEF7uQuPsUOnmhqi0fWMHrON_e-Ix4aapZOvAnso-L__3Fk4ETrUKnIPrH8uZQ5FHbQ3UcyznsS7m6v_FN7Zc8Sj0OWq11oj-K_7FHf44RBtwIIPgZ0HM3ccjo47Oe0-A6r32A5dI6k14VoeE5dk_kYOsX"/>
+</div>
+<header class="px-5 py-4 flex justify-between items-center bg-background-light/95 dark:bg-background-dark/95 backdrop-blur-sm z-30">
+<div>
+<p class="text-xs font-medium text-secondary dark:text-gray-400 uppercase tracking-wider mb-1">Wealth Realty</p>
+<h1 class="text-2xl font-bold tracking-tight text-secondary dark:text-white">My Listings</h1>
+</div>
+<button class="flex items-center justify-center w-10 h-10 rounded-full bg-primary text-white shadow-lg shadow-primary/30 active:scale-95 transition-transform hover:bg-primary-hover">
+<span class="material-icons">add</span>
+</button>
+</header>
+<div class="px-5 pb-2">
+<div class="relative mb-4">
+<span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+<span class="material-icons text-gray-400 text-xl">search</span>
+</span>
+<input class="w-full pl-10 pr-4 py-2.5 bg-white dark:bg-surface-dark border-none rounded-lg text-sm text-gray-900 dark:text-white placeholder-gray-400 focus:ring-2 focus:ring-primary shadow-sm" placeholder="Search address, city, or zip..." type="text"/>
+</div>
+<div class="flex space-x-3 overflow-x-auto no-scrollbar pb-2">
+<button class="flex-none px-4 py-1.5 rounded-full bg-primary text-white text-sm font-medium shadow-md shadow-primary/20">All</button>
+<button class="flex-none px-4 py-1.5 rounded-full bg-white dark:bg-surface-dark border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-300 text-sm font-medium whitespace-nowrap hover:border-primary hover:text-primary transition-colors">Active (8)</button>
+<button class="flex-none px-4 py-1.5 rounded-full bg-white dark:bg-surface-dark border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-300 text-sm font-medium whitespace-nowrap hover:border-primary hover:text-primary transition-colors">Under Contract (3)</button>
+<button class="flex-none px-4 py-1.5 rounded-full bg-white dark:bg-surface-dark border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-300 text-sm font-medium whitespace-nowrap hover:border-primary hover:text-primary transition-colors">Sold (12)</button>
+<button class="flex-none px-4 py-1.5 rounded-full bg-white dark:bg-surface-dark border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-300 text-sm font-medium whitespace-nowrap hover:border-primary hover:text-primary transition-colors">Archived</button>
+</div>
+</div>
+<main class="flex-1 overflow-y-auto px-5 pt-2 pb-24 space-y-4">
+<article class="group relative bg-white dark:bg-surface-dark rounded-xl shadow-sm border border-gray-100 dark:border-gray-800 overflow-hidden hover:border-primary/50 transition-colors">
+<div class="flex flex-row p-3 gap-3">
+<div class="relative w-28 h-28 flex-shrink-0 rounded-lg overflow-hidden bg-gray-200 dark:bg-gray-700">
+<img alt="Modern luxury house facade with glass windows" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" data-alt="Modern luxury house facade with glass windows" src="https://lh3.googleusercontent.com/aida-public/AB6AXuA3jBowXGHtAiQ7ymz5iiO3dHa9zTP8qI4aONdKbVaQFU9k4a4yQKtM0lt614dWr3lDdF9fzl077R337-CSRkUJwa_gHM9IAskwkgY7tIPWdHrHQ-FD78CWivw47O2Bc2a3qw2KuR4O3VA2U4kYrdBMFIX9oxNseVojmIzjqXOzXH5DQcCCfl5XiogNp4lemnpsWf8gMOWzw9m0J-bG9gOnrftLN1cwvwf15onXVrLrI9F3l5aQNetrXdXSmLxInHR1Kp6xids6Xj88"/>
+<div class="absolute top-1 left-1 bg-green-500/90 backdrop-blur-sm text-white text-[10px] font-bold px-2 py-0.5 rounded-md">
+                        OPEN
+                    </div>
+</div>
+<div class="flex-1 flex flex-col justify-between py-0.5">
+<div>
+<div class="flex justify-between items-start">
+<h3 class="text-lg font-bold text-secondary dark:text-white leading-tight">$850,000</h3>
+<button class="text-gray-400 hover:text-primary">
+<span class="material-icons text-xl">more_horiz</span>
+</button>
+</div>
+<p class="text-sm text-gray-500 dark:text-gray-400 mt-0.5 truncate">123 Maple Ave, District 1</p>
+<div class="flex items-center gap-2 mt-2 text-xs text-gray-500 dark:text-gray-400 font-medium">
+<span class="flex items-center gap-1"><span class="material-icons text-[14px]">bed</span> 3</span>
+<span class="w-1 h-1 rounded-full bg-gray-300 dark:bg-gray-600"></span>
+<span class="flex items-center gap-1"><span class="material-icons text-[14px]">bathtub</span> 2</span>
+<span class="w-1 h-1 rounded-full bg-gray-300 dark:bg-gray-600"></span>
+<span>1,200 sqft</span>
+</div>
+</div>
+<div class="mt-3 flex items-center justify-between">
+<div class="flex items-center gap-2 bg-primary/10 dark:bg-primary/20 px-2.5 py-1 rounded-md">
+<span class="material-icons text-primary text-sm">chat_bubble</span>
+<span class="text-xs font-semibold text-primary">5 Inquiries</span>
+</div>
+<span class="text-[10px] text-gray-400">Listed 2d ago</span>
+</div>
+</div>
+</div>
+<div class="absolute inset-y-0 right-0 w-1 bg-gradient-to-l from-black/20 to-transparent pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity"></div>
+</article>
+<article class="group relative bg-white dark:bg-surface-dark rounded-xl shadow-sm border border-gray-100 dark:border-gray-800 overflow-hidden hover:border-primary/50 transition-colors opacity-90">
+<div class="flex flex-row p-3 gap-3">
+<div class="relative w-28 h-28 flex-shrink-0 rounded-lg overflow-hidden bg-gray-200 dark:bg-gray-700">
+<img alt="White suburban home with manicured lawn" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 grayscale-[30%]" data-alt="White suburban home with manicured lawn" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDJ-DwN46JaNizSm1dsL_BDKpvxZ-k5zokZLGWUh4u6gIfFA03uswGFog8efElfuKXUKl2phtQ6ln3Q4xjnQISJRADE1xqAzQgOZ0DUVZ2e7UnfzN3PcSdA81txWLMGOlCuN7s68CV5FQkgTeHF3WpBT2bxt7Xab1Y4cOM8D7uPori4EcJNPIfOAOPIGN478tm6as1RGrErm4QbwBvforbDH0CfWDwoqe7Q-z8EFVVSvd_UNVLXcoAWC0xIBfW5PdEMDlwvG4E4QKvn"/>
+<div class="absolute top-1 left-1 bg-amber-500/90 backdrop-blur-sm text-white text-[10px] font-bold px-2 py-0.5 rounded-md">
+                        PENDING
+                    </div>
+</div>
+<div class="flex-1 flex flex-col justify-between py-0.5">
+<div>
+<div class="flex justify-between items-start">
+<h3 class="text-lg font-bold text-secondary dark:text-white leading-tight">$1,250,000</h3>
+<button class="text-gray-400 hover:text-primary">
+<span class="material-icons text-xl">more_horiz</span>
+</button>
+</div>
+<p class="text-sm text-gray-500 dark:text-gray-400 mt-0.5 truncate">88 Lakeview Dr, Thu Duc City</p>
+<div class="flex items-center gap-2 mt-2 text-xs text-gray-500 dark:text-gray-400 font-medium">
+<span class="flex items-center gap-1"><span class="material-icons text-[14px]">bed</span> 4</span>
+<span class="w-1 h-1 rounded-full bg-gray-300 dark:bg-gray-600"></span>
+<span class="flex items-center gap-1"><span class="material-icons text-[14px]">bathtub</span> 3.5</span>
+<span class="w-1 h-1 rounded-full bg-gray-300 dark:bg-gray-600"></span>
+<span>2,800 sqft</span>
+</div>
+</div>
+<div class="mt-3 flex items-center justify-between">
+<div class="flex items-center gap-2 bg-gray-100 dark:bg-gray-700/50 px-2.5 py-1 rounded-md">
+<span class="material-icons text-gray-400 text-sm">mark_email_read</span>
+<span class="text-xs font-medium text-gray-500 dark:text-gray-400">Process</span>
+</div>
+<span class="text-[10px] text-gray-400">Updated 1h ago</span>
+</div>
+</div>
+</div>
+</article>
+<article class="group relative bg-white dark:bg-surface-dark rounded-xl shadow-sm border border-gray-100 dark:border-gray-800 overflow-hidden hover:border-primary/50 transition-colors">
+<div class="flex flex-row p-3 gap-3">
+<div class="relative w-28 h-28 flex-shrink-0 rounded-lg overflow-hidden bg-gray-200 dark:bg-gray-700">
+<img alt="Interior living room with large windows" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" data-alt="Interior living room with large windows" src="https://lh3.googleusercontent.com/aida-public/AB6AXuC_PiNFLgN1nmjL-G9i_vHcdQkirGqx9Xh-rjbyZ09TCNMgZzIpOiTkwMFuyT4hbTcaTvayVF9a9Eiaf2zaMOHKQPL4UzhWs7poXjH3txp1pdjjTxelCq-SslcJcRjzuZqFKiANropUommP31mJKCHYwvmRWqCtwp0d1VpUD4KNYG3YtfuhrkAM6wI6uPtolGVtXxfuJLby_AwjHR2XWXlhT-w4bP10vcihtWQtJreKMYq3UDvXZo4Z8a73CCCxakg4Nku3xoJoz_NE"/>
+<div class="absolute top-1 left-1 bg-secondary/90 backdrop-blur-sm text-white text-[10px] font-bold px-2 py-0.5 rounded-md">
+                        NEW
+                    </div>
+</div>
+<div class="flex-1 flex flex-col justify-between py-0.5">
+<div>
+<div class="flex justify-between items-start">
+<h3 class="text-lg font-bold text-secondary dark:text-white leading-tight">$420,000</h3>
+<button class="text-gray-400 hover:text-primary">
+<span class="material-icons text-xl">more_horiz</span>
+</button>
+</div>
+<p class="text-sm text-gray-500 dark:text-gray-400 mt-0.5 truncate">Unit 402, The River, D2</p>
+<div class="flex items-center gap-2 mt-2 text-xs text-gray-500 dark:text-gray-400 font-medium">
+<span class="flex items-center gap-1"><span class="material-icons text-[14px]">bed</span> 2</span>
+<span class="w-1 h-1 rounded-full bg-gray-300 dark:bg-gray-600"></span>
+<span class="flex items-center gap-1"><span class="material-icons text-[14px]">bathtub</span> 2</span>
+<span class="w-1 h-1 rounded-full bg-gray-300 dark:bg-gray-600"></span>
+<span>850 sqft</span>
+</div>
+</div>
+<div class="mt-3 flex items-center justify-between">
+<div class="flex items-center gap-2 bg-primary/10 dark:bg-primary/20 px-2.5 py-1 rounded-md animate-pulse">
+<span class="material-icons text-primary text-sm">local_fire_department</span>
+<span class="text-xs font-semibold text-primary">Hot Lead</span>
+</div>
+<span class="text-[10px] text-gray-400">Listed 4h ago</span>
+</div>
+</div>
+</div>
+</article>
+<article class="group relative bg-white dark:bg-surface-dark rounded-xl shadow-sm border border-gray-100 dark:border-gray-800 overflow-hidden opacity-75 grayscale hover:grayscale-0 hover:opacity-100 transition-all">
+<div class="flex flex-row p-3 gap-3">
+<div class="relative w-28 h-28 flex-shrink-0 rounded-lg overflow-hidden bg-gray-200 dark:bg-gray-700">
+<img alt="Modern apartment building exterior" class="w-full h-full object-cover" data-alt="Modern apartment building exterior" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCf8V-CO2n2kcV11BhaAdo69G6kBwbBP-JZbalZExV4rD6c18tnm0gJcjPO_0ripJhEOWNygk_3zjQ-WNPlkukApRO6bWgmavYHmfqQQInXrpYZj5EOhmXkbsqJOd2yxpn71EpHSdDlAd5obkZTx6mIEQwYrxCgQWZ_Wk5nEg5C9ybyszlDa0673ZuVkgHkvXelGBA2BBGbhgTe40Z3HqqFckb32NElKsMDYpetYSIuv6Pyjb5QfAPmNnneFV8GyK1oUtKcvl2B39bE"/>
+<div class="absolute inset-0 bg-black/40 flex items-center justify-center">
+<span class="bg-gray-800/90 text-white text-[10px] font-bold px-3 py-1 rounded border border-gray-600">SOLD</span>
+</div>
+</div>
+<div class="flex-1 flex flex-col justify-between py-0.5">
+<div>
+<div class="flex justify-between items-start">
+<h3 class="text-lg font-bold text-secondary dark:text-white leading-tight line-through decoration-gray-500 decoration-2">$615,000</h3>
+<button class="text-gray-400 hover:text-primary">
+<span class="material-icons text-xl">more_horiz</span>
+</button>
+</div>
+<p class="text-sm text-gray-500 dark:text-gray-400 mt-0.5 truncate">15 Le Duan, District 1</p>
+<div class="flex items-center gap-2 mt-2 text-xs text-gray-500 dark:text-gray-400 font-medium">
+<span class="flex items-center gap-1"><span class="material-icons text-[14px]">bed</span> 2</span>
+<span class="w-1 h-1 rounded-full bg-gray-300 dark:bg-gray-600"></span>
+<span class="flex items-center gap-1"><span class="material-icons text-[14px]">bathtub</span> 2</span>
+<span class="w-1 h-1 rounded-full bg-gray-300 dark:bg-gray-600"></span>
+<span>980 sqft</span>
+</div>
+</div>
+<div class="mt-3 flex items-center justify-between">
+<div class="flex items-center gap-2">
+<span class="text-xs font-medium text-gray-500">Sold Oct 12, 2023</span>
+</div>
+<span class="text-[10px] text-gray-400 text-green-500 font-bold">+12% ROI</span>
+</div>
+</div>
+</div>
+</article>
+</main>
+<nav class="absolute bottom-0 w-full bg-background-light/95 dark:bg-surface-darker/95 backdrop-blur-lg border-t border-gray-200 dark:border-gray-800 pb-6 pt-2 px-6 z-40">
+<div class="flex justify-between items-center text-[10px]">
+<button class="flex flex-col items-center gap-1 text-gray-400 hover:text-primary transition-colors w-14">
+<span class="material-icons text-2xl">dashboard</span>
+<span class="font-medium">Feed</span>
+</button>
+<button class="flex flex-col items-center gap-1 text-primary transition-colors w-14">
+<span class="material-icons text-2xl">apartment</span>
+<span class="font-medium">Listings</span>
+</button>
+<button class="flex flex-col items-center gap-1 text-gray-400 hover:text-primary transition-colors relative w-14">
+<span class="material-icons text-2xl">chat</span>
+<span class="absolute top-0 right-3 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-surface-darker"></span>
+<span class="font-medium">Inquiries</span>
+</button>
+<button class="flex flex-col items-center gap-1 text-gray-400 hover:text-primary transition-colors w-14">
+<span class="material-icons text-2xl">people</span>
+<span class="font-medium">CRM</span>
+</button>
+<button class="flex flex-col items-center gap-1 text-gray-400 hover:text-primary transition-colors w-14">
+<span class="material-icons text-2xl">person</span>
+<span class="font-medium">Profile</span>
+</button>
+</div>
+</nav>
+</div>
+
+</body></html>

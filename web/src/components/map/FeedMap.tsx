@@ -4,7 +4,9 @@ import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import { Listing } from "@/lib/types";
-import { PROPERTY_TYPES, formatPrice } from "@/lib/constants";
+import { formatPrice } from "@/lib/constants";
+import { useLanguage } from "@/contexts/LanguageContext";
+import { getPropertyTypeKey } from "@/lib/i18n";
 
 // Fix Leaflet default icon
 const defaultIcon = L.icon({
@@ -31,6 +33,7 @@ export default function FeedMap({
   onListingClick,
   height = "500px",
 }: Props) {
+  const { t } = useLanguage();
   const mappableListings = listings.filter(
     (l) => l.latitude != null && l.longitude != null,
   );
@@ -44,7 +47,7 @@ export default function FeedMap({
       : undefined;
 
   return (
-    <div style={{ height }} className="rounded-lg overflow-hidden border border-slate-200">
+    <div style={{ height }} className="rounded-lg overflow-hidden border border-[var(--border)]">
       <MapContainer
         center={NHA_TRANG_CENTER}
         zoom={13}
@@ -57,10 +60,8 @@ export default function FeedMap({
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         />
         {mappableListings.map((listing) => {
-          const label =
-            PROPERTY_TYPES[
-              listing.property_type as keyof typeof PROPERTY_TYPES
-            ] || listing.property_type;
+          const propKey = getPropertyTypeKey(listing.property_type ?? undefined);
+          const label = propKey ? t(propKey) : (listing.property_type ?? "");
 
           return (
             <Marker
@@ -80,22 +81,22 @@ export default function FeedMap({
                     {label} - {formatPrice(listing.price_vnd)}
                   </p>
                   {listing.area_m2 && (
-                    <p className="text-xs text-gray-600">
+                    <p className="text-xs text-[var(--text-muted)]">
                       {listing.area_m2}m²
                       {listing.num_bedrooms
-                        ? ` | ${listing.num_bedrooms} bed`
+                        ? ` | ${listing.num_bedrooms} ${t("bed")}`
                         : ""}
                     </p>
                   )}
-                  <p className="text-xs text-gray-500 mt-1">
+                  <p className="text-xs text-[var(--text-muted)] mt-1">
                     {[listing.street, listing.ward].filter(Boolean).join(", ")}
                   </p>
                   {onListingClick && (
                     <button
                       onClick={() => onListingClick(listing)}
-                      className="mt-2 text-xs text-accent font-medium hover:underline"
+                      className="mt-2 text-xs font-medium hover:underline text-[var(--orange)]"
                     >
-                      View Details
+                      {t("viewDetails")}
                     </button>
                   )}
                 </div>
@@ -106,8 +107,15 @@ export default function FeedMap({
       </MapContainer>
       {mappableListings.length === 0 && (
         <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-          <div className="bg-white/90 px-4 py-2 rounded-lg text-sm text-slate-500">
-            No listings with coordinates to display
+          <div
+            className="px-4 py-2 rounded-lg text-sm"
+            style={{
+              backgroundColor: "var(--bg-surface)",
+              color: "var(--text-muted)",
+              border: "1px solid var(--border)",
+            }}
+          >
+            {t("noListingsWithCoords")}
           </div>
         </div>
       )}

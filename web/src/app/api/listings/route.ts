@@ -4,6 +4,31 @@ import { getAuthFromCookies } from "@/lib/auth";
 import { listingSchema } from "@/lib/validation";
 import crypto from "crypto";
 
+const LISTING_FILTERS: {
+  key: string;
+  column: string;
+  type: "eq" | "gte" | "lte" | "bool";
+}[] = [
+  { key: "property_type", column: "property_type", type: "eq" },
+  { key: "transaction_type", column: "transaction_type", type: "eq" },
+  { key: "ward", column: "ward", type: "eq" },
+  { key: "status", column: "status", type: "eq" },
+  { key: "legal_status", column: "legal_status", type: "eq" },
+  { key: "direction", column: "direction", type: "eq" },
+  { key: "structure_type", column: "structure_type", type: "eq" },
+  { key: "access_road", column: "access_road", type: "eq" },
+  { key: "furnished", column: "furnished", type: "eq" },
+  { key: "building_type", column: "building_type", type: "eq" },
+  { key: "price_min", column: "price_vnd", type: "gte" },
+  { key: "price_max", column: "price_vnd", type: "lte" },
+  { key: "area_min", column: "area_m2", type: "gte" },
+  { key: "area_max", column: "area_m2", type: "lte" },
+  { key: "num_bedrooms_min", column: "num_bedrooms", type: "gte" },
+  { key: "corner_lot", column: "corner_lot", type: "bool" },
+  { key: "has_elevator", column: "has_elevator", type: "bool" },
+  { key: "negotiable", column: "negotiable", type: "bool" },
+];
+
 export async function GET(request: NextRequest) {
   try {
     const auth = await getAuthFromCookies();
@@ -16,24 +41,53 @@ export async function GET(request: NextRequest) {
     const sort = searchParams.get("sort") || "created_at";
     const order = searchParams.get("order") || "desc";
 
-    // Validate sort and order to prevent SQL injection
-    const allowedSort = ["created_at", "updated_at"];
+    const allowedSort = ["created_at", "updated_at", "price_vnd", "area_m2"];
     const allowedOrder = ["asc", "desc"];
     const safeSort = allowedSort.includes(sort) ? sort : "created_at";
     const safeOrder = allowedOrder.includes(order) ? order : "desc";
 
-    let query = `SELECT * FROM parsed_listings WHERE agent_id = $1`;
+    const conditions: string[] = ["agent_id = $1"];
     const params: (string | number | boolean)[] = [auth.userId];
+    let paramIndex = 2;
 
     if (archived === "true") {
-      query += ` AND archived_at IS NOT NULL`;
+      conditions.push("archived_at IS NOT NULL");
     } else if (archived === "false") {
-      query += ` AND archived_at IS NULL`;
+      conditions.push("archived_at IS NULL");
     }
 
-    query += ` ORDER BY ${safeSort} ${safeOrder}`;
+    for (const filter of LISTING_FILTERS) {
+      const value = searchParams.get(filter.key);
+      if (value === null || value === "") continue;
+      if (filter.type === "eq") {
+        conditions.push(`${filter.column} = $${paramIndex}`);
+        params.push(value);
+        paramIndex++;
+      } else if (filter.type === "gte") {
+        const num = parseFloat(value);
+        if (!isNaN(num)) {
+          conditions.push(`${filter.column} >= $${paramIndex}`);
+          params.push(num);
+          paramIndex++;
+        }
+      } else if (filter.type === "lte") {
+        const num = parseFloat(value);
+        if (!isNaN(num)) {
+          conditions.push(`${filter.column} <= $${paramIndex}`);
+          params.push(num);
+          paramIndex++;
+        }
+      } else if (filter.type === "bool") {
+        if (value === "true") conditions.push(`${filter.column} = TRUE`);
+        else if (value === "false") conditions.push(`${filter.column} = FALSE`);
+      }
+    }
 
-    const result = await pool.query(query, params);
+    const whereClause = conditions.join(" AND ");
+    const result = await pool.query(
+      `SELECT * FROM parsed_listings WHERE ${whereClause} ORDER BY ${safeSort} ${safeOrder}`,
+      params
+    );
 
     return NextResponse.json({ listings: result.rows });
   } catch (error) {
@@ -68,13 +122,14 @@ export async function POST(request: NextRequest) {
       ? crypto.createHash("md5").update(data.description).digest("hex")
       : null;
 
+    const descPrimary = data.description ?? data.description_vi ?? data.description_en ?? null;
     const result = await pool.query(
       `INSERT INTO parsed_listings (
         agent_id, listing_hash,
         property_type, transaction_type, price_raw, price_vnd,
         area_m2, address_raw, ward, street, district,
         num_bedrooms, num_floors, frontage_m, access_road, furnished,
-        description, status, freestyle_text,
+        description, description_vi, description_en, status, freestyle_text,
         legal_status, num_bathrooms, structure_type, direction, depth_m,
         corner_lot, price_per_m2, negotiable, rental_income_vnd,
         has_elevator, nearby_amenities, investment_use_case,
@@ -88,15 +143,15 @@ export async function POST(request: NextRequest) {
         $3, $4, $5, $6,
         $7, $8, $9, $10, $11,
         $12, $13, $14, $15, $16,
-        $17, $18, $19,
-        $20, $21, $22, $23, $24,
-        $25, $26, $27, $28,
-        $29, $30, $31,
-        $32, $33, $34,
+        $17, $18, $19, $20, $21,
+        $22, $23, $24, $25,
+        $26, $27, $28, $29,
+        $30, $31, $32,
+        $33, $34,
         $35, $36,
         $37, $38,
         $39, $40,
-        $41, $42, $43
+        $41, $42, $43, $44
       ) RETURNING *`,
       [
         auth.userId,
@@ -115,7 +170,9 @@ export async function POST(request: NextRequest) {
         data.frontage_m ?? null,
         data.access_road ?? null,
         data.furnished ?? null,
-        data.description ?? null,
+        descPrimary,
+        data.description_vi ?? null,
+        data.description_en ?? null,
         data.status ?? "for_sale",
         data.freestyle_text ?? null,
         data.legal_status ?? null,

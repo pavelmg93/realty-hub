@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { ListingInput } from "@/lib/validation";
 import { Listing } from "@/lib/types";
@@ -17,6 +17,7 @@ import {
 } from "@/lib/constants";
 import FreestyleEditor from "./FreestyleEditor";
 import DatabaseView from "./DatabaseView";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 type Mode = "freestyle" | "database";
 
@@ -36,6 +37,8 @@ const EMPTY_LISTING: ListingInput = {
   access_road: null,
   furnished: null,
   description: null,
+  description_vi: null,
+  description_en: null,
   status: "for_sale",
   freestyle_text: null,
   legal_status: null,
@@ -78,6 +81,8 @@ function listingToInput(listing: Listing): ListingInput {
     access_road: listing.access_road,
     furnished: listing.furnished,
     description: listing.description,
+    description_vi: listing.description_vi ?? undefined,
+    description_en: listing.description_en ?? undefined,
     status: listing.status as ListingInput["status"],
     freestyle_text: listing.freestyle_text,
     legal_status: listing.legal_status,
@@ -168,22 +173,32 @@ function formDataToText(data: ListingInput): string {
 
 interface Props {
   existing?: Listing;
+  /** Prefill from AI parse or other source (e.g. Add Listing chat flow). */
+  initialData?: Partial<ListingInput>;
 }
 
-export default function ListingForm({ existing }: Props) {
+export default function ListingForm({ existing, initialData }: Props) {
   const router = useRouter();
+  const { t } = useLanguage();
   const [mode, setMode] = useState<Mode>(
-    existing ? "database" : "freestyle",
+    existing ? "database" : initialData ? "database" : "freestyle",
   );
   const [freestyleText, setFreestyleText] = useState("");
   const [formData, setFormData] = useState<ListingInput>(
-    existing ? listingToInput(existing) : { ...EMPTY_LISTING },
+    existing ? listingToInput(existing) : { ...EMPTY_LISTING, ...initialData },
   );
   const [saving, setSaving] = useState(false);
   const [parsing, setParsing] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  // Track what text was last parsed to avoid re-parsing unchanged text
   const lastParsedText = useRef<string>("");
+
+  const initialDataKey = initialData ? JSON.stringify(initialData) : "";
+  useEffect(() => {
+    if (!existing && initialData && Object.keys(initialData).length > 0) {
+      setFormData((prev) => ({ ...prev, ...initialData }));
+      setMode("database");
+    }
+  }, [existing, initialDataKey]);
 
   const handleParse = async (text?: string) => {
     const textToParse = typeof text === "string" ? text : freestyleText;
@@ -275,35 +290,55 @@ export default function ListingForm({ existing }: Props) {
   return (
     <div>
       {error && (
-        <div className="mb-4 p-3 bg-red-50 text-red-700 text-sm rounded-lg border border-red-100">
+        <div
+          className="mb-4 p-3 text-sm rounded-lg border"
+          style={{
+            backgroundColor: "rgba(239, 68, 68, 0.1)",
+            borderColor: "var(--error)",
+            color: "var(--error)",
+          }}
+        >
           {error}
         </div>
       )}
 
-      <div className="flex border border-slate-200 rounded-lg overflow-hidden mb-4">
+      <div
+        className="flex rounded-xl overflow-hidden mb-6 border border-[var(--border)]"
+        style={{ backgroundColor: "var(--bg-surface)" }}
+      >
         <button
           type="button"
           onClick={() => switchMode("freestyle")}
           disabled={parsing}
-          className={`flex-1 px-4 py-2 text-sm font-medium transition-colors ${
+          className={`flex-1 px-4 py-3 text-sm font-medium transition-colors ${
             mode === "freestyle"
-              ? "bg-navy text-white"
-              : "bg-white text-slate-600 hover:bg-slate-50"
+              ? "text-white"
+              : "text-[var(--text-muted)] hover:text-[var(--text-secondary)]"
           }`}
+          style={
+            mode === "freestyle"
+              ? { backgroundColor: "var(--orange)" }
+              : undefined
+          }
         >
-          Freestyle Message
+          {t("freestyleMessage")}
         </button>
         <button
           type="button"
           onClick={() => switchMode("database")}
           disabled={parsing}
-          className={`flex-1 px-4 py-2 text-sm font-medium transition-colors ${
+          className={`flex-1 px-4 py-3 text-sm font-medium transition-colors ${
             mode === "database"
-              ? "bg-navy text-white"
-              : "bg-white text-slate-600 hover:bg-slate-50"
+              ? "text-white"
+              : "text-[var(--text-muted)] hover:text-[var(--text-secondary)]"
           }`}
+          style={
+            mode === "database"
+              ? { backgroundColor: "var(--orange)" }
+              : undefined
+          }
         >
-          {parsing ? "Parsing..." : "Database View"}
+          {parsing ? t("parsing") : t("databaseView")}
         </button>
       </div>
 
@@ -318,25 +353,26 @@ export default function ListingForm({ existing }: Props) {
         <DatabaseView data={formData} onChange={setFormData} />
       )}
 
-      <div className="flex items-center gap-3 mt-6 pt-4 border-t border-slate-200">
+      <div className="flex items-center gap-3 mt-8 pt-6 border-t border-[var(--border)]">
         <button
           type="button"
           onClick={handleSave}
           disabled={saving || parsing}
-          className="px-6 py-2 bg-accent text-white text-sm rounded-lg hover:bg-accent-hover disabled:opacity-50 font-medium transition-colors"
+          className="px-6 py-2.5 text-white text-sm rounded-lg disabled:opacity-50 font-medium transition-colors"
+          style={{ backgroundColor: "var(--orange)" }}
         >
           {saving
-            ? "Saving..."
+            ? t("saving")
             : existing
-              ? "Update Listing"
-              : "Add Listing"}
+              ? t("updateListing")
+              : t("addListing")}
         </button>
         <button
           type="button"
           onClick={() => router.push("/dashboard/listings")}
-          className="px-4 py-2 text-sm text-slate-600 hover:text-slate-800"
+          className="px-4 py-2.5 text-sm rounded-lg border border-[var(--border)] text-[var(--text-secondary)] hover:bg-[var(--bg-hover)] transition-colors"
         >
-          Cancel
+          {t("cancel")}
         </button>
       </div>
     </div>

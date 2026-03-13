@@ -5,8 +5,11 @@ import dynamic from "next/dynamic";
 const ListingMap = dynamic(() => import("./ListingMap"), {
   ssr: false,
   loading: () => (
-    <div className="bg-slate-100 rounded-lg flex items-center justify-center" style={{ height: "300px" }}>
-      <span className="text-sm text-slate-400">Loading map...</span>
+    <div
+      className="rounded-lg flex items-center justify-center border border-[var(--border)]"
+      style={{ height: "300px", backgroundColor: "var(--bg-elevated)" }}
+    >
+      <span className="text-sm text-[var(--text-muted)]">Loading map...</span>
     </div>
   ),
 });

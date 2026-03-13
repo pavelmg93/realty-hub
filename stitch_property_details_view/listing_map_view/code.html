@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Listing Map View</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#FFA051", // Updated to logo orange/yellow highlight color
+                        "primary-dark": "#e58535",
+                        "accent-blue": "#0c2c54", // Dark blue from logo
+                        "background-light": "#f6f7f8",
+                        "background-dark": "#101822",
+                        "surface-dark": "#1c2530",
+                    },
+                    fontFamily: {
+                        "display": ["Inter", "sans-serif"]
+                    },
+                    borderRadius: { "DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px" },
+                    boxShadow: {
+                        'soft': '0 4px 20px -2px rgba(0, 0, 0, 0.2)',
+                        'glow': '0 0 15px rgba(255, 160, 81, 0.5)',
+                    }
+                },
+            },
+        }
+    </script>
+<style>.map-bg {
+            background-color: #101822;
+            background-image: 
+                radial-gradient(circle at 50% 50%, #1c2530 1px, transparent 1px),
+                linear-gradient(to right, #1c2530 1px, transparent 1px),
+                linear-gradient(to bottom, #1c2530 1px, transparent 1px);
+            background-size: 20px 20px, 100px 100px, 100px 100px;
+        }.map-road {
+            position: absolute;
+            background-color: #263342;
+            opacity: 0.6;
+            border-radius: 9999px;
+        }
+        .map-park {
+            position: absolute;
+            background-color: #1a2f2b;
+            opacity: 0.4;
+            border-radius: 20px;
+        }
+        .hide-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .hide-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark font-display text-gray-900 dark:text-gray-100 antialiased overflow-hidden h-screen w-full flex justify-center bg-gray-900">
+<div class="relative w-full max-w-md h-full bg-background-light dark:bg-background-dark shadow-2xl overflow-hidden flex flex-col mx-auto">
+<div class="h-24 w-full bg-white z-50 flex flex-col shadow-sm absolute top-0 left-0">
+<div class="h-10 w-full flex items-center justify-between px-6">
+<span class="text-xs font-semibold text-gray-800">9:41</span>
+<div class="flex gap-1.5">
+<div class="w-3 h-3 bg-gray-800 rounded-full opacity-80"></div>
+<div class="w-3 h-3 bg-gray-800 rounded-full opacity-80"></div>
+<div class="w-3 h-3 bg-gray-800 rounded-full opacity-80"></div>
+</div>
+</div>
+<div class="flex-1 flex items-center justify-center pb-2">
+<img alt="FIDT Logo" class="h-8 object-contain" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAwumbtzz5BhC5p5Awp8SBYhcbaqvyZWecK6cyOUvrTTAKtu1Tc1tYgbt_VRF4wZnhzZxN8cD4dcT2BE4JlUl5WMJkavb7z6dG1sRBjJe5KsaAOONdWG78lipgIOE63aU4ZuSq8SLNwFYcwfdA_DqsEasZ384eakQF_gLPk0et_lJmHAUK3r1nAx9pbYnyLcHUMrToJhvP1ncUAEYodm7Ibd7iFn4_kBBJ0ISlU1E7YKs9fcj98ArQr7qHiScluXwtJbnrfFt9n_kzk"/>
+</div>
+</div>
+<div class="absolute top-24 left-0 right-0 z-40 px-4 pt-4 pb-4 space-y-3 pointer-events-none">
+<div class="flex items-center gap-3 pointer-events-auto">
+<div class="flex-1 relative shadow-soft rounded-lg group">
+<div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+<span class="material-icons text-gray-400 text-xl">search</span>
+</div>
+<input class="block w-full pl-10 pr-3 py-2.5 bg-white dark:bg-surface-dark border-none rounded-lg text-sm text-gray-900 dark:text-white placeholder-gray-400 focus:ring-2 focus:ring-primary shadow-sm transition-all" placeholder="Search district, street..." type="text"/>
+</div>
+<div class="flex bg-surface-dark rounded-lg p-1 shadow-soft border border-gray-700">
+<button class="p-2 rounded hover:bg-white/10 text-gray-400 transition-colors">
+<span class="material-icons text-xl">list</span>
+</button>
+<button class="p-2 rounded bg-primary text-accent-blue shadow-md transition-colors">
+<span class="material-icons text-xl">map</span>
+</button>
+</div>
+</div>
+<div class="flex gap-2 overflow-x-auto hide-scrollbar pb-1 pointer-events-auto">
+<button class="flex items-center gap-1.5 px-3 py-1.5 bg-surface-dark border border-gray-700 rounded-full text-xs font-medium text-white shadow-sm whitespace-nowrap active:scale-95 transition-transform">
+<span class="material-icons text-sm">tune</span>
+                    Filters
+                </button>
+<button class="flex items-center gap-1 px-3 py-1.5 bg-primary/20 border border-primary/40 rounded-full text-xs font-medium text-primary shadow-sm whitespace-nowrap">
+                    Price: &gt;5B
+                    <span class="material-icons text-sm ml-1">close</span>
+</button>
+<button class="flex items-center gap-1 px-3 py-1.5 bg-surface-dark border border-gray-700 rounded-full text-xs font-medium text-gray-300 shadow-sm whitespace-nowrap">
+                    2+ Beds
+                </button>
+<button class="flex items-center gap-1 px-3 py-1.5 bg-surface-dark border border-gray-700 rounded-full text-xs font-medium text-gray-300 shadow-sm whitespace-nowrap">
+                    Villa
+                </button>
+<button class="flex items-center gap-1 px-3 py-1.5 bg-surface-dark border border-gray-700 rounded-full text-xs font-medium text-gray-300 shadow-sm whitespace-nowrap">
+                    Sold
+                </button>
+</div>
+</div>
+<div class="flex-1 relative w-full h-full bg-background-dark overflow-hidden map-bg z-0 mt-6">
+<div class="map-road w-[120%] h-4 rotate-12 top-[20%] -left-10"></div>
+<div class="map-road w-[120%] h-3 -rotate-3 top-[45%] -left-10"></div>
+<div class="map-road w-[120%] h-5 rotate-[45deg] top-[50%] -left-[20%]"></div>
+<div class="map-road w-[80%] h-3 rotate-90 top-[30%] left-[30%]"></div>
+<div class="map-park w-40 h-32 top-[10%] right-[10%] rotate-12"></div>
+<div class="map-park w-24 h-24 bottom-[30%] left-[5%] -rotate-6"></div>
+<span class="absolute top-[22%] left-[10%] text-[10px] font-bold tracking-widest text-gray-600 uppercase">Nguyen Hue Blvd</span>
+<span class="absolute top-[55%] right-[20%] text-[10px] font-bold tracking-widest text-gray-600 uppercase">District 1</span>
+<div class="absolute top-[70%] left-0 w-full h-32 bg-[#162130] transform skew-y-6 opacity-60"></div>
+<span class="absolute top-[72%] left-[10%] text-[10px] font-bold tracking-widest text-[#2a3c55] italic uppercase">Saigon River</span>
+<button class="absolute top-[30%] left-[20%] group transform transition-transform hover:scale-110 z-10">
+<div class="bg-surface-dark border border-gray-600 text-white px-2.5 py-1 rounded-full shadow-lg text-xs font-bold flex items-center gap-1">
+                    12.5B
+                </div>
+<div class="w-2 h-2 bg-surface-dark rotate-45 mx-auto -mt-1 border-r border-b border-gray-600"></div>
+</button>
+<button class="absolute top-[18%] right-[30%] group transform transition-transform hover:scale-110 z-10">
+<div class="bg-surface-dark border border-gray-600 text-white px-2.5 py-1 rounded-full shadow-lg text-xs font-bold flex items-center gap-1">
+                    8.2B
+                </div>
+<div class="w-2 h-2 bg-surface-dark rotate-45 mx-auto -mt-1 border-r border-b border-gray-600"></div>
+</button>
+<button class="absolute top-[40%] right-[15%] group transform transition-transform hover:scale-110 z-10">
+<div class="bg-primary text-accent-blue w-9 h-9 rounded-full shadow-lg shadow-glow flex items-center justify-center text-xs font-bold border-2 border-white/20">
+                    5
+                </div>
+</button>
+<button class="absolute top-[52%] left-[45%] group transform scale-110 z-20">
+<div class="bg-primary text-accent-blue px-3 py-1.5 rounded-full shadow-lg shadow-glow text-sm font-bold flex items-center gap-1 animate-bounce duration-1000">
+                    25B
+                </div>
+<div class="w-3 h-3 bg-primary rotate-45 mx-auto -mt-1.5"></div>
+</button>
+<button class="absolute bottom-[40%] left-[10%] group transform transition-transform hover:scale-110 z-10">
+<div class="bg-surface-dark border border-gray-600 text-white px-2.5 py-1 rounded-full shadow-lg text-xs font-bold flex items-center gap-1">
+                    45B
+                </div>
+<div class="w-2 h-2 bg-surface-dark rotate-45 mx-auto -mt-1 border-r border-b border-gray-600"></div>
+</button>
+<button class="absolute bottom-60 right-4 bg-surface-dark text-primary p-3 rounded-full shadow-soft border border-gray-700 active:bg-gray-800 transition-colors z-20">
+<span class="material-icons text-xl block">my_location</span>
+</button>
+<div class="absolute bottom-20 left-4 right-4 z-30 animate-in slide-in-from-bottom duration-300">
+<div class="bg-surface-dark rounded-xl shadow-2xl border border-gray-700 overflow-hidden flex flex-col">
+<div class="relative h-32 w-full">
+<img alt="Luxury villa exterior with pool at dusk" class="w-full h-full object-cover" data-alt="Modern luxury villa with pool at night" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCRTW4CAOgfI3uqbp6ke8wOqFy1GTH67FOCefOtCKU2AjTYbbqIab6_OKMAhZxWBfdsFosNRCNQa5SsE2pKlQACin5l5Z1xB010kzV6goXlQ5y73yerF8FukaWlcm6so6uDfyVUNYlQFDjI3sWGos_BBP0cUmdNut7UB2yGYCk9jEG3kF3yws_YWqHltL2oFga1vsDvZGk9eA1-4H_PTYUtPrqLmF4zywz1vTkuekGgsT20yKI0BjcZV5Kj9abv6Zb-w5JLbdT1B-gj"/>
+<div class="absolute top-2 left-2 bg-green-500/90 backdrop-blur text-white text-[10px] font-bold px-2 py-0.5 rounded uppercase tracking-wider">
+                            Active
+                        </div>
+<button class="absolute top-2 right-2 p-1.5 bg-black/40 backdrop-blur rounded-full text-white hover:bg-black/60 transition-colors">
+<span class="material-icons text-sm block">favorite_border</span>
+</button>
+<div class="absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-surface-dark to-transparent"></div>
+</div>
+<div class="p-4 -mt-2 relative">
+<div class="flex justify-between items-start mb-1">
+<div>
+<h3 class="text-white font-semibold text-base line-clamp-1">Luxury Villa - Thao Dien</h3>
+<p class="text-gray-400 text-xs">21 Vo Truong Toan, District 2, HCMC</p>
+</div>
+<div class="text-right">
+<span class="block text-primary font-bold text-lg">25B ₫</span>
+</div>
+</div>
+<div class="flex items-center gap-4 py-3 border-b border-gray-700 mb-3">
+<div class="flex items-center gap-1 text-gray-300">
+<span class="material-icons text-sm text-gray-500">bed</span>
+<span class="text-xs font-medium">4 Bed</span>
+</div>
+<div class="flex items-center gap-1 text-gray-300">
+<span class="material-icons text-sm text-gray-500">bathtub</span>
+<span class="text-xs font-medium">5 Bath</span>
+</div>
+<div class="flex items-center gap-1 text-gray-300">
+<span class="material-icons text-sm text-gray-500">square_foot</span>
+<span class="text-xs font-medium">350m²</span>
+</div>
+</div>
+<div class="flex gap-2">
+<button class="flex-1 py-2.5 px-3 rounded-lg bg-gray-700 text-white text-sm font-medium hover:bg-gray-600 transition-colors">
+                                Details
+                            </button>
+<button class="flex-1 py-2.5 px-3 rounded-lg bg-primary text-accent-blue text-sm font-bold hover:bg-primary-dark hover:text-white shadow-lg shadow-primary/20 transition-colors flex justify-center items-center gap-2">
+<span class="material-icons text-sm">chat_bubble_outline</span>
+                                Message
+                            </button>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="h-[80px] bg-surface-dark border-t border-gray-800 flex justify-around items-start pt-3 px-2 z-50">
+<button class="flex flex-col items-center gap-1 w-16 group">
+<span class="material-icons text-gray-500 group-hover:text-primary transition-colors text-2xl">dashboard</span>
+<span class="text-[10px] font-medium text-gray-500 group-hover:text-primary">Feed</span>
+</button>
+<button class="flex flex-col items-center gap-1 w-16 group">
+<span class="material-icons text-primary transition-colors text-2xl">real_estate_agent</span>
+<span class="text-[10px] font-medium text-primary">My Listings</span>
+</button>
+<button class="flex flex-col items-center gap-1 w-16 group">
+<span class="material-icons text-gray-500 group-hover:text-primary transition-colors text-2xl">chat</span>
+<span class="text-[10px] font-medium text-gray-500 group-hover:text-primary">Inquiries</span>
+</button>
+<button class="flex flex-col items-center gap-1 w-16 group">
+<span class="material-icons text-gray-500 group-hover:text-primary transition-colors text-2xl">people_alt</span>
+<span class="text-[10px] font-medium text-gray-500 group-hover:text-primary">CRM</span>
+</button>
+<button class="flex flex-col items-center gap-1 w-16 group">
+<span class="material-icons text-gray-500 group-hover:text-primary transition-colors text-2xl">person</span>
+<span class="text-[10px] font-medium text-gray-500 group-hover:text-primary">Profile</span>
+</button>
+</div>
+<div class="absolute bottom-1 left-1/2 transform -translate-x-1/2 w-32 h-1 bg-white/20 rounded-full z-50"></div>
+</div>
+</body></html>

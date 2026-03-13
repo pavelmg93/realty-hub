@@ -21,8 +21,8 @@ export default function HomePage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-50">
-        <div className="animate-pulse text-slate-400">Loading...</div>
+      <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: "var(--bg-base)" }}>
+        <div className="animate-pulse text-[var(--text-muted)]">Loading...</div>
       </div>
     );
   }
@@ -46,27 +46,27 @@ export default function HomePage() {
   return (
     <div className="min-h-screen flex flex-col lg:flex-row">
       {/* Branding section */}
-      <div className="bg-navy px-8 py-12 lg:w-2/5 lg:min-h-screen flex flex-col justify-center">
+      <div className="px-8 py-12 lg:w-2/5 lg:min-h-screen flex flex-col justify-center" style={{ backgroundColor: "var(--bg-base)" }}>
         <div className="max-w-sm mx-auto lg:mx-0">
-          <h1 className="text-3xl font-bold text-white mb-2">ProMemo</h1>
-          <p className="text-slate-400 text-sm leading-relaxed">
+          <h1 className="text-3xl font-bold text-[var(--text-primary)] mb-2">ProMemo</h1>
+          <p className="text-[var(--text-muted)] text-sm leading-relaxed">
             Nha Trang Real Estate Agent Platform
           </p>
           <div className="mt-8 hidden lg:block">
-            <div className="flex items-center gap-3 text-slate-400 text-sm mb-3">
-              <svg className="w-5 h-5 text-accent shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div className="flex items-center gap-3 text-[var(--text-muted)] text-sm mb-3">
+              <svg className="w-5 h-5 shrink-0 text-[var(--orange)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
               </svg>
               Manage your property listings
             </div>
-            <div className="flex items-center gap-3 text-slate-400 text-sm mb-3">
-              <svg className="w-5 h-5 text-accent shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div className="flex items-center gap-3 text-[var(--text-muted)] text-sm mb-3">
+              <svg className="w-5 h-5 shrink-0 text-[var(--orange)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
               </svg>
               Browse the feed with map view
             </div>
-            <div className="flex items-center gap-3 text-slate-400 text-sm">
-              <svg className="w-5 h-5 text-accent shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div className="flex items-center gap-3 text-[var(--text-muted)] text-sm">
+              <svg className="w-5 h-5 shrink-0 text-[var(--orange)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
               </svg>
               Message other agents directly
@@ -76,54 +76,55 @@ export default function HomePage() {
       </div>
 
       {/* Login form */}
-      <div className="flex-1 bg-slate-50 flex items-center justify-center px-4 py-12">
+      <div className="flex-1 flex items-center justify-center px-4 py-12" style={{ backgroundColor: "var(--bg-surface)" }}>
         <div className="w-full max-w-sm">
-          <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
-            <h2 className="text-lg font-semibold text-slate-800 mb-6 text-center">
+          <div className="rounded-xl border border-[var(--border)] p-6" style={{ backgroundColor: "var(--bg-elevated)" }}>
+            <h2 className="text-lg font-semibold text-[var(--text-primary)] mb-6 text-center">
               Log In
             </h2>
 
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">
+                <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">
                   Username
                 </label>
                 <input
                   type="text"
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
-                  className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-accent/40 focus:border-accent"
+                  className="w-full px-3 py-2 border border-[var(--border)] rounded-lg text-sm bg-[var(--bg-input)] text-[var(--text-primary)] focus:outline-none focus:border-[var(--orange)]"
                   required
                   autoComplete="username"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">
+                <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">
                   Password
                 </label>
                 <input
                   type="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-accent/40 focus:border-accent"
+                  className="w-full px-3 py-2 border border-[var(--border)] rounded-lg text-sm bg-[var(--bg-input)] text-[var(--text-primary)] focus:outline-none focus:border-[var(--orange)]"
                   required
                   autoComplete="current-password"
                 />
               </div>
 
-              {error && <p className="text-red-600 text-sm">{error}</p>}
+              {error && <p className="text-[var(--error)] text-sm">{error}</p>}
 
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full py-2.5 bg-accent text-white text-sm font-medium rounded-lg hover:bg-accent-hover disabled:opacity-50 transition-colors"
+                className="w-full py-2.5 text-white text-sm font-medium rounded-lg disabled:opacity-50 transition-colors"
+                style={{ backgroundColor: "var(--orange)" }}
               >
                 {loading ? "Logging in..." : "Log In"}
               </button>
             </form>
 
-            <p className="text-xs text-slate-400 text-center mt-4">
+            <p className="text-xs text-[var(--text-muted)] text-center mt-4">
               Contact your admin to get an account
             </p>
           </div>

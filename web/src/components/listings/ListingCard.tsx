@@ -2,13 +2,17 @@
 
 import { useState } from "react";
 import { Listing } from "@/lib/types";
-import { PROPERTY_TYPES, TRANSACTION_TYPES, formatPrice } from "@/lib/constants";
-import StatusBadge from "./StatusBadge";
+import { formatPrice } from "@/lib/constants";
+import { StatusBadge } from "@/components/ui/StatusBadge";
 import Link from "next/link";
+import { useLanguage } from "@/contexts/LanguageContext";
+import { getPropertyTypeKey, getTransactionTypeKey } from "@/lib/i18n";
 
 interface Props {
   listing: Listing;
   isArchived?: boolean;
+  /** When true, show corp. orange highlight (e.g. on My Listings) */
+  isOwner?: boolean;
   onArchive?: (id: number) => void;
   onReactivate?: (id: number) => void;
   onDelete?: (id: number) => void;
@@ -17,30 +21,36 @@ interface Props {
 export default function ListingCard({
   listing,
   isArchived,
+  isOwner,
   onArchive,
   onReactivate,
   onDelete,
 }: Props) {
-  const propertyLabel =
-    PROPERTY_TYPES[listing.property_type as keyof typeof PROPERTY_TYPES] ||
-    listing.property_type;
-  const txLabel =
-    TRANSACTION_TYPES[
-      listing.transaction_type as keyof typeof TRANSACTION_TYPES
-    ] || listing.transaction_type;
+  const { t } = useLanguage();
+  const propertyKey = getPropertyTypeKey(listing.property_type ?? undefined);
+  const txKey = getTransactionTypeKey(listing.transaction_type ?? undefined);
+  const propertyLabel = propertyKey ? t(propertyKey) : (listing.property_type ?? "");
+  const txLabel = txKey ? t(txKey) : (listing.transaction_type ?? "");
 
   return (
-    <div className="bg-white border border-slate-200 rounded-xl p-5 hover:shadow-md transition-shadow">
+    <div
+      className={`rounded-xl p-5 border transition-shadow hover:shadow-[var(--shadow-elevated)] ${isOwner ? "border-l-4" : ""}`}
+      style={{
+        backgroundColor: "var(--bg-surface)",
+        borderColor: "var(--border)",
+        ...(isOwner ? { borderLeftColor: "var(--orange)" } : {}),
+      }}
+    >
       <div className="flex items-start justify-between gap-2 mb-3">
         <div className="flex flex-wrap gap-1.5">
-          <StatusBadge status={listing.status} />
+          <StatusBadge status={listing.status as "for_sale"} />
           {propertyLabel && (
-            <span className="text-xs px-2 py-0.5 bg-navy/5 text-navy rounded-full font-medium">
+            <span className="text-xs px-2 py-0.5 rounded-full font-medium" style={{ backgroundColor: "rgba(232,119,34,0.15)", color: "var(--orange)" }}>
               {propertyLabel}
             </span>
           )}
           {txLabel && (
-            <span className="text-xs px-2 py-0.5 bg-accent/10 text-accent rounded-full font-medium">
+            <span className="text-xs px-2 py-0.5 rounded-full font-medium" style={{ backgroundColor: "rgba(232,119,34,0.15)", color: "var(--orange)" }}>
               {txLabel}
             </span>
           )}
@@ -49,19 +59,19 @@ export default function ListingCard({
 
       <div className="mb-2">
         {listing.price_vnd && (
-          <p className="text-xl font-bold text-navy">{formatPrice(listing.price_vnd)}</p>
+          <p className="text-xl font-bold text-[var(--text-primary)]">{formatPrice(listing.price_vnd)}</p>
         )}
-        <div className="flex gap-3 text-sm text-slate-600 mt-1">
+        <div className="flex gap-3 text-sm mt-1 text-[var(--text-secondary)]">
           {listing.area_m2 && <span className="font-medium">{listing.area_m2}m²</span>}
-          {listing.num_bedrooms && <span>{listing.num_bedrooms} bed</span>}
-          {listing.num_bathrooms && <span>{listing.num_bathrooms} bath</span>}
-          {listing.num_floors && <span>{listing.num_floors} floor</span>}
+          {listing.num_bedrooms != null && <span>{listing.num_bedrooms} {t("bed")}</span>}
+          {listing.num_bathrooms != null && <span>{listing.num_bathrooms} {t("bath")}</span>}
+          {listing.num_floors != null && <span>{listing.num_floors} {t("floor")}</span>}
         </div>
       </div>
 
       {(listing.ward || listing.street) && (
-        <p className="text-sm text-slate-500 mb-3 flex items-center gap-1">
-          <svg className="w-3.5 h-3.5 text-slate-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <p className="text-sm mb-3 flex items-center gap-1 text-[var(--text-muted)]">
+          <svg className="w-3.5 h-3.5 shrink-0 text-[var(--text-muted)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
           </svg>
@@ -69,33 +79,41 @@ export default function ListingCard({
         </p>
       )}
 
-      <div className="flex items-center justify-between text-xs text-slate-400 pt-3 border-t border-slate-100">
+      <div className="flex items-center justify-between text-xs pt-3 border-t border-[var(--border-subtle)] text-[var(--text-muted)]">
         <span>
-          Updated{" "}
-          {new Date(listing.updated_at).toLocaleDateString("en-US", {
+          {t("updated")}{" "}
+          {new Date(listing.updated_at).toLocaleDateString(undefined, {
             month: "short",
             day: "numeric",
           })}
         </span>
-        <div className="flex gap-2">
+        <div className="flex gap-2 flex-wrap">
           {!isArchived ? (
             <>
               <Link
-                href={`/dashboard/listings/${listing.id}/view`}
-                className="px-3 py-1.5 text-xs border border-slate-200 text-slate-600 rounded-lg hover:bg-slate-50 font-medium transition-colors"
+                href={`/dashboard/listings/${listing.id}/view?from=listings`}
+                className="px-3 py-1.5 text-xs border rounded-lg font-medium transition-colors border-[var(--border)] text-[var(--text-secondary)] hover:bg-[var(--bg-hover)]"
               >
-                View
+                {t("view")}
               </Link>
+              {isOwner && (
+                <Link
+                  href="/dashboard/messages"
+                  className="px-3 py-1.5 text-xs border rounded-lg font-medium transition-colors border-[var(--orange)]/30 text-[var(--orange)] hover:bg-[var(--orange)]/10"
+                >
+                  {t("inquiries")}
+                </Link>
+              )}
               <Link
                 href={`/dashboard/listings/${listing.id}/edit`}
-                className="px-3 py-1.5 text-xs border border-navy/20 text-navy rounded-lg hover:bg-navy/5 font-medium transition-colors"
+                className="px-3 py-1.5 text-xs border rounded-lg font-medium transition-colors border-[var(--orange)]/30 text-[var(--orange)] hover:bg-[var(--orange)]/10"
               >
-                Edit
+                {t("edit")}
               </Link>
               {onArchive && (
                 <ConfirmButton
-                  label="Archive"
-                  confirmLabel="Confirm"
+                  label={t("archive")}
+                  confirmLabel={t("confirm")}
                   onConfirm={() => onArchive(listing.id)}
                   className="text-orange-600 hover:bg-orange-50"
                 />
@@ -105,16 +123,16 @@ export default function ListingCard({
             <>
               {onReactivate && (
                 <ConfirmButton
-                  label="Re-activate"
-                  confirmLabel="Confirm"
+                  label={t("reactivate")}
+                  confirmLabel={t("confirm")}
                   onConfirm={() => onReactivate(listing.id)}
                   className="text-emerald-600 hover:bg-emerald-50"
                 />
               )}
               {onDelete && (
                 <ConfirmButton
-                  label="Delete"
-                  confirmLabel="Confirm"
+                  label={t("delete")}
+                  confirmLabel={t("confirm")}
                   onConfirm={() => onDelete(listing.id)}
                   className="text-rose-600 hover:bg-rose-50"
                 />
@@ -138,25 +156,29 @@ function ConfirmButton({
   onConfirm: () => void;
   className?: string;
 }) {
+  const { t } = useLanguage();
   const [confirming, setConfirming] = useState(false);
 
   return confirming ? (
     <div className="flex gap-1">
       <button
+        type="button"
         onClick={() => { onConfirm(); setConfirming(false); }}
         className={`px-2 py-1 text-xs rounded ${className}`}
       >
         {confirmLabel}
       </button>
       <button
+        type="button"
         onClick={() => setConfirming(false)}
-        className="px-2 py-1 text-xs text-slate-400 hover:text-slate-600"
+        className="px-2 py-1 text-xs text-[var(--text-muted)] hover:text-[var(--text-secondary)]"
       >
-        Cancel
+        {t("cancel")}
       </button>
     </div>
   ) : (
     <button
+      type="button"
       onClick={() => setConfirming(true)}
       className={`px-2 py-1 text-xs rounded ${className}`}
     >

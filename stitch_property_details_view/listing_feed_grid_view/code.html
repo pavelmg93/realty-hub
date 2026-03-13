@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Listing Feed Grid View</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#FF9F43", // Updated to logo's orange/yellow highlight
+                        "primary-dark": "#e68a30",
+                        "secondary": "#0f2c59", // Navy blue from brand
+                        "background-light": "#f6f7f8",
+                        "background-dark": "#101822",
+                    },
+                    fontFamily: {
+                        "display": ["Inter", "sans-serif"]
+                    },
+                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style>::-webkit-scrollbar {
+            width: 4px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #374151;
+            border-radius: 4px;
+        }
+        .hide-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark font-display text-gray-900 dark:text-gray-100 flex justify-center min-h-screen p-0 sm:p-4 md:p-8">
+<div class="w-full max-w-md h-[92vh] sm:h-[850px] bg-background-light dark:bg-background-dark sm:rounded-[2.5rem] sm:border-[8px] sm:border-gray-900 overflow-hidden relative shadow-2xl flex flex-col">
+<div class="h-12 bg-white dark:bg-background-dark flex items-center justify-between px-6 pt-2 shrink-0 z-20">
+<span class="text-sm font-semibold text-gray-900 dark:text-gray-100">9:41</span>
+<div class="flex gap-1.5 items-center text-gray-900 dark:text-gray-100">
+<span class="material-icons text-[18px]">signal_cellular_alt</span>
+<span class="material-icons text-[18px]">wifi</span>
+<span class="material-icons text-[18px]">battery_full</span>
+</div>
+</div>
+<div class="px-4 pb-3 pt-1 bg-white dark:bg-background-dark z-20 shrink-0 border-b border-gray-200 dark:border-gray-800">
+<div class="flex items-center justify-between mb-4 relative">
+<div class="w-20"></div>
+<div class="flex justify-center flex-1">
+<img alt="FIDT Logo" class="h-8 object-contain" src="https://lh3.googleusercontent.com/aida-public/AB6AXuB8iwMLXjXknma7m67mDkHqJzuBR6wb7KUAdp8Ihwoel7-8pOsRVyafPlH8igNZYq-irWwHlRoOVZPiwuiHG59cDCNX1NDNEZ82oGs51ga-ZFP0rzH216hWEyBI7aGjHXlH1vCs1Xi0C95pqfSprW19m3HvVCVTGMLX0mleEdGJvyf0QWDQ5B3J1fdP2DfvUelEGkgUrmvrnxaydsq-XeSarK1DSMyiwoNuDg1-e4DSpoJEwYEWtbONe3l9oZd9ffx9yVshcYsRSCqw"/>
+</div>
+<div class="flex items-center gap-2 justify-end w-20">
+<button class="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">
+<span class="material-icons">search</span>
+</button>
+<button class="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors relative">
+<span class="material-icons">tune</span>
+<span class="absolute top-2 right-2 w-2 h-2 bg-primary rounded-full"></span>
+</button>
+</div>
+</div>
+<div class="flex items-center justify-between gap-4">
+<div class="flex items-center bg-gray-100 dark:bg-gray-800/60 p-1 rounded-lg">
+<button class="px-3 py-1 rounded text-xs font-medium text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white transition-colors">
+<span class="material-icons text-base">crop_portrait</span>
+</button>
+<button class="px-3 py-1 rounded bg-white dark:bg-gray-700 shadow-sm text-xs font-medium text-primary transition-colors">
+<span class="material-icons text-base">grid_view</span>
+</button>
+<button class="px-3 py-1 rounded text-xs font-medium text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white transition-colors">
+<span class="material-icons text-base">apps</span>
+</button>
+</div>
+<div class="flex items-center gap-2">
+<span class="text-xs font-medium text-gray-500 dark:text-gray-400">Map View</span>
+<button class="w-11 h-6 bg-gray-300 dark:bg-gray-700 rounded-full relative transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary focus:ring-offset-background-dark">
+<span class="absolute left-1 top-1 w-4 h-4 bg-white rounded-full shadow transition-transform"></span>
+</button>
+</div>
+</div>
+</div>
+<div class="flex-1 overflow-y-auto overflow-x-hidden relative hide-scrollbar p-4 bg-background-light dark:bg-background-dark">
+<div class="grid grid-cols-2 gap-3 pb-24">
+<div class="group bg-white dark:bg-[#1a2332] rounded-xl overflow-hidden shadow-sm border border-gray-100 dark:border-gray-800 hover:border-primary/50 transition-all">
+<div class="relative aspect-[4/3] overflow-hidden">
+<img alt="Modern minimalist house exterior" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" data-alt="Modern minimalist house exterior with geometric design" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAMhpK1dgjvrzasweL-jYDCiw5J6r5VXVqoe15ZnydorpiGlN_UD_9_XyihXeZvgZMCIyYiK-vpZuRq5AJ_NcFrS5XN9CmpF88NPG-2ryhNFirJX1PH9xdzBqRpc9OWHZJQ8yhPtKfPrYGGKlpV_10FPygnjY9tunELix2VI30uTK8fAMbbeCb7VHH-32enAWFfjvY7J3yKqmnguDvsNmARA9CCWkarrvMbmPm_rnKJMJ5gYfWVHmxZVm8PkfOQXMIav9v-NRXchUXb"/>
+<div class="absolute top-2 left-2">
+<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-green-500/90 text-white backdrop-blur-sm shadow-sm uppercase tracking-wide">Open</span>
+</div>
+<button class="absolute top-2 right-2 w-7 h-7 bg-black/40 hover:bg-black/60 backdrop-blur-sm rounded-full flex items-center justify-center text-white transition-colors">
+<span class="material-icons text-[14px]">favorite_border</span>
+</button>
+</div>
+<div class="p-3">
+<div class="flex justify-between items-start mb-1">
+<h3 class="text-sm font-bold text-gray-900 dark:text-white">12.5B VND</h3>
+</div>
+<p class="text-[10px] text-gray-500 dark:text-gray-400 truncate mb-3">21 Thao Dien, District 2, HCMC</p>
+<div class="flex items-center justify-between pt-2 border-t border-gray-100 dark:border-gray-800">
+<div class="flex items-center gap-1.5">
+<img alt="Male agent portrait" class="w-5 h-5 rounded-full object-cover border border-gray-200 dark:border-gray-600" data-alt="Professional male real estate agent smiling" src="https://lh3.googleusercontent.com/aida-public/AB6AXuATG1ot0ADvpAcGMghP7Mosdvgd_QN7pMMcV7LnpP_ofrbwLz8CcsICUE3saO7iNxhf4N_AqEOArY0r1u3s1YYg0_pkquYD-1uLD8fVcYBagHPA43J5hFxtmt3Mv4hXGetHJc4euUqUQTVR52k-j2fn3IS8LhjbIiQ9N6BmcCcWBBglgRjjxpAOMmVO3fjabFO81auAmxHeDOc0JQV153Shh2C8wtXvOIB8NoJEOzEiizlCuTir8mrCBcClsqlRbekNnX8uuBDsrgnQ"/>
+<span class="text-[10px] font-medium text-gray-600 dark:text-gray-300">Minh T.</span>
+</div>
+<button class="text-primary hover:text-primary-dark">
+<span class="material-icons text-[18px]">chat_bubble_outline</span>
+</button>
+</div>
+</div>
+</div>
+<div class="group bg-white dark:bg-[#1a2332] rounded-xl overflow-hidden shadow-sm border border-gray-100 dark:border-gray-800 hover:border-primary/50 transition-all">
+<div class="relative aspect-[4/3] overflow-hidden">
+<img alt="Luxury villa with swimming pool" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" data-alt="Luxury villa exterior with large swimming pool" src="https://lh3.googleusercontent.com/aida-public/AB6AXuD0eBcAt6mL_TmbeSXJCh8A5X76xB6h9rY9439KrB1Z4XWG5oXQlAGJYyM-4a5ySpKDcnPAN9wpoHlJxKb0J_74FWtE0tbm-DVBqgrPtkyJk-AgMAtiwsaqT-V3J0yXJOWKaPUTonMIbDt1SP7r0K8jmHOozG_W5VhgFJK-LEsn2eDbfH05_XMHVNxVzyo6rlXi5iOuN4VXUfTIj7XuX__xXrBUWZS78ZQUWJ4NmcsjXjtPrmeRCaarvFhUnQtdrybjCxTB2OZvqjFU"/>
+<div class="absolute top-2 left-2">
+<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-primary/90 text-white backdrop-blur-sm shadow-sm uppercase tracking-wide">Negotiating</span>
+</div>
+<button class="absolute top-2 right-2 w-7 h-7 bg-black/40 hover:bg-black/60 backdrop-blur-sm rounded-full flex items-center justify-center text-white transition-colors">
+<span class="material-icons text-[14px]">favorite</span>
+</button>
+</div>
+<div class="p-3">
+<div class="flex justify-between items-start mb-1">
+<h3 class="text-sm font-bold text-gray-900 dark:text-white">5.2B VND</h3>
+</div>
+<p class="text-[10px] text-gray-500 dark:text-gray-400 truncate mb-3">Sky Villa, Landmark 81, HCMC</p>
+<div class="flex items-center justify-between pt-2 border-t border-gray-100 dark:border-gray-800">
+<div class="flex items-center gap-1.5">
+<img alt="Female agent portrait" class="w-5 h-5 rounded-full object-cover border border-gray-200 dark:border-gray-600" data-alt="Professional female real estate agent in suit" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDovAeRHGi312h1YfcpHLnqjQsXHKCEpchAURfmX7dEyQoWg_6Z-kqUNw9PN0RIe0Oqh5j8RU1SgNVw0U1Absgvp7gv4sHgw9BqGnr5viVN9doO4GTA2vrbw4qkVLGcPmBl-ZIDqU8gzzxYktHBWjistaAe13qCrilXFsFXfTKKo6rXCW6bhfpeSACGkU7rQ5NS5YLEJcSWbWTqplyOosD4BmFzxCv05Uul5xCNjNntQ5Dqs90SolHEUcbkYF5hSoVpijyH14Z7kkbK"/>
+<span class="text-[10px] font-medium text-gray-600 dark:text-gray-300">Sarah L.</span>
+</div>
+<button class="text-primary hover:text-primary-dark relative">
+<span class="material-icons text-[18px]">mark_chat_unread</span>
+<span class="absolute -top-1 -right-1 flex h-2 w-2">
+<span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
+<span class="relative inline-flex rounded-full h-2 w-2 bg-primary"></span>
+</span>
+</button>
+</div>
+</div>
+</div>
+<div class="group bg-white dark:bg-[#1a2332] rounded-xl overflow-hidden shadow-sm border border-gray-100 dark:border-gray-800 hover:border-primary/50 transition-all">
+<div class="relative aspect-[4/3] overflow-hidden">
+<img alt="Modern white apartment building exterior" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" data-alt="Contemporary white apartment complex facade" src="https://lh3.googleusercontent.com/aida-public/AB6AXuD8YIGqRbgqwCeAm-O9YHGKRyIoL3YkvpWKd-u3zBt579TGLxOJ2YlTLFiHf_9LmicwINgfs5Snjs_ZXJUz28rvlMX-0X2mySyhfkrp0_mOwuINsYbGFFlaNAp0P9fQAi2cDHMx8R9O3Xq59HubF252LuULAhYwQ_1bOJYpOsVdgOprPa8DAgSMyjYdwI5x9YRTNroWY1zys05S3kCmSOFbNvwz7rgbXrJ1KaA989Wz8zkNMGg_nbMq0ArxJNAXwrKgymfYO2Mabd8E"/>
+<div class="absolute top-2 left-2">
+<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-green-500/90 text-white backdrop-blur-sm shadow-sm uppercase tracking-wide">Open</span>
+</div>
+</div>
+<div class="p-3">
+<div class="flex justify-between items-start mb-1">
+<h3 class="text-sm font-bold text-gray-900 dark:text-white">8.9B VND</h3>
+</div>
+<p class="text-[10px] text-gray-500 dark:text-gray-400 truncate mb-3">Riverside Residence, D7</p>
+<div class="flex items-center justify-between pt-2 border-t border-gray-100 dark:border-gray-800">
+<div class="flex items-center gap-1.5">
+<div class="w-5 h-5 rounded-full bg-primary/20 flex items-center justify-center border border-primary/30 text-primary text-[8px] font-bold">JD</div>
+<span class="text-[10px] font-medium text-gray-600 dark:text-gray-300">John D.</span>
+</div>
+<button class="text-primary hover:text-primary-dark">
+<span class="material-icons text-[18px]">chat_bubble_outline</span>
+</button>
+</div>
+</div>
+</div>
+<div class="group bg-white dark:bg-[#1a2332] rounded-xl overflow-hidden shadow-sm border border-gray-100 dark:border-gray-800 hover:border-primary/50 transition-all">
+<div class="relative aspect-[4/3] overflow-hidden">
+<img alt="Bright living room interior" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" data-alt="Modern bright living room with large windows" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBTYJdw7FYuyrfxo2BYltOKgRtV5Et_AObRKqcEVTXtmkg_ZKKz_4m9ffZwg-kx11zw8n1ob2pux08qJhCGd6nhf-XG_sESXQ3sMracqMSMFLyVwgoBPQgDSD3l2fq_nNDz27UECSj3Mzv3JQpCI-75TzoLjAtIObZKBk4ntZMg7rBp4by4ezuNO6fQbl9noHZYiAZpPO3dcx0dtcQfDxn_y4l9p75CSWBdTGbmDrVTRCZhuPPbPYKg-R_CLPlI_ko2Gf7Tf6aEucIg"/>
+<div class="absolute top-2 left-2">
+<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-red-500/90 text-white backdrop-blur-sm shadow-sm uppercase tracking-wide">Sold</span>
+</div>
+<div class="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+<span class="text-white font-bold text-sm bg-black/50 px-3 py-1 rounded backdrop-blur">View Details</span>
+</div>
+</div>
+<div class="p-3">
+<div class="flex justify-between items-start mb-1">
+<h3 class="text-sm font-bold text-gray-400 dark:text-gray-500 line-through decoration-red-500">15.0B VND</h3>
+</div>
+<p class="text-[10px] text-gray-500 dark:text-gray-400 truncate mb-3">Lakeview City, District 2</p>
+<div class="flex items-center justify-between pt-2 border-t border-gray-100 dark:border-gray-800">
+<div class="flex items-center gap-1.5">
+<img alt="Agent headshot" class="w-5 h-5 rounded-full object-cover border border-gray-200 dark:border-gray-600" data-alt="Smiling male agent in casual shirt" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDnNSLDVlG9pf-6sdtHkSNU9n1_3Jktigh3lAyFqobXLb8RLHZ4NqlQGRtK7c-syAe4hrk9lq3K_Qy4L6VmjggAmUCnb6DEbin_PE-qVlKj_9leoJtl26rbPOH23u0zkrnlcLtnyQzdK7i8pydJUuQx6o3T-MaTC3DcTX54KVy-UP4_oRu2AADpOt6dmeFcsR2oeDDh3SeZ4C3peORswpfxDT8z_Cq6UZGtQbgrjXqD5aZ3-b8ZyWPxVebIordDUcHrePrdgOs7qq17"/>
+<span class="text-[10px] font-medium text-gray-600 dark:text-gray-300">Alex N.</span>
+</div>
+<button class="text-gray-400 cursor-not-allowed">
+<span class="material-icons text-[18px]">lock</span>
+</button>
+</div>
+</div>
+</div>
+<div class="group bg-white dark:bg-[#1a2332] rounded-xl overflow-hidden shadow-sm border border-gray-100 dark:border-gray-800 hover:border-primary/50 transition-all">
+<div class="relative aspect-[4/3] overflow-hidden">
+<img alt="Penthouse interior view" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" data-alt="Luxurious penthouse interior with city view" src="https://lh3.googleusercontent.com/aida-public/AB6AXuD_sjAWXosKNWUi615Oag2DlFfZhqzW02gdXY-xGztAbRwXkH5rFZJcrww7oaC7Ig-v6euyuz87jnGZtQRKgO3fKxT9BDRYdpt__tbidd0fajfOg3xf_7fAGR8M7Ef_DgWICy4p58--8L2bQUJMi9bgCjdnV8EC0c9zni8Boyp_TT8dRP4AxrAj-9iektOALJj856EKIEsFSeqAtJ1L538hQc8TErjtqLplJwwsjA9iO3dwa1wyxaTuvsovWnCY6p-pO8dPjwE-e310"/>
+<div class="absolute top-2 left-2">
+<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-blue-500/90 text-white backdrop-blur-sm shadow-sm uppercase tracking-wide">New</span>
+</div>
+</div>
+<div class="p-3">
+<div class="flex justify-between items-start mb-1">
+<h3 class="text-sm font-bold text-gray-900 dark:text-white">45.0B VND</h3>
+</div>
+<p class="text-[10px] text-gray-500 dark:text-gray-400 truncate mb-3">Empire City, Thu Thiem</p>
+<div class="flex items-center justify-between pt-2 border-t border-gray-100 dark:border-gray-800">
+<div class="flex items-center gap-1.5">
+<img alt="Agent profile photo" class="w-5 h-5 rounded-full object-cover border border-gray-200 dark:border-gray-600" data-alt="Young professional woman smiling" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCVW0ubSbT7ihHvueMj4hBUvpdLvlYIIvGe-MHhynk57cJfoghZXu27llKetpsfSQqbogGR6ywOuZn91CLqUjY0muHkhhNPiEEemCg8uiL_a1V9Zkc9n25yXzwg5d85Z_e8eR-r8UVedoLYOWqfX6CGldqN9QSeWcy1859-DX3Xee8Egpsq8RJaoMtqAP4Qe9oJnKLESqg4t90M3Ec4tsW2vRCUsbXBp3tElwPsSF6ewrqEfQHB9ckQBhPcSBPz33sjgQIBaJwT9WtX"/>
+<span class="text-[10px] font-medium text-gray-600 dark:text-gray-300">Elena V.</span>
+</div>
+<button class="text-primary hover:text-primary-dark">
+<span class="material-icons text-[18px]">chat_bubble_outline</span>
+</button>
+</div>
+</div>
+</div>
+<div class="group bg-white dark:bg-[#1a2332] rounded-xl overflow-hidden shadow-sm border border-gray-100 dark:border-gray-800 hover:border-primary/50 transition-all">
+<div class="relative aspect-[4/3] overflow-hidden">
+<img alt="Kitchen interior" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" data-alt="Modern white kitchen with island" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCgrlgznKAi8iKwqdAwtfXh50AN-2tZFTTyTMyUllZIJttpG5jDQoWBPpaoB-HXYCJwdGNTRa04iqUAjKght_f8zq5GQkjEpypY1XNtq7F7e12_Qp8eG6TYyyvFoy6Q2m3nN8SQuZFeyj3pAwdCKFm9-cQjeHFTesj0LoIElP1pbFkcMmc0FXSwMIpQT-tB0vD6p5zzZO7TH1sE-1BhYpj0daz9ag4jGJw66DRGOZsC4SvEsWt7b9p62btCoViPZsPTmXshh-wuASEQ"/>
+<div class="absolute top-2 left-2">
+<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-primary/90 text-white backdrop-blur-sm shadow-sm uppercase tracking-wide">Pending</span>
+</div>
+</div>
+<div class="p-3">
+<div class="flex justify-between items-start mb-1">
+<h3 class="text-sm font-bold text-gray-900 dark:text-white">6.8B VND</h3>
+</div>
+<p class="text-[10px] text-gray-500 dark:text-gray-400 truncate mb-3">Masteri Thao Dien, D2</p>
+<div class="flex items-center justify-between pt-2 border-t border-gray-100 dark:border-gray-800">
+<div class="flex items-center gap-1.5">
+<img alt="Agent smiling" class="w-5 h-5 rounded-full object-cover border border-gray-200 dark:border-gray-600" data-alt="Business man with glasses smiling" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDTpX1MgMiNflUzSd6KY5zJIinh-uqciOdqUDVojb9p1g1CRnjSnLiVCAOMAlQKwkBWDifyVqVSmn33uEq0niD1HgHsism6AZpHO6YDvMkfwTWNrnWBE20x3z3YdmCRJHq4QvCyKo8A9syNdjvhtG9VjLi5MIWiOo5T81Ch0eHheBVkZfvF0jWfvRVv0jukcirIa-BREX0rGuSdmsZjakOvIh_bIiuYnbVD-TDKyR0qzw7542ZGThjRt8ZUVp1h2mO761sE9KkzFzCw"/>
+<span class="text-[10px] font-medium text-gray-600 dark:text-gray-300">David K.</span>
+</div>
+<button class="text-primary hover:text-primary-dark">
+<span class="material-icons text-[18px]">chat_bubble_outline</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="bg-white/95 dark:bg-[#1a2332]/95 backdrop-blur-md border-t border-gray-200 dark:border-gray-800 flex justify-around items-center h-[84px] pb-6 shrink-0 z-20 absolute bottom-0 w-full">
+<button class="flex flex-col items-center justify-center w-14 gap-1 group">
+<span class="material-icons text-primary">dynamic_feed</span>
+<span class="text-[10px] font-medium text-primary">Feed</span>
+</button>
+<button class="flex flex-col items-center justify-center w-14 gap-1 group">
+<span class="material-icons text-gray-400 group-hover:text-primary transition-colors">real_estate_agent</span>
+<span class="text-[10px] font-medium text-gray-400 group-hover:text-primary transition-colors">My Listings</span>
+</button>
+<button class="flex flex-col items-center justify-center w-14 gap-1 group relative">
+<div class="relative">
+<span class="material-icons text-gray-400 group-hover:text-primary transition-colors">chat</span>
+<span class="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full border-2 border-white dark:border-[#1a2332]"></span>
+</div>
+<span class="text-[10px] font-medium text-gray-400 group-hover:text-primary transition-colors">Inquiries</span>
+</button>
+<button class="flex flex-col items-center justify-center w-14 gap-1 group">
+<span class="material-icons text-gray-400 group-hover:text-primary transition-colors">people</span>
+<span class="text-[10px] font-medium text-gray-400 group-hover:text-primary transition-colors">CRM</span>
+</button>
+<button class="flex flex-col items-center justify-center w-14 gap-1 group">
+<span class="material-icons text-gray-400 group-hover:text-primary transition-colors">account_circle</span>
+<span class="text-[10px] font-medium text-gray-400 group-hover:text-primary transition-colors">My Profile</span>
+</button>
+</div>
+<div class="absolute bottom-24 right-4 sm:hidden">
+<button class="w-12 h-12 bg-primary rounded-full shadow-lg shadow-primary/40 flex items-center justify-center text-white">
+<span class="material-icons">map</span>
+</button>
+</div>
+</div>
+</body></html>

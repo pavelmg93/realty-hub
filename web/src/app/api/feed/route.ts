@@ -58,6 +58,7 @@ export async function GET(request: NextRequest) {
       { key: "negotiable", column: "pl.negotiable", type: "bool" },
       { key: "num_frontages_min", column: "pl.num_frontages", type: "gte" },
       { key: "distance_to_beach_max", column: "pl.distance_to_beach_m", type: "lte" },
+      { key: "agent_id", column: "pl.agent_id", type: "eq" },
     ];
 
     for (const filter of filters) {
@@ -65,9 +66,18 @@ export async function GET(request: NextRequest) {
       if (value === null || value === "") continue;
 
       if (filter.type === "eq") {
-        conditions.push(`${filter.column} = $${paramIndex}`);
-        params.push(value);
-        paramIndex++;
+        if (filter.key === "agent_id") {
+          const agentId = parseInt(value, 10);
+          if (!isNaN(agentId)) {
+            conditions.push(`${filter.column} = $${paramIndex}`);
+            params.push(agentId);
+            paramIndex++;
+          }
+        } else {
+          conditions.push(`${filter.column} = $${paramIndex}`);
+          params.push(value);
+          paramIndex++;
+        }
       } else if (filter.type === "gte") {
         const num = parseFloat(value);
         if (!isNaN(num)) {

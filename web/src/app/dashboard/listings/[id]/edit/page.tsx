@@ -6,12 +6,14 @@ import { Listing, ListingPhoto, ListingDocument } from "@/lib/types";
 import ListingForm from "@/components/listings/ListingForm";
 import PhotoUploader from "@/components/photos/PhotoUploader";
 import DocumentManager from "@/components/documents/DocumentManager";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 type Tab = "edit" | "photos" | "documents";
 
 export default function EditListingPage() {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
+  const { t } = useLanguage();
   const [listing, setListing] = useState<Listing | null>(null);
   const [photos, setPhotos] = useState<ListingPhoto[]>([]);
   const [documents, setDocuments] = useState<ListingDocument[]>([]);
@@ -63,7 +65,7 @@ export default function EditListingPage() {
   if (loading) {
     return (
       <div className="max-w-3xl mx-auto">
-        <div className="text-center py-12 text-gray-400">Loading...</div>
+        <div className="text-center py-12 text-[var(--text-muted)]">{t("loading")}</div>
       </div>
     );
   }
@@ -72,12 +74,12 @@ export default function EditListingPage() {
     return (
       <div className="max-w-3xl mx-auto">
         <div className="text-center py-12">
-          <p className="text-red-600 mb-4">{error || "Listing not found"}</p>
+          <p className="text-[var(--error)] mb-4">{error || t("notFound")}</p>
           <button
             onClick={() => router.push("/dashboard/listings")}
-            className="text-sm text-gray-600 hover:text-gray-800"
+            className="text-sm text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
           >
-            Back to listings
+            {t("backToListings")}
           </button>
         </div>
       </div>
@@ -87,24 +89,24 @@ export default function EditListingPage() {
   return (
     <div className="max-w-3xl mx-auto">
       <div className="flex items-center justify-between mb-4">
-        <h1 className="text-2xl font-bold text-slate-800">
-          Edit Listing #{listing.id}
+        <h1 className="text-2xl font-bold text-[var(--text-primary)] bg-transparent select-text">
+          {t("editListing")} #{listing.id}
         </h1>
         <button
-          onClick={() => router.push(`/dashboard/listings/${listing.id}/view`)}
-          className="px-3 py-1.5 text-sm border border-slate-200 text-slate-600 rounded-lg hover:bg-slate-50 transition-colors"
+          onClick={() => router.push(`/dashboard/listings/${listing.id}/view?from=listings`)}
+          className="px-3 py-1.5 text-sm rounded-lg border border-[var(--border)] text-[var(--text-secondary)] hover:bg-[var(--bg-hover)] transition-colors"
         >
-          View
+          {t("view")}
         </button>
       </div>
 
       {/* Tabs */}
-      <div className="flex border-b border-slate-200 mb-6">
+      <div className="flex border-b border-[var(--border)] mb-6">
         {(
           [
-            { key: "edit", label: "Listing Data" },
-            { key: "photos", label: `Photos (${photos.length})` },
-            { key: "documents", label: `Documents (${documents.length})` },
+            { key: "edit", label: t("listingData") },
+            { key: "photos", label: `${t("photos")} (${photos.length})` },
+            { key: "documents", label: `${t("documents")} (${documents.length})` },
           ] as const
         ).map((tab) => (
           <button
@@ -112,8 +114,8 @@ export default function EditListingPage() {
             onClick={() => setActiveTab(tab.key)}
             className={`px-4 py-2.5 text-sm font-medium transition-colors border-b-2 -mb-px ${
               activeTab === tab.key
-                ? "border-navy text-navy"
-                : "border-transparent text-slate-500 hover:text-slate-700"
+                ? "border-[var(--orange)] text-[var(--orange)]"
+                : "border-transparent text-[var(--text-muted)] hover:text-[var(--text-secondary)]"
             }`}
           >
             {tab.label}

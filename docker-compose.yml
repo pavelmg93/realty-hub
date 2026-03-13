@@ -1,87 +1,84 @@
 services:
-  kestra:
-    image: kestra/kestra:latest
-    pull_policy: always
-    # Root is required to access the Docker socket for task containers.
-    # See: https://kestra.io/docs/installation/podman-compose
-    user: "root"
-    command: server standalone --flow-path /app/flows
-    ports:
-      - "8080:8080"
-      - "8081:8081"
-    environment:
-      ENV_GEMINI_API_KEY: ${ENV_GEMINI_API_KEY}
-      KESTRA_CONFIGURATION: |
-        datasources:
-          postgres:
-            url: jdbc:postgresql://kestra-postgres:5432/kestra
-            driverClassName: org.postgresql.Driver
-            username: kestra
-            password: ${KESTRA_DB_PASSWORD:-kestra_change_me}
-        kestra:
-          repository:
-            type: postgres
-          storage:
-            type: local
-            local:
-              basePath: "/app/storage"
-          queue:
-            type: postgres
-          ai:
-            type: gemini
-            gemini:
-              api-key: "${ENV_GEMINI_API_KEY}"
-              model-name: gemini-2.5-flash
-          tasks:
-            tmpDir:
-              path: /tmp/kestra-wd/tmp
-    volumes:
-      - kestra-data:/app/storage
-      - /var/run/docker.sock:/var/run/docker.sock
-      - /tmp/kestra-wd:/tmp/kestra-wd
-      - ./kestra/flows:/app/flows
-      - ./logs/kestra:/app/logs/kestra
-    depends_on:
-      kestra-postgres:
-        condition: service_healthy
-    networks:
-      - re-nhatrang
-
-  kestra-postgres:
-    image: postgres:16
-    environment:
-      POSTGRES_DB: kestra
-      POSTGRES_USER: kestra
-      POSTGRES_PASSWORD: ${KESTRA_DB_PASSWORD:-kestra_change_me}
-    ports:
-      - "5433:5432"
-    volumes:
-      - kestra-pg-data:/var/lib/postgresql/data
-      - ./logs/kestra/backups:/backups
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U kestra"]
-      interval: 5s
-      timeout: 5s
-      retries: 5
-    networks:
-      - re-nhatrang
-
-  kestra-restore:
-    image: postgres:16
-    environment:
-      PGPASSWORD: ${KESTRA_DB_PASSWORD:-kestra_change_me}
-      KESTRA_BACKUP_DAYS: ${KESTRA_BACKUP_DAYS:-30}
-    volumes:
-      - ./logs/kestra/backups:/backups
-      - ./scripts/restore_kestra_db.sh:/restore.sh
-    entrypoint: /bin/bash
-    command: ["/restore.sh"]
-    depends_on:
-      kestra-postgres:
-        condition: service_healthy
-    networks:
-      - re-nhatrang
-    restart: "no"
+  # DEMO: Kestra disabled — re-enable for MVP pipeline work
+  # kestra:
+  #   image: kestra/kestra:latest
+  #   pull_policy: always
+  #   user: "root"
+  #   command: server standalone --flow-path /app/flows
+  #   ports:
+  #     - "8080:8080"
+  #     - "8081:8081"
+  #   environment:
+  #     ENV_GEMINI_API_KEY: ${ENV_GEMINI_API_KEY}
+  #     KESTRA_CONFIGURATION: |
+  #       datasources:
+  #         postgres:
+  #           url: jdbc:postgresql://kestra-postgres:5432/kestra
+  #           driverClassName: org.postgresql.Driver
+  #           username: kestra
+  #           password: ${KESTRA_DB_PASSWORD:-kestra_change_me}
+  #       kestra:
+  #         repository:
+  #           type: postgres
+  #         storage:
+  #           type: local
+  #           local:
+  #             basePath: "/app/storage"
+  #         queue:
+  #           type: postgres
+  #         ai:
+  #           type: gemini
+  #           gemini:
+  #             api-key: "${ENV_GEMINI_API_KEY}"
+  #             model-name: gemini-2.5-flash
+  #         tasks:
+  #           tmpDir:
+  #             path: /tmp/kestra-wd/tmp
+  #   volumes:
+  #     - kestra-data:/app/storage
+  #     - /var/run/docker.sock:/var/run/docker.sock
+  #     - /tmp/kestra-wd:/tmp/kestra-wd
+  #     - ./kestra/flows:/app/flows
+  #     - ./logs/kestra:/app/logs/kestra
+  #   depends_on:
+  #     kestra-postgres:
+  #       condition: service_healthy
+  #   networks:
+  #     - re-nhatrang
+  # kestra-postgres:
+  #   image: postgres:16
+  #   environment:
+  #     POSTGRES_DB: kestra
+  #     POSTGRES_USER: kestra
+  #     POSTGRES_PASSWORD: ${KESTRA_DB_PASSWORD:-kestra_change_me}
+  #   ports:
+  #     - "5433:5432"
+  #   volumes:
+  #     - kestra-pg-data:/var/lib/postgresql/data
+  #     - ./logs/kestra/backups:/backups
+  #   healthcheck:
+  #     test: ["CMD-SHELL", "pg_isready -U kestra"]
+  #     interval: 5s
+  #     timeout: 5s
+  #     retries: 5
+  #   networks:
+  #     - re-nhatrang
+  # kestra-restore:
+  #   image: postgres:16
+  #   environment:
+  #     PGPASSWORD: ${KESTRA_DB_PASSWORD:-kestra_change_me}
+  #     KESTRA_BACKUP_DAYS: ${KESTRA_BACKUP_DAYS:-30}
+  #   volumes:
+  #     - ./logs/kestra/backups:/backups
+  #     - ./scripts/restore_kestra_db.sh:/restore.sh
+  #   entrypoint: /bin/bash
+  #   command: ["/restore.sh"]
+  #   depends_on:
+  #     kestra-postgres:
+  #       condition: service_healthy
+  #   networks:
+  #     - re-nhatrang
+  #   restart: "no"
 
   app-postgres:
     image: ankane/pgvector:latest
@@ -155,8 +152,8 @@ services:
       - re-nhatrang
 
 volumes:
-  kestra-data:
-  kestra-pg-data:
+  # kestra-data:
+  # kestra-pg-data:
   app-pg-data:
   redis-data:
   uploads-data:

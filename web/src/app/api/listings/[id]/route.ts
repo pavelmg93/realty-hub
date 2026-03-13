@@ -29,11 +29,16 @@ export async function GET(
         a.username AS owner_username,
         a.first_name AS owner_first_name,
         a.phone AS owner_phone,
-        a.email AS owner_email
+        a.email AS owner_email,
+        (SELECT c.id FROM conversations c
+         WHERE c.listing_id = pl.id
+           AND ((c.agent_1_id = $2 AND c.agent_2_id = pl.agent_id)
+                OR (c.agent_1_id = pl.agent_id AND c.agent_2_id = $2))
+         LIMIT 1) AS existing_conversation_id
       FROM parsed_listings pl
       LEFT JOIN agents a ON a.id = pl.agent_id
       WHERE pl.id = $1`,
-      [listingId],
+      [listingId, auth.userId],
     );
 
     if (result.rows.length === 0) {
@@ -103,17 +108,18 @@ export async function PUT(
         property_type = $1, transaction_type = $2, price_raw = $3, price_vnd = $4,
         area_m2 = $5, address_raw = $6, ward = $7, street = $8, district = $9,
         num_bedrooms = $10, num_floors = $11, frontage_m = $12, access_road = $13,
-        furnished = $14, description = $15, status = $16, freestyle_text = $17,
-        legal_status = $18, num_bathrooms = $19, structure_type = $20,
-        direction = $21, depth_m = $22, corner_lot = $23, price_per_m2 = $24,
-        negotiable = $25, rental_income_vnd = $26, has_elevator = $27,
-        nearby_amenities = $28, investment_use_case = $29, outdoor_features = $30,
-        special_rooms = $31, feng_shui = $32, total_construction_area = $33,
-        land_characteristics = $34, traffic_connectivity = $35, building_type = $36,
-        latitude = $37, longitude = $38,
-        road_width_m = $39, num_frontages = $40, distance_to_beach_m = $41,
+        furnished = $14, description = $15, description_vi = $16, description_en = $17,
+        status = $18, freestyle_text = $19,
+        legal_status = $20, num_bathrooms = $21, structure_type = $22,
+        direction = $23, depth_m = $24, corner_lot = $25, price_per_m2 = $26,
+        negotiable = $27, rental_income_vnd = $28, has_elevator = $29,
+        nearby_amenities = $30, investment_use_case = $31, outdoor_features = $32,
+        special_rooms = $33, feng_shui = $34, total_construction_area = $35,
+        land_characteristics = $36, traffic_connectivity = $37, building_type = $38,
+        latitude = $39, longitude = $40,
+        road_width_m = $41, num_frontages = $42, distance_to_beach_m = $43,
         updated_at = NOW()
-      WHERE id = $42
+      WHERE id = $44
       RETURNING *`,
       [
         data.property_type ?? null,
@@ -130,7 +136,9 @@ export async function PUT(
         data.frontage_m ?? null,
         data.access_road ?? null,
         data.furnished ?? null,
-        data.description ?? null,
+        data.description ?? data.description_vi ?? data.description_en ?? null,
+        data.description_vi ?? null,
+        data.description_en ?? null,
         data.status ?? "for_sale",
         data.freestyle_text ?? null,
         data.legal_status ?? null,

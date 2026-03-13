@@ -15,7 +15,7 @@ export default function FreestyleEditor({
 }: Props) {
   return (
     <div>
-      <label className="block text-sm font-medium text-slate-700 mb-1">
+      <label className="block text-sm font-medium mb-2 text-[var(--text-secondary)]">
         Paste or type your listing text (Vietnamese)
       </label>
       <textarea
@@ -23,18 +23,19 @@ export default function FreestyleEditor({
         onChange={(e) => onChange(e.target.value)}
         placeholder="VD: Ban nha 2 tang duong Nguyen Thi Minh Khai, phuong Loc Tho, 80m2, 3PN, gia 3.5 ty..."
         rows={8}
-        className="w-full border border-slate-200 rounded-lg p-3 text-sm resize-y focus:outline-none focus:ring-2 focus:ring-accent/30 focus:border-accent"
+        className="w-full rounded-xl p-4 text-sm resize-y min-h-[180px]"
       />
-      <div className="flex items-center gap-3 mt-2">
+      <div className="flex items-center gap-3 mt-4">
         <button
           type="button"
           onClick={() => onParse()}
           disabled={isParsing || !value.trim()}
-          className="px-4 py-2 bg-navy text-white text-sm rounded-lg hover:bg-navy-light disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium"
+          className="px-4 py-2.5 text-white text-sm rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium"
+          style={{ backgroundColor: "var(--orange)" }}
         >
           {isParsing ? "Parsing..." : "Parse Text"}
         </button>
-        <span className="text-xs text-slate-400">
+        <span className="text-xs text-[var(--text-muted)]">
           Extracts structured data from Vietnamese listing text
         </span>
       </div>

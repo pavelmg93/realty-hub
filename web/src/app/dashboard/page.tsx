@@ -6,7 +6,7 @@ import { useEffect } from "react";
 export default function DashboardPage() {
   const router = useRouter();
   useEffect(() => {
-    router.replace("/dashboard/listings");
+    router.replace("/dashboard/feed");
   }, [router]);
   return null;
 }

@@ -125,11 +125,12 @@ After every completed successful coding session, update `docs/SESSION_LOG.md`
 with the full session entry. Keep only the latest session's key recommendations
 below so this file stays concise. See `docs/SESSION_LOG.md` for complete history.
 
-**Latest web app session: #8 — 2026-02-12 — Maps, Photos, Auth Simplification**
+**Latest web app session: #12 — 2026-03-07 — Agent & Person Profiles, Message Property Bar, CRM Filters**
 **Latest pipeline session: #9b — 2026-02-14 — Web Scraping Bug Fixes**
 **Planning session: 2026-03 — Demo roadmap, GCP infra, CURSOR.md created**
 
 Recommendations:
+- **Session 12**: Agent profile at `/dashboard/agents/[id]`; person profile at `/dashboard/crm/person/[id]`; CRM agents filterable by All / Favorite / Active; favorites via `/api/crm/favorites`; message thread shows associated property bar when conversation has listing_id. Stitch mockups in `stitch_property_details_view/`.
 - **Migration 007** adds `source_url`, `source_listing_id` to raw_listings; `road_width_m`, `num_frontages`, `distance_to_beach_m` to parsed_listings.
 - After `docker compose down -v && up -d`, run migrations 002-007 and seed_reference_data.sql.
 - Create agent before scraping: `./scripts/create_agent.sh chauloan "Chau Loan" bdsntorg 0901953889`

@@ -12,6 +12,7 @@ import {
   FURNISHED_TYPES,
   BUILDING_TYPES,
 } from "@/lib/constants";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 export interface FeedFilterValues {
   property_type: string;
@@ -32,6 +33,7 @@ export interface FeedFilterValues {
   corner_lot: string;
   has_elevator: string;
   negotiable: string;
+  agent_id: string;
   sort: string;
   order: string;
 }
@@ -55,15 +57,24 @@ export const DEFAULT_FILTERS: FeedFilterValues = {
   corner_lot: "",
   has_elevator: "",
   negotiable: "",
+  agent_id: "",
   sort: "created_at",
   order: "desc",
 };
+
+interface AgentOption {
+  id: number;
+  first_name: string | null;
+  username: string | null;
+}
 
 interface Props {
   filters: FeedFilterValues;
   onChange: (filters: FeedFilterValues) => void;
   onApply: () => void;
   onReset: () => void;
+  /** For Feed view: list of agents for "Agent" filter */
+  agents?: AgentOption[];
 }
 
 function FilterSelect({
@@ -71,21 +82,23 @@ function FilterSelect({
   value,
   options,
   onChange,
+  allLabel,
 }: {
   label: string;
   value: string;
   options: Record<string, string>;
   onChange: (v: string) => void;
+  allLabel: string;
 }) {
   return (
     <div>
-      <label className="block text-xs text-slate-500 mb-0.5">{label}</label>
+      <label className="block text-xs mb-0.5 text-[var(--text-secondary)]">{label}</label>
       <select
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className="w-full border border-slate-200 rounded-lg px-2 py-1.5 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-accent/30 focus:border-accent"
+        className="w-full rounded-lg px-2 py-1.5 text-sm"
       >
-        <option value="">All</option>
+        <option value="">{allLabel}</option>
         {Object.entries(options).map(([k, v]) => (
           <option key={k} value={k}>
             {v}
@@ -101,7 +114,9 @@ export default function FeedFilters({
   onChange,
   onApply,
   onReset,
+  agents = [],
 }: Props) {
+  const { t } = useLanguage();
   const set = (key: keyof FeedFilterValues, value: string) => {
     onChange({ ...filters, [key]: value });
   };
@@ -111,18 +126,18 @@ export default function FeedFilters({
   ).length;
 
   return (
-    <div className="bg-white border border-slate-200 rounded-xl p-4 mb-4">
+    <div className="rounded-xl p-4 mb-4 border border-[var(--border)]" style={{ backgroundColor: "var(--bg-surface)" }}>
       <div className="flex items-center justify-between mb-3">
-        <h3 className="text-sm font-semibold text-slate-700">
-          Filters{activeCount > 0 && ` (${activeCount})`}
+        <h3 className="text-sm font-semibold text-[var(--text-primary)]">
+          {t("filters")}{activeCount > 0 && ` (${activeCount})`}
         </h3>
         <div className="flex gap-2">
           {activeCount > 0 && (
             <button
               onClick={onReset}
-              className="text-xs text-slate-500 hover:text-slate-700"
+              className="text-xs text-[var(--text-muted)] hover:text-[var(--text-secondary)]"
             >
-              Reset
+              {t("reset")}
             </button>
           )}
         </div>
@@ -130,189 +145,214 @@ export default function FeedFilters({
 
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2">
         <FilterSelect
-          label="Property"
+          label={t("property")}
           value={filters.property_type}
           options={PROPERTY_TYPES}
           onChange={(v) => set("property_type", v)}
+          allLabel={t("all")}
         />
         <FilterSelect
-          label="Transaction"
+          label={t("transaction")}
           value={filters.transaction_type}
           options={TRANSACTION_TYPES}
           onChange={(v) => set("transaction_type", v)}
+          allLabel={t("all")}
         />
         <FilterSelect
-          label="Ward"
+          label={t("ward")}
           value={filters.ward}
           options={Object.fromEntries(NHA_TRANG_WARDS.map((w) => [w, w]))}
           onChange={(v) => set("ward", v)}
+          allLabel={t("all")}
         />
         <FilterSelect
-          label="Status"
+          label={t("status")}
           value={filters.status}
           options={Object.fromEntries(
             Object.entries(LISTING_STATUSES).map(([k, v]) => [k, v.label]),
           )}
           onChange={(v) => set("status", v)}
+          allLabel={t("all")}
         />
         <FilterSelect
-          label="Legal"
+          label={t("legal")}
           value={filters.legal_status}
           options={LEGAL_STATUS_TYPES}
           onChange={(v) => set("legal_status", v)}
+          allLabel={t("all")}
         />
         <FilterSelect
-          label="Direction"
+          label={t("direction")}
           value={filters.direction}
           options={DIRECTION_TYPES}
           onChange={(v) => set("direction", v)}
+          allLabel={t("all")}
         />
         <FilterSelect
-          label="Structure"
+          label={t("structure")}
           value={filters.structure_type}
           options={STRUCTURE_TYPES}
           onChange={(v) => set("structure_type", v)}
+          allLabel={t("all")}
         />
         <FilterSelect
-          label="Road Access"
+          label={t("roadAccess")}
           value={filters.access_road}
           options={ACCESS_ROAD_TYPES}
           onChange={(v) => set("access_road", v)}
+          allLabel={t("all")}
         />
         <FilterSelect
-          label="Furnished"
+          label={t("furnished")}
           value={filters.furnished}
           options={FURNISHED_TYPES}
           onChange={(v) => set("furnished", v)}
+          allLabel={t("all")}
         />
         <FilterSelect
-          label="Building"
+          label={t("building")}
           value={filters.building_type}
           options={BUILDING_TYPES}
           onChange={(v) => set("building_type", v)}
+          allLabel={t("all")}
         />
+        {agents.length > 0 && (
+          <FilterSelect
+            label={t("agent")}
+            value={filters.agent_id}
+            options={Object.fromEntries(
+              agents.map((a) => [
+                String(a.id),
+                a.first_name || a.username || `${t("agent")} ${a.id}`,
+              ])
+            )}
+            onChange={(v) => set("agent_id", v)}
+            allLabel={t("all")}
+          />
+        )}
         <div>
-          <label className="block text-xs text-slate-500 mb-0.5">
-            Min Price (VND)
+          <label className="block text-xs mb-0.5 text-[var(--text-secondary)]">
+            {t("minPrice")}
           </label>
           <input
             type="number"
             value={filters.price_min}
             onChange={(e) => set("price_min", e.target.value)}
             placeholder="0"
-            className="w-full border border-slate-200 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-accent/30 focus:border-accent"
+            className="w-full rounded-lg px-2 py-1.5 text-sm"
           />
         </div>
         <div>
-          <label className="block text-xs text-slate-500 mb-0.5">
-            Max Price (VND)
+          <label className="block text-xs mb-0.5 text-[var(--text-secondary)]">
+            {t("maxPrice")}
           </label>
           <input
             type="number"
             value={filters.price_max}
             onChange={(e) => set("price_max", e.target.value)}
-            placeholder="Any"
-            className="w-full border border-slate-200 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-accent/30 focus:border-accent"
+            placeholder={t("any")}
+            className="w-full rounded-lg px-2 py-1.5 text-sm"
           />
         </div>
         <div>
-          <label className="block text-xs text-slate-500 mb-0.5">
-            Min Area (m²)
+          <label className="block text-xs mb-0.5 text-[var(--text-secondary)]">
+            {t("minArea")}
           </label>
           <input
             type="number"
             value={filters.area_min}
             onChange={(e) => set("area_min", e.target.value)}
             placeholder="0"
-            className="w-full border border-slate-200 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-accent/30 focus:border-accent"
+            className="w-full rounded-lg px-2 py-1.5 text-sm"
           />
         </div>
         <div>
-          <label className="block text-xs text-slate-500 mb-0.5">
-            Max Area (m²)
+          <label className="block text-xs mb-0.5 text-[var(--text-secondary)]">
+            {t("maxArea")}
           </label>
           <input
             type="number"
             value={filters.area_max}
             onChange={(e) => set("area_max", e.target.value)}
-            placeholder="Any"
-            className="w-full border border-slate-200 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-accent/30 focus:border-accent"
+            placeholder={t("any")}
+            className="w-full rounded-lg px-2 py-1.5 text-sm"
           />
         </div>
         <div>
-          <label className="block text-xs text-slate-500 mb-0.5">
-            Min Beds
+          <label className="block text-xs mb-0.5 text-[var(--text-secondary)]">
+            {t("minBeds")}
           </label>
           <input
             type="number"
             value={filters.num_bedrooms_min}
             onChange={(e) => set("num_bedrooms_min", e.target.value)}
-            placeholder="Any"
+            placeholder={t("any")}
             min="0"
-            className="w-full border border-slate-200 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-accent/30 focus:border-accent"
+            className="w-full rounded-lg px-2 py-1.5 text-sm"
           />
         </div>
-        <div className="flex flex-col gap-1 justify-end">
-          <label className="flex items-center gap-1.5 text-xs">
+        <div className="flex flex-col gap-2 justify-end">
+          <label className="flex items-center gap-2 text-xs cursor-pointer text-[var(--text-secondary)]">
             <input
               type="checkbox"
               checked={filters.corner_lot === "true"}
               onChange={(e) =>
                 set("corner_lot", e.target.checked ? "true" : "")
               }
-              className="rounded accent-accent"
+              className="rounded accent-[var(--orange)]"
             />
-            Corner Lot
+            {t("cornerLot")}
           </label>
-          <label className="flex items-center gap-1.5 text-xs">
+          <label className="flex items-center gap-2 text-xs cursor-pointer text-[var(--text-secondary)]">
             <input
               type="checkbox"
               checked={filters.has_elevator === "true"}
               onChange={(e) =>
                 set("has_elevator", e.target.checked ? "true" : "")
               }
-              className="rounded accent-accent"
+              className="rounded accent-[var(--orange)]"
             />
-            Elevator
+            {t("elevator")}
           </label>
-          <label className="flex items-center gap-1.5 text-xs">
+          <label className="flex items-center gap-2 text-xs cursor-pointer text-[var(--text-secondary)]">
             <input
               type="checkbox"
               checked={filters.negotiable === "true"}
               onChange={(e) =>
                 set("negotiable", e.target.checked ? "true" : "")
               }
-              className="rounded accent-accent"
+              className="rounded accent-[var(--orange)]"
             />
-            Negotiable
+            {t("negotiable")}
           </label>
         </div>
       </div>
 
-      <div className="flex items-center justify-between mt-3 pt-3 border-t border-slate-100">
+      <div className="flex items-center justify-between mt-3 pt-3 border-t border-[var(--border)]">
         <div>
-          <label className="text-xs text-slate-500 mr-2">Sort by:</label>
+          <label className="text-xs mr-2 text-[var(--text-muted)]">{t("sortBy")}</label>
           <select
             value={`${filters.sort}-${filters.order}`}
             onChange={(e) => {
               const [s, o] = e.target.value.split("-");
               onChange({ ...filters, sort: s, order: o });
             }}
-            className="text-sm border border-slate-200 rounded-lg px-2 py-1 bg-white focus:outline-none focus:ring-2 focus:ring-accent/30 focus:border-accent"
+            className="text-sm rounded-lg px-2 py-1"
           >
-            <option value="created_at-desc">Newest</option>
-            <option value="updated_at-desc">Recently Updated</option>
-            <option value="price_vnd-asc">Price: Low to High</option>
-            <option value="price_vnd-desc">Price: High to Low</option>
-            <option value="area_m2-desc">Area: Largest</option>
-            <option value="area_m2-asc">Area: Smallest</option>
+            <option value="created_at-desc">{t("newest")}</option>
+            <option value="updated_at-desc">{t("recentlyUpdated")}</option>
+            <option value="price_vnd-asc">{t("priceLowToHigh")}</option>
+            <option value="price_vnd-desc">{t("priceHighToLow")}</option>
+            <option value="area_m2-desc">{t("areaLargest")}</option>
+            <option value="area_m2-asc">{t("areaSmallest")}</option>
           </select>
         </div>
         <button
           onClick={onApply}
-          className="px-4 py-1.5 bg-accent text-white text-sm rounded-lg hover:bg-accent-hover transition-colors font-medium"
+          className="px-4 py-2 text-white text-sm rounded-lg font-medium transition-colors"
+          style={{ backgroundColor: "var(--orange)" }}
         >
-          Apply
+          {t("apply")}
         </button>
       </div>
     </div>

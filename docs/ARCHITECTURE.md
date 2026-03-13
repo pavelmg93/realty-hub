@@ -380,6 +380,23 @@ Match
 - Redis for task queue and caching
 - Background workers for ingestion, parsing, matching pipelines
 
+## Roadmap: Demo vs MVP vs Production
+
+**Demo (current focus)**  
+- **Auth**: Login/logout; three demo users (documented in USAGE.md). No public signup.  
+- **Data**: Parsing, scraping, and seeding are **set aside**. Assume three test users manually create listings via the web app.  
+- **Features**: Listings (create, edit, archive), Feed and My Listings (filters, sort, map, grid), Full Listing view (message agent, share link, archive, create-post scaffold), Messages (by Property / by Agent), CRM (Sellers, Buyers, Agents, Deals funnel). AI-assisted listing creation (transcribe, prefill, duplicate check) is **scaffolded** for later.  
+- **Budget**: Near $0; use free-tier APIs where possible (e.g. Gemini for demo AI).
+
+**MVP (next)**  
+- Re-enable Kestra, parsing, and scraping for pipeline.  
+- Notifications, auto-posting to socials (Zalo, TikTok, etc.), schedules.  
+- Full AI flow: transcribe, prefill, geo from photos, duplicate check, follow-up actions.
+
+**Production**  
+- Point 1 (login/logout + three demo users) is production-ready.  
+- Add GCP/Cloud SQL for persistence; migrations and runbooks as needed.
+
 ## Key Design Decisions
 
 1. **Pipeline decoupling via Kestra** — Each stage (ingest, parse, match) runs as an independent flow. Raw data is preserved even if parsing fails. Kestra provides UI-based triggering and execution monitoring out of the box. Celery/Redis reserved for V1.1+ async processing.

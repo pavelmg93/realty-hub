@@ -1,7 +1,11 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  // Allow larger file uploads for photos and documents
+  images: {
+    remotePatterns: [
+      { protocol: "https", hostname: "fidt.vn", pathname: "/**" },
+    ],
+  },
   experimental: {
     serverActions: {
       bodySizeLimit: "20mb",

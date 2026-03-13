@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Property Message Threads</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#FF9950","primary-dark": "#e88035",
+                        "secondary": "#0A254F","background-light": "#f6f7f8",
+                        "background-dark": "#101822",
+                    },
+                    fontFamily: {
+                        "display": ["Inter"]
+                    },
+                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style>.no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark font-display text-gray-900 dark:text-gray-100 antialiased min-h-screen flex flex-col overflow-hidden relative">
+<div class="h-12 w-full flex items-end justify-between px-6 pb-2 text-xs font-medium z-50 bg-white/95 dark:bg-background-dark/95 backdrop-blur-sm sticky top-0 border-b border-gray-100 dark:border-gray-800">
+<span>9:41</span>
+<div class="flex gap-1.5 items-center">
+<span class="material-icons text-sm">signal_cellular_alt</span>
+<span class="material-icons text-sm">wifi</span>
+<span class="material-icons text-sm">battery_full</span>
+</div>
+</div>
+<header class="flex items-center justify-between px-4 py-2 sticky top-12 z-40 bg-white dark:bg-background-dark border-b border-gray-100 dark:border-gray-800 shadow-sm">
+<button class="p-2 -ml-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors text-secondary dark:text-gray-200">
+<span class="material-icons">arrow_back_ios_new</span>
+</button>
+<div class="h-8 flex items-center justify-center">
+<img alt="FIDT Logo" class="h-full object-contain" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDcAdFLPSPdCFpnB1E6quGOZWSQUvoU8BTwUxk6qTMJ1REIb8n2VneJv6jX4wNLwUQvMSZB55pOIjcliIi-MxC6mECx7vRGZ0MMVRjc4DsSe-pr3qXKob117Qy324dIPP1pGoFXlJ5fwJO6MkgYyiEEAgvPeIaMkW89B9MLe72Jzaq5R-WLbNhxLmefjKgRYJc42OKWMlE-FETgujkp8ocWTBjYuU7fS4d2A_1b2WVIN9kGFXqi6rRZng4XOwWUk5ArK_UJCb0XhVcD"/>
+</div>
+<button class="p-2 -mr-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors text-secondary dark:text-gray-200">
+<span class="material-icons">more_horiz</span>
+</button>
+</header>
+<div class="px-4 py-3 bg-background-light dark:bg-background-dark flex items-center justify-between">
+<h1 class="text-xl font-bold text-secondary dark:text-white">Inquiries</h1>
+</div>
+<div class="px-4 pb-4 sticky top-[7.5rem] z-30 bg-background-light dark:bg-background-dark">
+<div class="bg-white dark:bg-gray-800 rounded-xl p-3 shadow-md flex gap-3 items-center border border-gray-100 dark:border-gray-700/50">
+<div class="h-16 w-16 flex-shrink-0 bg-gray-200 dark:bg-gray-700 rounded-lg overflow-hidden relative">
+<img alt="Modern luxury villa exterior" class="h-full w-full object-cover" data-alt="Modern luxury villa exterior thumbnail" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDLhwsHX7R9HyAqa1jlrDZ8yqk7z4kq-apS79wVvWw8yA-R_ZvqSjTBLnR44y4MLcJxJ9DPYI1zZvKxkO4SYnag6ZV9f9SmK1fPIkZYD6VJ9GPuZiMlTWir1T5Ak_q4EkUdgmmynH3R6b5Zr8gA9P17ptVnYWwTW0N-bc-IXkJpScNRH2fW04w9SmLkcy-RseSVgr8pLKiQKMbVdoB0bWHvTDvK2Cf-xWtAwaQY4rCJ_UaU8TgnD_ZdL9hEmrHlPtMxTA1z8I2nIM83"/>
+<div class="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent"></div>
+</div>
+<div class="flex-1 min-w-0">
+<div class="flex items-center gap-2 mb-0.5">
+<span class="text-[10px] font-bold uppercase tracking-wider text-secondary bg-secondary/10 dark:text-blue-300 dark:bg-blue-500/20 px-1.5 py-0.5 rounded">#VL-2938</span>
+<span class="text-[10px] font-medium text-green-600 bg-green-100 dark:text-green-400 dark:bg-green-500/10 px-1.5 py-0.5 rounded">Active</span>
+</div>
+<h2 class="text-sm font-bold truncate text-gray-900 dark:text-white leading-tight">Villa A - Thao Dien Riverside</h2>
+<p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">25B VND • District 2, HCMC</p>
+</div>
+<button class="flex-shrink-0 text-primary p-2">
+<span class="material-icons text-xl">info_outline</span>
+</button>
+</div>
+</div>
+<div class="px-4 py-3 space-y-3 bg-background-light dark:bg-background-dark">
+<div class="relative">
+<span class="material-icons absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-lg">search</span>
+<input class="w-full bg-white dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 text-sm rounded-lg py-2.5 pl-10 pr-4 focus:ring-2 focus:ring-primary focus:border-transparent outline-none placeholder-gray-400 transition-all caret-primary" placeholder="Search agent or keyword..." type="text"/>
+</div>
+<div class="flex gap-2 overflow-x-auto no-scrollbar pb-1">
+<button class="flex-shrink-0 px-3.5 py-1.5 rounded-full text-xs font-medium bg-primary text-white shadow-sm shadow-primary/30">
+                All
+            </button>
+<button class="flex-shrink-0 px-3.5 py-1.5 rounded-full text-xs font-medium bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-300">
+                Unread <span class="ml-1 text-[10px] bg-red-500 text-white px-1 rounded-full">3</span>
+</button>
+<button class="flex-shrink-0 px-3.5 py-1.5 rounded-full text-xs font-medium bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-300">
+                Offers
+            </button>
+<button class="flex-shrink-0 px-3.5 py-1.5 rounded-full text-xs font-medium bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-300">
+                Viewings
+            </button>
+<button class="flex-shrink-0 px-3.5 py-1.5 rounded-full text-xs font-medium bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-300">
+                Archived
+            </button>
+</div>
+</div>
+<main class="flex-1 overflow-y-auto px-4 pb-28 space-y-3 relative">
+<div class="group relative bg-white dark:bg-gray-800 active:scale-[0.99] transition-transform rounded-xl p-3 shadow-sm border border-transparent dark:border-gray-700/50 hover:border-primary/30">
+<div class="absolute left-2 top-1/2 -translate-y-1/2 w-1.5 h-1.5 bg-primary rounded-full shadow-[0_0_8px_rgba(255,153,80,0.6)]"></div>
+<div class="flex gap-3 pl-3">
+<div class="relative">
+<img alt="Male agent portrait smiling" class="w-12 h-12 rounded-full object-cover border-2 border-white dark:border-gray-700" data-alt="Agent profile picture" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCVWUYRNqIM5PKRuqR2sdGkLHGwvg--UhWcxI2avCJ7QNsdt6TTS8qb3eR3ZgvbO4G8DBZwGVC-7R4uY3s4n8_4iErniXGmbrk5M79qmGKxwUFj-3R7t3U15vrFv1jzAGySx6kZmGd1lYSXtFtlNirFTQ5THtKweq_-E_kPMcMCRArtGVINoqXFURjzbnVag6qADLvOjkkYiZ7jPImqdXozslrpge4hjuWUXTOxjLtjOra4Apq2OGc7Z3i-lmzvvhhQvor5TH5eWkti"/>
+<div class="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-white dark:border-gray-800 rounded-full"></div>
+</div>
+<div class="flex-1 min-w-0">
+<div class="flex justify-between items-start mb-0.5">
+<h3 class="font-bold text-sm text-gray-900 dark:text-white truncate">Agent Nguyen (Internal)</h3>
+<span class="text-[10px] text-primary font-medium whitespace-nowrap">10m ago</span>
+</div>
+<div class="flex items-center gap-2 mb-1">
+<span class="text-[9px] font-bold uppercase tracking-wide text-white bg-primary px-1.5 py-0.5 rounded shadow-sm shadow-primary/20">New Offer</span>
+</div>
+<p class="text-xs text-gray-900 dark:text-gray-100 font-medium truncate">Is the owner open to negotiation on the furniture package? Client is very interested.</p>
+</div>
+<div class="flex items-center justify-center self-center text-gray-400">
+<span class="material-icons text-lg">chevron_right</span>
+</div>
+</div>
+</div>
+<div class="group relative bg-white dark:bg-gray-800 active:scale-[0.99] transition-transform rounded-xl p-3 shadow-sm border border-transparent dark:border-gray-700/50 hover:border-primary/30">
+<div class="absolute left-2 top-1/2 -translate-y-1/2 w-1.5 h-1.5 bg-primary rounded-full shadow-[0_0_8px_rgba(255,153,80,0.6)]"></div>
+<div class="flex gap-3 pl-3">
+<div class="relative">
+<img alt="Female agent portrait professional" class="w-12 h-12 rounded-full object-cover border-2 border-white dark:border-gray-700" data-alt="Agent profile picture" src="https://lh3.googleusercontent.com/aida-public/AB6AXuB8lwrk6dAO_GUkyF68TSuQuQyt0XOezehEzqxYLO362gIBPZVpIq5LAbJIwuaC9LtApyGVtnZFpiyCXTrEZqLKAIsrJpkA6Be_h-wADdfGUBN-xlEuP4EL5f0eG7NgdFUBGgG4wtueSUF4aVjeL8T7LMnvUOjgSS7ZK3N1R2RZ0kQDuSpsHEBMTZH7bAKuH9p0C8tCJnGTSpByGJ3aRRwr6_dDBgyOl5VMJpE_h7sTNWg84NPvlwu2etcyI4L_ZoGqh6c5XYUpQifI"/>
+</div>
+<div class="flex-1 min-w-0">
+<div class="flex justify-between items-start mb-0.5">
+<h3 class="font-bold text-sm text-gray-900 dark:text-white truncate">Sarah Tran</h3>
+<span class="text-[10px] text-primary font-medium whitespace-nowrap">2h ago</span>
+</div>
+<div class="flex items-center gap-2 mb-1">
+<span class="text-[9px] font-bold uppercase tracking-wide text-secondary bg-blue-100 dark:bg-blue-500/20 dark:text-blue-300 px-1.5 py-0.5 rounded">Viewing Request</span>
+</div>
+<p class="text-xs text-gray-900 dark:text-gray-100 font-medium truncate">Client wants a viewing this Saturday morning around 10AM. Is the key available?</p>
+</div>
+<div class="flex items-center justify-center self-center text-gray-400">
+<span class="material-icons text-lg">chevron_right</span>
+</div>
+</div>
+</div>
+<div class="group relative bg-white dark:bg-gray-800 active:scale-[0.99] transition-transform rounded-xl p-3 shadow-sm border border-transparent dark:border-gray-700/50 hover:border-primary/30 opacity-90">
+<div class="absolute left-2 top-1/2 -translate-y-1/2 w-1.5 h-1.5 bg-primary rounded-full opacity-0"></div> 
+<div class="flex gap-3 pl-3">
+<div class="relative flex items-center justify-center w-12 h-12 rounded-full bg-gray-100 dark:bg-gray-700 border-2 border-white dark:border-gray-700">
+<span class="material-icons text-gray-500 dark:text-gray-300">admin_panel_settings</span>
+</div>
+<div class="flex-1 min-w-0">
+<div class="flex justify-between items-start mb-0.5">
+<h3 class="font-bold text-sm text-gray-700 dark:text-gray-300 truncate">Fidt Admin</h3>
+<span class="text-[10px] text-gray-400 whitespace-nowrap">1d ago</span>
+</div>
+<div class="flex items-center gap-2 mb-1">
+<span class="text-[9px] font-bold uppercase tracking-wide text-gray-600 bg-gray-100 dark:bg-gray-600/30 dark:text-gray-400 px-1.5 py-0.5 rounded">System</span>
+</div>
+<p class="text-xs text-gray-500 dark:text-gray-400 truncate">DocuSign status update: Contract #229 has been viewed by the buyer.</p>
+</div>
+<div class="flex items-center justify-center self-center text-gray-400">
+<span class="material-icons text-lg">chevron_right</span>
+</div>
+</div>
+</div>
+<div class="group relative bg-white dark:bg-gray-800 active:scale-[0.99] transition-transform rounded-xl p-3 shadow-sm border border-transparent dark:border-gray-700/50 hover:border-primary/30 opacity-75">
+<div class="flex gap-3 pl-3">
+<div class="relative">
+<img alt="Male agent portrait casual" class="w-12 h-12 rounded-full object-cover border-2 border-white dark:border-gray-700 grayscale" data-alt="Agent profile picture" src="https://lh3.googleusercontent.com/aida-public/AB6AXuC04WvcVdTBwbX5sANOZ0ssq_JJBJvdQu_J8IhlgCyLrbmLk3IH1M5gvsoHC4Z4DYkcxbu8EXS-gSlETYuGZy6Y5jreR6M_A2Jd0DKnhYcZ87_x_6H3NcRjvYcMlywW65sESK4De9hc-QktAfivoYO_D1HI0VmiCqnK2FcYZV9a0VltYsZ1o42kBw0mrJHM1AebhsS7UT64KsPBUNifNLQqPFjY4oqKLa_GVcci4n3h5C1NrZgIha3Hb5A9-k00k5ogJwE5Z9ge7ai8"/>
+</div>
+<div class="flex-1 min-w-0">
+<div class="flex justify-between items-start mb-0.5">
+<h3 class="font-bold text-sm text-gray-700 dark:text-gray-300 truncate">Mike Ross</h3>
+<span class="text-[10px] text-gray-400 whitespace-nowrap">2d ago</span>
+</div>
+<p class="text-xs text-gray-500 dark:text-gray-400 truncate mt-1">Thanks for the info. I'll get back to you if the client is still interested in this zone.</p>
+</div>
+<div class="flex items-center justify-center self-center text-gray-400">
+<span class="material-icons text-lg">chevron_right</span>
+</div>
+</div>
+</div>
+<div class="group relative bg-white dark:bg-gray-800 active:scale-[0.99] transition-transform rounded-xl p-3 shadow-sm border border-transparent dark:border-gray-700/50 hover:border-primary/30 opacity-75">
+<div class="flex gap-3 pl-3">
+<div class="relative">
+<div class="w-12 h-12 rounded-full bg-primary/20 flex items-center justify-center text-primary font-bold text-sm border-2 border-white dark:border-gray-700">
+                        JL
+                     </div>
+</div>
+<div class="flex-1 min-w-0">
+<div class="flex justify-between items-start mb-0.5">
+<h3 class="font-bold text-sm text-gray-700 dark:text-gray-300 truncate">Jenny Le</h3>
+<span class="text-[10px] text-gray-400 whitespace-nowrap">3d ago</span>
+</div>
+<p class="text-xs text-gray-500 dark:text-gray-400 truncate mt-1">Is the pink book ready for transfer? My client is cash buyer.</p>
+</div>
+<div class="flex items-center justify-center self-center text-gray-400">
+<span class="material-icons text-lg">chevron_right</span>
+</div>
+</div>
+</div>
+<div class="group relative bg-white dark:bg-gray-800 active:scale-[0.99] transition-transform rounded-xl p-3 shadow-sm border border-transparent dark:border-gray-700/50 hover:border-primary/30 opacity-75">
+<div class="flex gap-3 pl-3">
+<div class="relative">
+<img alt="Female agent portrait smiling" class="w-12 h-12 rounded-full object-cover border-2 border-white dark:border-gray-700 grayscale" data-alt="Agent profile picture" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCC5dNT_mKbOL7DcQn82FV3TWm-m6xpBF6_gM5eR23t3KVzM8pIUt-1XOtTekai23ATwXVI88dcNuB8D4zBBDnYhD4wHlQ9vDxPnzDUQpdOVYucfgTM_-fzJmlpGjA6XmQhkkOANnnXrSKljUGyOs-VpCjhU9c40uFBv57hMMc4y9-nCQ_WYWHl-fbDQ9Ji3JgBjs-V5dj2abvzmvM1zNxDjA7Kexq1005FqRRNQRT3c7KaqSl77HfoY1fcDN1vuWBzZZt9or4OY_i4"/>
+</div>
+<div class="flex-1 min-w-0">
+<div class="flex justify-between items-start mb-0.5">
+<h3 class="font-bold text-sm text-gray-700 dark:text-gray-300 truncate">Elara Vance</h3>
+<span class="text-[10px] text-gray-400 whitespace-nowrap">5d ago</span>
+</div>
+<p class="text-xs text-gray-500 dark:text-gray-400 truncate mt-1">Confirmed for Tuesday. Thanks!</p>
+</div>
+<div class="flex items-center justify-center self-center text-gray-400">
+<span class="material-icons text-lg">chevron_right</span>
+</div>
+</div>
+</div>
+</main>
+<div class="absolute bottom-24 right-4 z-40">
+<button class="bg-primary text-white p-4 rounded-full shadow-lg hover:bg-primary-dark transition-all active:scale-95 flex items-center justify-center">
+<span class="material-icons">add_comment</span>
+</button>
+</div>
+<nav class="bg-white dark:bg-background-dark border-t border-gray-200 dark:border-gray-800 h-20 px-6 flex justify-between items-start pt-3 z-50 fixed bottom-0 w-full pb-6">
+<button class="flex flex-col items-center gap-1 group w-12">
+<span class="material-icons text-gray-400 group-hover:text-primary transition-colors">feed</span>
+<span class="text-[10px] font-medium text-gray-400 group-hover:text-primary">Feed</span>
+</button>
+<button class="flex flex-col items-center gap-1 group w-12">
+<span class="material-icons text-gray-400 group-hover:text-primary transition-colors">real_estate_agent</span>
+<span class="text-[10px] font-medium text-gray-400 group-hover:text-primary whitespace-nowrap">My Listings</span>
+</button>
+<button class="flex flex-col items-center gap-1 group w-12">
+<div class="relative">
+<span class="material-icons text-primary">chat</span>
+<span class="absolute -top-1 -right-1 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-white dark:border-background-dark"></span>
+</div>
+<span class="text-[10px] font-medium text-primary">Inquiries</span>
+</button>
+<button class="flex flex-col items-center gap-1 group w-12">
+<span class="material-icons text-gray-400 group-hover:text-primary transition-colors">groups</span>
+<span class="text-[10px] font-medium text-gray-400 group-hover:text-primary">CRM</span>
+</button>
+<button class="flex flex-col items-center gap-1 group w-12">
+<span class="material-icons text-gray-400 group-hover:text-primary transition-colors">account_circle</span>
+<span class="text-[10px] font-medium text-gray-400 group-hover:text-primary whitespace-nowrap">My Profile</span>
+</button>
+</nav>
+<div class="fixed bottom-0 w-full h-4 bg-transparent z-50 pointer-events-none"></div>
+</body></html>

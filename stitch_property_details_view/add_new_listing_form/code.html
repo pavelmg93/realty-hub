@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Add New Listing - FIDT Wealth Realty</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons+Outlined" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script>
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#FF994F", // Updated to FIDT orange/yellow highlight
+                        "primary-dark": "#e8863c",
+                        "primary-blue": "#0A2553", // Dark blue from logo
+                        "background-light": "#f6f7f8",
+                        "background-dark": "#101822",
+                        "surface-dark": "#1a2432",
+                        "surface-darker": "#151e29",
+                    },
+                    fontFamily: {
+                        "display": ["Inter", "sans-serif"]
+                    },
+                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "2xl": "1rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style>.scrollbar-hide::-webkit-scrollbar {
+            display: none;
+        }
+        .scrollbar-hide {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }input, select, textarea, button {
+            touch-action: manipulation;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark font-display text-gray-900 dark:text-white antialiased">
+<div class="max-w-md mx-auto min-h-screen relative flex flex-col bg-background-light dark:bg-background-dark shadow-2xl overflow-hidden pb-[80px]"> 
+<header class="sticky top-0 z-50 bg-white dark:bg-surface-dark/95 backdrop-blur-md border-b border-gray-200 dark:border-gray-800 px-4 py-3 flex items-center justify-between shadow-sm">
+<button class="text-sm font-medium text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors">
+                Cancel
+            </button>
+<div class="h-8 flex items-center justify-center">
+<img alt="FIDT Logo" class="h-full w-auto object-contain" src="https://lh3.googleusercontent.com/aida-public/AB6AXuC1Nhl_UdccAGu0E2_yzhT88NO-aNm1FBEIDvaByKLV1J506Wi_PdTsR2WR6v5iJ756tbNWsRA0_wNdZDJnc8cp0EpGbHI5JS4W5-bp3CHSogXOPKrbv2JMtQMsevo6LIZHO_rkOSCPOdH7mH4jQQhDzYwcIVYTCYVbXUwMbNARM2ehyddIW1AKeFXK9lc0jdhZKAxmwb8Wc3C3EshiAF4mn4iyCk0qNjZNCWXpS7LDoN_i7sHaRRLiQgoWgjP9zdcYpcyGOTGx4N6d"/>
+</div>
+<button class="text-sm font-bold text-primary hover:text-primary-dark transition-colors">
+                Publish
+            </button>
+</header>
+<div class="flex-1 overflow-y-auto pb-6 space-y-6">
+<div class="w-full bg-gray-200 dark:bg-gray-800 h-1">
+<div class="bg-primary h-1 w-1/4 rounded-r-full"></div>
+</div>
+<section class="px-4 pt-2">
+<div class="bg-white dark:bg-surface-dark rounded-xl p-4 shadow-sm border border-gray-100 dark:border-gray-800">
+<div class="flex items-center justify-between mb-4">
+<h2 class="text-sm font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Media</h2>
+<span class="text-xs text-primary-blue bg-primary/20 px-2 py-1 rounded-full font-medium">Required</span>
+</div>
+<div class="flex gap-3 overflow-x-auto scrollbar-hide pb-2">
+<div class="flex-shrink-0 w-24 h-24 rounded-lg border-2 border-dashed border-gray-300 dark:border-gray-600 flex flex-col items-center justify-center text-gray-400 dark:text-gray-500 bg-gray-50 dark:bg-surface-darker hover:bg-gray-100 dark:hover:bg-gray-800 hover:border-primary/50 dark:hover:border-primary/50 transition-colors cursor-pointer group">
+<span class="material-icons-outlined text-2xl mb-1 group-hover:text-primary transition-colors">add_a_photo</span>
+<span class="text-[10px] font-medium group-hover:text-primary transition-colors">Add Photo</span>
+</div>
+<div class="flex-shrink-0 w-24 h-24 rounded-lg bg-gray-700 relative overflow-hidden group border border-transparent hover:border-primary transition-colors">
+<img alt="Living room interior preview" class="w-full h-full object-cover" data-alt="Modern living room interior with sunlight" src="https://lh3.googleusercontent.com/aida-public/AB6AXuC9tf16m_hUVOSoC-4MKndcQmGisFx0yElnoDY9biDuWQ9oEFoeSGlrYFrQUsIY4Kz6U1sNKaAKy1DhR7SQvoAxlrT-lkZwr044Qw3bZd5vjCNQLDZ4CHgj-Xvz0gRz0_cDTxrbYE5vlMah0o0WUjlLlybG1657xQAUQe2SB-dbnY10WziNwGQgZVaeLbA65OZBzjY6hNodSF65Sv4Xe5a-759-Uhil5ovb23f0Dyz-fYUBWqIPHjwzVTmH9ry8SnlDOex36EBDxG6X"/>
+<div class="absolute top-1 right-1 bg-black/50 rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity">
+<span class="material-icons-outlined text-white text-xs">close</span>
+</div>
+<div class="absolute bottom-0 w-full bg-black/60 py-1 text-center">
+<span class="text-[10px] text-white">Cover</span>
+</div>
+</div>
+<div class="flex-shrink-0 w-24 h-24 rounded-lg bg-gray-700 relative overflow-hidden group border border-transparent hover:border-primary transition-colors">
+<img alt="Kitchen interior preview" class="w-full h-full object-cover" data-alt="Modern kitchen with marble island" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDo_n71_e3shFTrwJL5TeEcFxmHpeq5wkdgeEfdPn1YnHVJzhGzjfgNl7uXqC_yOkPo5gq-3Q7TOyBkBBc7b0NzG2ZPTF2nXWcNpCrl_HzTkic7Up8dxLf45MNmXPp7ovb314PjG3GVa9t1mi67JHfJa6Vn-SzSp12MRQSeO410gClOSGsGvVjAS2OyKGV77gopXwa037SEBRaAWRxBVCvau5934VQ6Q7brg2bKENq4ECFXaYcK7p_auU7DJMlsqP5nn7iqbmDadjez"/>
+</div>
+<div class="flex-shrink-0 w-24 h-24 rounded-lg bg-gray-700 relative overflow-hidden group border border-transparent hover:border-primary transition-colors">
+<img alt="Modern Bathroom" class="w-full h-full object-cover" data-alt="Modern bathroom with glass shower" src="https://lh3.googleusercontent.com/aida-public/AB6AXuC7c48XxA_MM2xlvL8R7xRq_hm9rYqytSVgpUKGaAacOdTv8PP3P0N1rGyTEf9aBD6ikvbiP_XhONAsUW6mse0ubA9IwvlSXEFUo4ql9gAar4Rr5sgBA21fYoti8fS5iuF6sygYP4o77p8ouBYny-UunVnFGcZghrynt_RSNa67-nkdYPAvKs59dNDan7RSi9ksqybmptqhVRXZfoxOZAPxyDpAjGpF7tYV3qKOUmCgbFWFEq2X8I6cw6qszHPyGpKEoYWYSpOEJe5M"/>
+</div>
+</div>
+<p class="text-xs text-gray-500 mt-2">Tap to upload photos or legal documents. Drag to reorder.</p>
+</div>
+</section>
+<section class="px-4">
+<div class="bg-white dark:bg-surface-dark rounded-xl p-4 shadow-sm border border-gray-100 dark:border-gray-800 space-y-5">
+<h2 class="text-sm font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Basic Info</h2>
+<div class="space-y-1">
+<label class="text-xs font-medium text-gray-500 dark:text-gray-400 ml-1">Price (VND)</label>
+<div class="relative">
+<span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm">₫</span>
+<input class="w-full bg-gray-50 dark:bg-surface-darker border border-gray-200 dark:border-gray-700 rounded-lg pl-8 pr-4 py-3 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all font-medium text-lg placeholder-gray-400" placeholder="e.g. 5,000,000,000" type="text"/>
+</div>
+</div>
+<div class="flex bg-gray-100 dark:bg-surface-darker p-1 rounded-lg">
+<button class="flex-1 py-2 text-sm font-medium rounded-md bg-white dark:bg-primary text-gray-900 dark:text-white shadow-sm border border-gray-100 dark:border-transparent transition-all">For Sale</button>
+<button class="flex-1 py-2 text-sm font-medium rounded-md text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-all">For Rent</button>
+</div>
+<div class="space-y-1">
+<label class="text-xs font-medium text-gray-500 dark:text-gray-400 ml-1">Property Type</label>
+<div class="grid grid-cols-3 gap-2">
+<label class="cursor-pointer">
+<input checked="" class="peer sr-only" name="prop_type" type="radio"/>
+<div class="flex flex-col items-center justify-center p-3 rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-surface-darker peer-checked:border-primary peer-checked:bg-primary/10 peer-checked:text-primary-blue transition-all">
+<span class="material-icons-outlined text-xl mb-1 text-inherit">apartment</span>
+<span class="text-xs font-medium">Apt</span>
+</div>
+</label>
+<label class="cursor-pointer">
+<input class="peer sr-only" name="prop_type" type="radio"/>
+<div class="flex flex-col items-center justify-center p-3 rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-surface-darker peer-checked:border-primary peer-checked:bg-primary/10 peer-checked:text-primary-blue transition-all text-gray-500 dark:text-gray-400">
+<span class="material-icons-outlined text-xl mb-1 text-inherit">house</span>
+<span class="text-xs font-medium">House</span>
+</div>
+</label>
+<label class="cursor-pointer">
+<input class="peer sr-only" name="prop_type" type="radio"/>
+<div class="flex flex-col items-center justify-center p-3 rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-surface-darker peer-checked:border-primary peer-checked:bg-primary/10 peer-checked:text-primary-blue transition-all text-gray-500 dark:text-gray-400">
+<span class="material-icons-outlined text-xl mb-1 text-inherit">landscape</span>
+<span class="text-xs font-medium">Land</span>
+</div>
+</label>
+</div>
+</div>
+</div>
+</section>
+<section class="px-4">
+<div class="bg-white dark:bg-surface-dark rounded-xl p-4 shadow-sm border border-gray-100 dark:border-gray-800 space-y-4">
+<h2 class="text-sm font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Location</h2>
+<div class="grid grid-cols-2 gap-4">
+<div class="space-y-1">
+<label class="text-xs font-medium text-gray-500 dark:text-gray-400 ml-1">Province</label>
+<div class="relative">
+<select class="w-full bg-gray-50 dark:bg-surface-darker border border-gray-200 dark:border-gray-700 rounded-lg pl-3 pr-8 py-2.5 text-sm text-gray-900 dark:text-white focus:ring-1 focus:ring-primary focus:border-primary outline-none appearance-none">
+<option>Ho Chi Minh</option>
+<option>Hanoi</option>
+<option>Da Nang</option>
+</select>
+<span class="material-icons-outlined absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none text-lg">expand_more</span>
+</div>
+</div>
+<div class="space-y-1">
+<label class="text-xs font-medium text-gray-500 dark:text-gray-400 ml-1">District</label>
+<div class="relative">
+<select class="w-full bg-gray-50 dark:bg-surface-darker border border-gray-200 dark:border-gray-700 rounded-lg pl-3 pr-8 py-2.5 text-sm text-gray-900 dark:text-white focus:ring-1 focus:ring-primary focus:border-primary outline-none appearance-none">
+<option>District 1</option>
+<option>Thao Dien</option>
+<option>District 7</option>
+</select>
+<span class="material-icons-outlined absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none text-lg">expand_more</span>
+</div>
+</div>
+</div>
+<div class="space-y-1">
+<label class="text-xs font-medium text-gray-500 dark:text-gray-400 ml-1">Ward</label>
+<div class="relative">
+<select class="w-full bg-gray-50 dark:bg-surface-darker border border-gray-200 dark:border-gray-700 rounded-lg pl-3 pr-8 py-2.5 text-sm text-gray-900 dark:text-white focus:ring-1 focus:ring-primary focus:border-primary outline-none appearance-none">
+<option>Ben Nghe</option>
+<option>Ben Thanh</option>
+</select>
+<span class="material-icons-outlined absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none text-lg">expand_more</span>
+</div>
+</div>
+<div class="space-y-1">
+<label class="text-xs font-medium text-gray-500 dark:text-gray-400 ml-1">Street Address</label>
+<input class="w-full bg-gray-50 dark:bg-surface-darker border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-3 text-sm text-gray-900 dark:text-white focus:ring-1 focus:ring-primary focus:border-primary outline-none" placeholder="No. / Street Name" type="text"/>
+</div>
+<div class="rounded-lg overflow-hidden h-32 w-full relative group cursor-pointer border border-gray-200 dark:border-gray-700">
+<img alt="Map Location Preview" class="w-full h-full object-cover opacity-60" data-alt="Satellite map view of city streets" data-location="Ho Chi Minh City" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBARKw6NaFWwVE5KgeCyVDxmUW9mIO9XPKMm_S99H_-f6XPLLFRyuFr_pbv6pvu7hFmEWmJ2H3VZKE-W4zGY02HVn2HwQyKhP15CrynMunmlhNDwlrm5diRAr_EiXYVmQJKCA_6zUUbuu2svOXiQ8FJ5GfcGWL5X4oxVOl0WtU_UsQEbPQqKphqjHF00GjaVhbwInzNmquy0cM_IY-_GzJVBG9CKca-xEzWa6_PgsMeUJBjsNwYe640hCU-Z129PHLioFXnsbPFE63F"/>
+<div class="absolute inset-0 flex items-center justify-center">
+<button class="bg-surface-dark/80 backdrop-blur-sm text-white px-3 py-1.5 rounded-full text-xs font-medium flex items-center gap-1 hover:bg-surface-dark transition-colors border border-gray-500">
+<span class="material-icons-outlined text-sm">place</span>
+                                 Pin on Map
+                             </button>
+</div>
+</div>
+</div>
+</section>
+<section class="px-4">
+<div class="bg-white dark:bg-surface-dark rounded-xl p-4 shadow-sm border border-gray-100 dark:border-gray-800 space-y-5">
+<h2 class="text-sm font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Specifications</h2>
+<div class="grid grid-cols-2 gap-4">
+<div class="space-y-1">
+<label class="text-xs font-medium text-gray-500 dark:text-gray-400 ml-1">Area (m²)</label>
+<input class="w-full bg-gray-50 dark:bg-surface-darker border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-2.5 text-sm text-gray-900 dark:text-white focus:ring-1 focus:ring-primary focus:border-primary outline-none" placeholder="0" type="number"/>
+</div>
+<div class="space-y-1">
+<label class="text-xs font-medium text-gray-500 dark:text-gray-400 ml-1">Access (m)</label>
+<input class="w-full bg-gray-50 dark:bg-surface-darker border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-2.5 text-sm text-gray-900 dark:text-white focus:ring-1 focus:ring-primary focus:border-primary outline-none" placeholder="0" type="number"/>
+</div>
+</div>
+<div class="space-y-4">
+<div class="flex items-center justify-between py-1 border-b border-gray-100 dark:border-gray-700/50 pb-3">
+<span class="text-sm text-gray-700 dark:text-gray-200 font-medium">Stories / Floors</span>
+<div class="flex items-center bg-gray-100 dark:bg-surface-darker rounded-lg p-1">
+<button class="w-8 h-8 flex items-center justify-center text-gray-500 dark:text-gray-400 hover:text-primary dark:hover:text-primary active:bg-gray-200 dark:active:bg-gray-700 rounded-md transition-colors"><span class="material-icons-outlined text-sm">remove</span></button>
+<span class="w-8 text-center text-sm font-semibold dark:text-white">2</span>
+<button class="w-8 h-8 flex items-center justify-center text-gray-500 dark:text-gray-400 hover:text-primary dark:hover:text-primary active:bg-gray-200 dark:active:bg-gray-700 rounded-md transition-colors"><span class="material-icons-outlined text-sm">add</span></button>
+</div>
+</div>
+<div class="flex items-center justify-between py-1 border-b border-gray-100 dark:border-gray-700/50 pb-3">
+<span class="text-sm text-gray-700 dark:text-gray-200 font-medium">Bedrooms</span>
+<div class="flex items-center bg-gray-100 dark:bg-surface-darker rounded-lg p-1">
+<button class="w-8 h-8 flex items-center justify-center text-gray-500 dark:text-gray-400 hover:text-primary dark:hover:text-primary active:bg-gray-200 dark:active:bg-gray-700 rounded-md transition-colors"><span class="material-icons-outlined text-sm">remove</span></button>
+<span class="w-8 text-center text-sm font-semibold dark:text-white">3</span>
+<button class="w-8 h-8 flex items-center justify-center text-gray-500 dark:text-gray-400 hover:text-primary dark:hover:text-primary active:bg-gray-200 dark:active:bg-gray-700 rounded-md transition-colors"><span class="material-icons-outlined text-sm">add</span></button>
+</div>
+</div>
+<div class="flex items-center justify-between py-1">
+<span class="text-sm text-gray-700 dark:text-gray-200 font-medium">Garage / Parking</span>
+<label class="relative inline-flex items-center cursor-pointer">
+<input checked="" class="sr-only peer" type="checkbox" value=""/>
+<div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-primary"></div>
+</label>
+</div>
+</div>
+</div>
+</section>
+<section class="px-4">
+<div class="bg-white dark:bg-surface-dark rounded-xl p-4 shadow-sm border border-gray-100 dark:border-gray-800 space-y-5">
+<h2 class="text-sm font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Details</h2>
+<div class="space-y-2">
+<label class="text-xs font-medium text-gray-500 dark:text-gray-400 ml-1">Furniture</label>
+<div class="flex flex-wrap gap-2">
+<label class="cursor-pointer">
+<input class="peer sr-only" name="furniture" type="radio"/>
+<span class="px-3 py-1.5 rounded-full text-xs font-medium bg-gray-100 dark:bg-surface-darker text-gray-600 dark:text-gray-400 border border-transparent peer-checked:bg-primary/20 peer-checked:text-primary-blue peer-checked:border-primary/50 transition-all">None</span>
+</label>
+<label class="cursor-pointer">
+<input checked="" class="peer sr-only" name="furniture" type="radio"/>
+<span class="px-3 py-1.5 rounded-full text-xs font-medium bg-gray-100 dark:bg-surface-darker text-gray-600 dark:text-gray-400 border border-transparent peer-checked:bg-primary/20 peer-checked:text-primary-blue peer-checked:border-primary/50 transition-all">Partly Furnished</span>
+</label>
+<label class="cursor-pointer">
+<input class="peer sr-only" name="furniture" type="radio"/>
+<span class="px-3 py-1.5 rounded-full text-xs font-medium bg-gray-100 dark:bg-surface-darker text-gray-600 dark:text-gray-400 border border-transparent peer-checked:bg-primary/20 peer-checked:text-primary-blue peer-checked:border-primary/50 transition-all">Full</span>
+</label>
+</div>
+</div>
+<div class="space-y-2">
+<label class="text-xs font-medium text-gray-500 dark:text-gray-400 ml-1">Direction</label>
+<div class="grid grid-cols-4 gap-2">
+<button class="py-2 text-xs font-medium rounded-lg bg-gray-50 dark:bg-surface-darker border border-gray-200 dark:border-gray-700 hover:border-primary hover:text-primary transition-colors">North</button>
+<button class="py-2 text-xs font-medium rounded-lg bg-primary/20 text-primary-blue border border-primary/50 transition-colors">South</button>
+<button class="py-2 text-xs font-medium rounded-lg bg-gray-50 dark:bg-surface-darker border border-gray-200 dark:border-gray-700 hover:border-primary hover:text-primary transition-colors">East</button>
+<button class="py-2 text-xs font-medium rounded-lg bg-gray-50 dark:bg-surface-darker border border-gray-200 dark:border-gray-700 hover:border-primary hover:text-primary transition-colors">West</button>
+</div>
+</div>
+<div class="space-y-1">
+<label class="text-xs font-medium text-gray-500 dark:text-gray-400 ml-1">Owner Motivation (Internal)</label>
+<textarea class="w-full bg-gray-50 dark:bg-surface-darker border border-gray-200 dark:border-gray-700 rounded-lg p-3 text-sm text-gray-900 dark:text-white focus:ring-1 focus:ring-primary focus:border-primary outline-none resize-none" placeholder="Quick sell, moving abroad..." rows="3"></textarea>
+</div>
+</div>
+</section>
+<div class="h-20"></div>
+</div>
+<nav class="absolute bottom-0 left-0 w-full bg-white dark:bg-surface-dark border-t border-gray-200 dark:border-gray-800 z-40 pb-5 pt-3 px-2">
+<div class="flex justify-around items-center">
+<a class="flex flex-col items-center gap-1 min-w-[3.5rem] group" href="#">
+<span class="material-icons-outlined text-2xl text-gray-400 dark:text-gray-500 group-hover:text-primary transition-colors">home</span>
+<span class="text-[10px] font-medium text-gray-500 dark:text-gray-500 group-hover:text-primary transition-colors">Feed</span>
+</a>
+<a class="flex flex-col items-center gap-1 min-w-[3.5rem]" href="#">
+<span class="material-icons-outlined text-2xl text-primary">format_list_bulleted</span>
+<span class="text-[10px] font-medium text-primary">My Listings</span>
+</a>
+<a class="flex flex-col items-center gap-1 min-w-[3.5rem] group" href="#">
+<div class="relative">
+<span class="material-icons-outlined text-2xl text-gray-400 dark:text-gray-500 group-hover:text-primary transition-colors">chat_bubble_outline</span>
+<span class="absolute -top-1 -right-1 flex h-3 w-3">
+<span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
+<span class="relative inline-flex rounded-full h-3 w-3 bg-primary"></span>
+</span>
+</div>
+<span class="text-[10px] font-medium text-gray-500 dark:text-gray-500 group-hover:text-primary transition-colors">Inquiries</span>
+</a>
+<a class="flex flex-col items-center gap-1 min-w-[3.5rem] group" href="#">
+<span class="material-icons-outlined text-2xl text-gray-400 dark:text-gray-500 group-hover:text-primary transition-colors">people_outline</span>
+<span class="text-[10px] font-medium text-gray-500 dark:text-gray-500 group-hover:text-primary transition-colors">CRM</span>
+</a>
+<a class="flex flex-col items-center gap-1 min-w-[3.5rem] group" href="#">
+<span class="material-icons-outlined text-2xl text-gray-400 dark:text-gray-500 group-hover:text-primary transition-colors">person_outline</span>
+<span class="text-[10px] font-medium text-gray-500 dark:text-gray-500 group-hover:text-primary transition-colors">My Profile</span>
+</a>
+</div>
+</nav>
+<div class="absolute bottom-[85px] left-0 w-full px-4 flex gap-3 pointer-events-none">
+<div class="flex-1"></div> 
+<button class="pointer-events-auto bg-primary text-primary-blue hover:bg-primary-dark font-bold text-sm shadow-lg shadow-primary/30 h-12 w-12 rounded-full flex items-center justify-center transition-all transform hover:scale-105 active:scale-95">
+<span class="material-icons-outlined text-xl text-white">save</span>
+</button>
+</div>
+</div>
+</body></html>

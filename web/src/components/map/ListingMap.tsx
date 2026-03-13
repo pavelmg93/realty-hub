@@ -70,7 +70,7 @@ export default function ListingMap({
   );
 
   return (
-    <div style={{ height }} className="rounded-lg overflow-hidden border border-slate-200">
+    <div style={{ height }} className="rounded-lg overflow-hidden border border-[var(--border)]">
       <MapContainer
         center={center}
         zoom={zoom}

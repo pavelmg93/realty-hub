@@ -3,6 +3,7 @@
 import { useState, useRef } from "react";
 import { ListingDocument, DocumentCategory } from "@/lib/types";
 import { DOCUMENT_CATEGORIES } from "@/lib/constants";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface Props {
   listingId: number;
@@ -17,6 +18,7 @@ export default function DocumentManager({
   onDocumentsChange,
   readOnly = false,
 }: Props) {
+  const { t } = useLanguage();
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [selectedCategory, setSelectedCategory] =
@@ -116,7 +118,14 @@ export default function DocumentManager({
   return (
     <div>
       {error && (
-        <div className="mb-3 p-2 bg-red-50 text-red-700 text-sm rounded-lg border border-red-100">
+        <div
+          className="mb-3 p-2 text-sm rounded-lg border"
+          style={{
+            backgroundColor: "rgba(239, 68, 68, 0.15)",
+            color: "var(--error)",
+            borderColor: "var(--error)",
+          }}
+        >
           {error}
         </div>
       )}
@@ -124,22 +133,28 @@ export default function DocumentManager({
       {/* Document list grouped by category */}
       {Object.entries(grouped).map(([category, docs]) => (
         <div key={category} className="mb-4">
-          <h4 className="text-sm font-semibold text-slate-700 mb-2">
+          <h4 className="text-sm font-semibold text-[var(--text-primary)] mb-2">
             {DOCUMENT_CATEGORIES[category as DocumentCategory] || category}
           </h4>
           <div className="space-y-2">
             {docs.map((doc) => (
               <div
                 key={doc.id}
-                className="flex items-center gap-3 p-3 bg-white border border-slate-200 rounded-lg group"
+                className="flex items-center gap-3 p-3 rounded-lg border border-[var(--border)] group"
+                style={{ backgroundColor: "var(--bg-surface)" }}
               >
                 {/* Icon */}
                 <div
                   className={`w-10 h-10 rounded-lg flex items-center justify-center shrink-0 ${
                     isPDF(doc.mime_type)
-                      ? "bg-red-50 text-red-600"
-                      : "bg-blue-50 text-blue-600"
+                      ? "opacity-90"
+                      : "opacity-90"
                   }`}
+                  style={
+                    isPDF(doc.mime_type)
+                      ? { backgroundColor: "rgba(239, 68, 68, 0.2)", color: "var(--error)" }
+                      : { backgroundColor: "rgba(59, 130, 246, 0.2)", color: "var(--info)" }
+                  }
                 >
                   {isPDF(doc.mime_type) ? (
                     <svg
@@ -172,10 +187,10 @@ export default function DocumentManager({
 
                 {/* Info */}
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-slate-700 truncate">
+                  <p className="text-sm font-medium text-[var(--text-primary)] truncate">
                     {doc.original_name || doc.file_name}
                   </p>
-                  <div className="flex gap-2 text-xs text-slate-400">
+                  <div className="flex gap-2 text-xs text-[var(--text-muted)]">
                     {doc.file_size && <span>{formatSize(doc.file_size)}</span>}
                     {doc.notes && (
                       <span className="truncate">{doc.notes}</span>
@@ -189,14 +204,18 @@ export default function DocumentManager({
                     href={`/api/files/${doc.file_path}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="px-2 py-1 text-xs bg-slate-100 text-slate-600 rounded hover:bg-slate-200 transition-colors"
+                    className="px-2 py-1 text-xs rounded transition-colors border border-[var(--border)] text-[var(--text-secondary)] hover:bg-[var(--bg-hover)]"
                   >
-                    View
+                    {t("view")}
                   </a>
                   {!readOnly && (
                     <button
                       onClick={() => handleDelete(doc.id)}
-                      className="px-2 py-1 text-xs bg-red-50 text-red-600 rounded hover:bg-red-100 transition-colors opacity-0 group-hover:opacity-100"
+                      className="px-2 py-1 text-xs rounded transition-colors opacity-0 group-hover:opacity-100"
+                      style={{
+                        backgroundColor: "rgba(239, 68, 68, 0.2)",
+                        color: "var(--error)",
+                      }}
                     >
                       Delete
                     </button>
@@ -209,19 +228,25 @@ export default function DocumentManager({
       ))}
 
       {documents.length === 0 && readOnly && (
-        <p className="text-sm text-slate-400 italic">No documents uploaded</p>
+        <p className="text-sm text-[var(--text-muted)] italic">No documents uploaded</p>
       )}
 
       {/* Upload form */}
       {!readOnly && (
-        <div className="border border-slate-200 rounded-lg p-4 bg-slate-50">
+        <div
+          className="border rounded-xl p-4"
+          style={{
+            borderColor: "var(--border)",
+            backgroundColor: "var(--bg-surface)",
+          }}
+        >
           <div className="flex gap-3 mb-3">
             <select
               value={selectedCategory}
               onChange={(e) =>
                 setSelectedCategory(e.target.value as DocumentCategory)
               }
-              className="flex-1 px-3 py-2 text-sm border border-slate-200 rounded-lg bg-white focus:ring-2 focus:ring-accent/30 focus:border-accent outline-none"
+              className="flex-1 px-3 py-2 text-sm rounded-lg border border-[var(--border)] bg-[var(--bg-input)] text-[var(--text-primary)] focus:outline-none focus:border-[var(--orange)]"
             >
               {Object.entries(DOCUMENT_CATEGORIES).map(([key, label]) => (
                 <option key={key} value={key}>
@@ -234,7 +259,7 @@ export default function DocumentManager({
               placeholder="Notes (optional)"
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
-              className="flex-1 px-3 py-2 text-sm border border-slate-200 rounded-lg bg-white focus:ring-2 focus:ring-accent/30 focus:border-accent outline-none"
+              className="flex-1 px-3 py-2 text-sm rounded-lg border border-[var(--border)] bg-[var(--bg-input)] text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:outline-none focus:border-[var(--orange)]"
             />
           </div>
 
@@ -253,11 +278,15 @@ export default function DocumentManager({
           <button
             onClick={() => fileInputRef.current?.click()}
             disabled={uploading}
-            className="w-full px-4 py-2 text-sm border-2 border-dashed border-slate-300 rounded-lg text-slate-600 hover:border-accent/50 hover:bg-accent/5 transition-colors disabled:opacity-50"
+            className="w-full px-4 py-3 text-sm rounded-lg border-2 border-dashed transition-colors disabled:opacity-50 hover:border-[var(--orange)] hover:text-[var(--text-primary)]"
+            style={{
+              borderColor: "var(--border)",
+              color: "var(--text-secondary)",
+            }}
           >
             {uploading ? "Uploading..." : "Choose files to upload"}
           </button>
-          <p className="text-xs text-slate-400 mt-2 text-center">
+          <p className="text-xs text-[var(--text-muted)] mt-2 text-center">
             Images and PDFs accepted (max 20MB each)
           </p>
         </div>

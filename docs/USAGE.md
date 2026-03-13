@@ -258,7 +258,8 @@ ProMemo is the agent-facing web interface at **http://localhost:8888**.
 
 ## Demo Accounts
 
-The following accounts are pre-created for demo purposes. Password: `demo123`
+Three demo users for testing. Password for all: `demo123`.  
+**Fresh database**: Create them with the commands below (no seed script for agents).
 
 | Username | Name           | Role            | City      | Email              |
 |----------|----------------|-----------------|-----------|--------------------|
@@ -266,42 +267,54 @@ The following accounts are pre-created for demo purposes. Password: `demo123`
 | sarah    | Sarah Tran     | Associate       | HCMC      | sarah@fidt.vn      |
 | minh     | Minh Le        | Junior Agent    | Hanoi     | minh@fidt.vn       |
 
+Create the three demo users (run from repo root; use `PORT=3000` if not using Docker):
+
+```bash
+./scripts/create_agent.sh dean "Duy Dean Pham" demo123 0868331111 dean@fidt.vn
+./scripts/create_agent.sh sarah "Sarah Tran" demo123 0909123456 sarah@fidt.vn
+./scripts/create_agent.sh minh "Minh Le" demo123 0916789123 minh@fidt.vn
+```
+
 To create additional accounts (admin only):
-./scripts/create_agent.sh <username> <name> <password> [phone] [email]
 
-# When using Docker (default):
-./scripts/create_agent.sh dean "Dean Nguyen" demo123 0868331111 dean@fidt.vn
-
-# When using npm run dev (no Docker):
-PORT=3000 ./scripts/create_agent.sh dean "Dean Nguyen" demo123 0868331111 dean@fidt.vn
+```bash
+./scripts/create_agent.sh <username> <first_name> <password> [phone] [email]
+# With Docker (default): script uses port 8888. With local dev: PORT=3000 ./scripts/create_agent.sh ...
+```
 
 ### My Listings
 
 Navigate to **My Listings** to manage your property listings.
 
-- **Add New**: Click "+ Add New" to create a listing.
-  - **Freestyle Message** tab: Paste Vietnamese listing text and click "Parse Text" to auto-extract fields.
-  - **Database View** tab: Manually fill in structured fields (property type, price, area, location, etc.).
-- **Edit**: Click "Edit" on any active listing to modify it.
-- **Archive**: Click "Archive" then "Confirm" to archive a listing.
-- **Archived tab**: View archived listings. Re-activate or permanently delete them.
+- **Add New**: Click "+ Add listing" to create a listing (manual fields; AI prefill scaffold for later).
+- **Active / Archived** tabs. **Filters** and **Sort** match Feed (schema-aligned); **Grid** (1/2/3 columns) and **Map** toggle. Own listings are highlighted with orange accent.
+- **Inquiries**: From a card, open **Inquiries** to see conversations for that listing.
+- **Edit**: On a card or from Full Listing view, click "Edit" to modify. **Archive** moves to Archived tab; re-activate or delete from there.
 
 ### Feed
 
 Navigate to **Feed** to browse all active listings from all agents.
 
-- **Filters**: Click "Show Filters" to filter by property type, price range, area, ward, direction, legal status, and more (18 filter parameters).
+- **Filters**: Click "Filters" to filter by property type, price range, area, ward, direction, legal status, **agent**, and more (schema-aligned).
 - **Sort**: By newest, recently updated, price, or area.
+- **Grid/Map**: Toggle grid (1/2/3 columns) or map view.
 - **Message**: Click "Message" on a listing to start a conversation with the listing owner.
 
-### Messages
+### Messages (Inquiries)
 
-Navigate to **Messages** to view and manage conversations.
+Navigate to **Messages** (Inquiries) to view and manage conversations.
 
-- Each conversation is with one other agent.
-- Messages auto-refresh every 5 seconds.
-- Unread message counts are shown in the conversation list.
-- Press Enter to send, Shift+Enter for new line.
+- **By Property** / **By Agent**: Toggle grouping; collapse or expand each group.
+- Click a property line to open Full Listing view; click an agent to go to CRM Agents.
+- Each conversation is keyed by (Property, Listing Agent). Unread counts and last message preview shown.
+- In thread: Enter to send, Shift+Enter for new line.
+
+### CRM
+
+- **Agents**: List company agents; message from here.
+- **Sellers**: Add seller (name, phone, email, status); list and manage. Associate to listings and docs (scaffold).
+- **Buyers**: Add buyer (name, phone, email, needs/notes, status); list and manage. Associate to listings and docs (scaffold).
+- **Deals**: Funnel view — stages from Cold Lead to Closed-Won / Closed-Lost. Deals can link a listing and buyer/seller. Move deals between stages with the stage buttons. Create new deals via API or from listing view (scaffold).
 
 ### Running Locally (without Docker)
 

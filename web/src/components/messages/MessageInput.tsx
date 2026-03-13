@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface Props {
   onSend: (body: string) => Promise<void>;
@@ -8,6 +9,7 @@ interface Props {
 }
 
 export default function MessageInput({ onSend, disabled }: Props) {
+  const { t } = useLanguage();
   const [text, setText] = useState("");
   const [sending, setSending] = useState(false);
 
@@ -32,22 +34,27 @@ export default function MessageInput({ onSend, disabled }: Props) {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="border-t border-slate-200 p-3 flex gap-2">
+    <form
+      onSubmit={handleSubmit}
+      className="border-t border-[var(--border)] p-3 flex gap-2"
+      style={{ backgroundColor: "var(--bg-surface)" }}
+    >
       <textarea
         value={text}
         onChange={(e) => setText(e.target.value)}
         onKeyDown={handleKeyDown}
-        placeholder="Type a message..."
+        placeholder={t("typeMessage")}
         rows={1}
         disabled={disabled}
-        className="flex-1 border border-slate-200 rounded-lg px-3 py-2 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-accent/30 focus:border-accent"
+        className="flex-1 border border-[var(--border)] rounded-lg px-3 py-2 text-sm resize-none focus:outline-none focus:border-[var(--orange)] text-[var(--text-primary)] bg-[var(--bg-input)] placeholder:text-[var(--text-muted)]"
       />
       <button
         type="submit"
         disabled={!text.trim() || sending || disabled}
-        className="px-4 py-2 bg-accent text-white text-sm rounded-lg hover:bg-accent-hover disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium"
+        className="px-4 py-2 text-white text-sm rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium"
+        style={{ backgroundColor: "var(--orange)" }}
       >
-        Send
+        {t("send")}
       </button>
     </form>
   );
