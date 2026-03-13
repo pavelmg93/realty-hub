@@ -201,6 +201,8 @@ export async function POST(request: NextRequest) {
         data.road_width_m ?? null,
         data.num_frontages ?? null,
         data.distance_to_beach_m ?? null,
+        null,
+        null
       ],
     );
 
