@@ -151,7 +151,7 @@ export async function POST(request: NextRequest) {
         $35, $36,
         $37, $38,
         $39, $40,
-        $41, $42, $43, $44, $45, $46
+        $41, $42, $43, $44, $45
       ) RETURNING *`,
       [
         auth.userId,
