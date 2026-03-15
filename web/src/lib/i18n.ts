@@ -216,6 +216,10 @@ export const translations = {
     landCharacteristics: "Land Characteristics",
     trafficConnectivity: "Traffic / Connectivity",
     hasElevator: "Has Elevator",
+    searchPlaceholder: "Search Placeholder",
+    activeLabel: "Active Label",
+    underContract: "Under Contract",
+    favoritesOnly: "Favorites Only",
   },
   vi: {
     feed: "Bảng tin",
@@ -432,6 +436,10 @@ export const translations = {
     landCharacteristics: "Đặc điểm đất",
     trafficConnectivity: "Giao thông / Kết nối",
     hasElevator: "Có thang máy",
+    searchPlaceholder: "Tìm kiếm",
+    activeLabel: "Đang hoạt động",
+    underContract: "Đang thương lượng",
+    favoritesOnly: "Chỉ yêu thích",
   },
 } satisfies Record<Lang, Record<string, string>>;
 
