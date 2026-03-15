@@ -46,7 +46,7 @@ This serves two purposes:
 
 ```
 +----------------------------+     +----------------------------+     +----------------------------+
-|     Site Scraper           |---->|     Vietnamese Parser      |---->|     PostgreSQL DB           |
+|     Site Scraper           |---->|     Vietnamese Parser      |---->|     PostgreSQL DB          |
 |                            |     |                            |     |                            |
 |   Playwright browser       |     |   Regex extraction         |     |   raw_listings +           |
 |   discovers + extracts     |     |   + structured overlay     |     |   parsed_listings +        |
