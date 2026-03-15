@@ -1,65 +1,179 @@
-# RE Nha Trang — Real Estate Agent Matching Platform
+# ProMemo — Wealth Realty Agent Platform
 
-A platform that connects buyers' agents with sellers' agents in the Nha Trang real estate market through automated listing ingestion from Zalo groups and intelligent matching.
+Internal real estate agent platform for [Wealth Realty / FIDT](https://fidt.vn/wealth-realty/).
+Agents share listings, message each other, and manage buyers, sellers, and deals.
 
-## Problem
+> **Private repo — internal use only.**
 
-Nha Trang's real estate market operates largely through informal Zalo groups where agents post listings. Buyers' agents must manually monitor dozens of groups, parse unstructured Vietnamese text, and cross-reference listings against client requirements. This is slow, error-prone, and leads to missed opportunities.
+---
 
-## Solution
+## What It Does
 
-RE Nha Trang automates this workflow:
+- **Feed** — browse all active listings from all agents, with filters, map view, and grid/list toggle
+- **My Listings** — manage your own listings (create, edit, archive, photos, documents)
+- **Messaging** — per-listing conversation threads between agents
+- **CRM** — manage buyers, sellers, and deal pipeline (kanban funnel)
+- **AI Listing Entry** — paste Vietnamese listing text, AI extracts structured fields via Gemini
+- **Maps** — OpenStreetMap/Leaflet with geocoding via Nominatim
 
-1. **Ingest** — Monitor Zalo groups and extract listing data from unstructured messages (text, images, location info)
-2. **Normalize** — Parse Vietnamese real estate listings into structured data (price, location, property type, area, features)
-3. **Match** — Automatically match normalized listings against buyer agent requirements using configurable rules and scoring
-4. **Notify** — Alert buyer agents in real-time when matching listings appear
-
-## Key Features
-
-- **Zalo Group Monitoring** — Automated ingestion of listings from configured Zalo groups
-- **Vietnamese NLP** — Parse unstructured Vietnamese property descriptions into structured data
-- **Intelligent Matching** — Score and rank listings against buyer requirements (location, price range, property type, size)
-- **Agent Dashboard** — Web interface for agents to manage requirements, view matches, and track listings
-- **Notification System** — Real-time alerts via Zalo, email, or webhook when matches are found
+---
 
 ## Tech Stack
 
-- **Language**: Python 3.12+
-- **API Framework**: FastAPI
-- **Database**: PostgreSQL with pgvector for semantic search
-- **Task Queue**: Celery with Redis
-- **NLP/Matching**: LLM-based extraction + rule-based scoring
-- **Frontend**: TBD
-- **Deployment**: Docker Compose
+| Layer | Technology |
+|---|---|
+| Frontend | Next.js 15, React 19, TypeScript, Tailwind v4 |
+| Database | PostgreSQL 16 + pgvector (raw `pg` pool, no ORM) |
+| Auth | bcrypt + JWT in httpOnly cookie |
+| Maps | react-leaflet + OpenStreetMap + Nominatim |
+| AI | Gemini API (free tier, `GEMINI_API_KEY`) |
+| Infra | Docker Compose, Google Cloud VM |
+| Pipeline | Python 3.12, Kestra (disabled for demo) |
+
+---
+
+## Quick Start
+
+```bash
+# 1. Clone and enter
+git clone https://github.com/pavelmg93/re-nhatrang.git
+cd re-nhatrang
+
+# 2. Copy env template
+cp .env.example .env
+# Edit .env — set JWT_SECRET and optionally GEMINI_API_KEY
+
+# 3. Start all services
+docker compose up -d
+
+# 4. Create your first agent account
+./scripts/create_agent.sh <username> "<display name>" <password> [phone] [email]
+
+# 5. Open the app
+open http://localhost:8888
+```
+
+### Services
+
+| Service | URL | Notes |
+|---|---|---|
+| ProMemo web app | http://localhost:8888 | Main application |
+| pgAdmin | http://localhost:5050 | Database browser |
+| PostgreSQL | port 5432 | App database |
+| Redis | port 6379 | Cache |
+
+> Running `npm run dev` outside Docker uses port 3000 instead of 8888.
+
+---
 
 ## Project Structure
 
 ```
-re-nhatrang/
-|-- README.md
-|-- CLAUDE.md              # Claude Code instructions
-|-- CHANGELOG.md           # Change log
-|-- docs/
-|   +-- ARCHITECTURE.md    # System design
-|-- src/
-|   |-- ingestion/         # Zalo group monitoring & message extraction
-|   |-- parsing/           # Vietnamese NLP & listing normalization
-|   |-- matching/          # Matching engine & scoring
-|   |-- notifications/     # Alert delivery (Zalo, email, webhook)
-|   |-- api/               # FastAPI endpoints
-|   |-- models/            # Database models
-|   +-- config/            # Configuration & settings
-|-- tests/
-|-- docker-compose.yml
-|-- pyproject.toml
-+-- .env.example
+web/                    Next.js app (ProMemo)
+  src/
+    app/                Pages and API routes (App Router)
+      dashboard/        Auth-protected screens
+        feed/           Listing feed
+        listings/       My Listings CRUD
+        messages/       Messaging / Inquiries
+        crm/            CRM — Agents, Buyers, Sellers, Deals
+        profile/        My Profile
+      api/              API routes
+    components/         Shared React components
+    lib/                DB pool, auth, types, constants, i18n
+src/                    Python pipeline (inactive for Demo)
+  db/
+    init_db.sql         Initial schema
+    migrations/         002–010, run in order
+  parsing/              Vietnamese regex parser
+  scraping/             Playwright scraper
+scripts/
+  create_agent.sh       Admin account creation (no public signup)
+docs/
+  SCHEMA.md             Canonical database schema
+  ARCHITECTURE.md       System design
+  ROADMAP-v2.md         Feature roadmap
+  SESSION_LOG.md        Development history
+  USAGE.md              Operations guide
+stitch_property_details_view/   UI mockups (design reference)
 ```
 
-## Getting Started
+---
 
-> Setup instructions will be added as the project develops.
+## Database
+
+Schema reference: [`docs/SCHEMA.md`](docs/SCHEMA.md)
+
+Current migration level: **010**
+
+```bash
+# Connect to database
+docker exec -it re-nhatrang-app-postgres-1 psql -U re_nhatrang -d re_nhatrang
+
+# After a fresh docker compose down -v && up -d:
+docker exec -i re-nhatrang-app-postgres-1 psql -U re_nhatrang -d re_nhatrang \
+  < src/db/seed_reference_data.sql
+# Then run migrations 002 through 010 in order
+```
+
+---
+
+## Agent Accounts
+
+No public signup. Admin creates accounts via script:
+
+```bash
+./scripts/create_agent.sh <username> "<display name>" <password> [phone] [email]
+```
+
+Demo accounts (password: `demo123`): `pavel`, `dean`
+
+---
+
+## Development
+
+```bash
+# TypeScript check (run from web/)
+cd web && npx tsc --noEmit
+
+# Local dev server (port 3000)
+cd web && npm run dev
+
+# Python parser tests
+source .venv/bin/activate
+pytest tests/ -v
+
+# Lint
+ruff check src/ tests/
+```
+
+---
+
+## Deployment
+
+Deployed on **Google Cloud VM** via Docker Compose.
+
+```bash
+# On VM: pull latest and restart
+git pull
+docker compose up -d
+
+# If Dockerfile changed:
+docker compose build web && docker compose up -d
+```
+
+---
+
+## What Is Disabled (Demo Phase)
+
+| Component | Status |
+|---|---|
+| Kestra orchestration | Commented out in docker-compose |
+| Zalo ingestion pipeline | Future — do not modify |
+| Web scraping (Playwright) | Future — do not enable |
+
+---
 
 ## License
 
-Private — All rights reserved.
+Private — All rights reserved. FIDT / Wealth Realty.

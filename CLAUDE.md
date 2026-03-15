@@ -13,7 +13,7 @@ Active development focus is **the web app** (`web/`).
 
 ## Repo Structure
 
-```
+```text
 web/                          <- Next.js app (primary active work)
 src/                          <- Python pipeline + DB migrations
   db/
@@ -26,14 +26,16 @@ scripts/
   create_agent.sh             <- Admin account creation
 docs/
   SCHEMA.md                   <- Canonical DB schema (source of truth)
-  SESSION_LOG.md              <- Session history (newest first)
   CHANGELOG.md                <- What changed
   ARCHITECTURE.md             <- System design
   USAGE.md                    <- How to operate
   ROADMAP-v2.md               <- Feature roadmap
+  SCOPE.md                    <- Active sprint and next actions
   SPECIFICATIONS.md           <- Feature specs
-  TESTING_LOG.md              <- Test records
   GEMINI_SETUP.md             <- Gemini API setup
+  adrs/                       <- Architecture Decision Records
+  code_sessions/              <- Individual session logs (YYYY-MM-DD-topic.md)
+  test_sessions/              <- Individual QA/test logs (YYYY-MM-DD-test-topic.md)
   archive/                    <- Old agent instruction files
 README.md
 CLAUDE.md                     <- This file
@@ -199,13 +201,62 @@ playwright install chromium
 
 ---
 
+## Logging Workflows (Session & Testing)
+
+When I ask you to "log this session" or "generate a code session," you must:
+1. Review the git diffs, files we modified, and the terminal history of our current conversation.
+2. Create a new markdown file in `docs/code_sessions/` named `YYYY-MM-DD-brief-topic.md`.
+3. Use the **Code Session Template** below. Do not ask me for permission to create the file, just draft it and summarize what you did.
+
+When I ask you to "log this test" or "create a test session," you must:
+1. Ask me for my manual testing observations if I haven't provided them yet.
+2. Create a new markdown file in `docs/test_sessions/` named `YYYY-MM-DD-test-topic.md`.
+3. Use the **Test Session Template** below. 
+
+### Code Session Template
+```text
+# Session: [Brief Title]
+**Date:** YYYY-MM-DD
+
+### Summary
+[One paragraph explaining the goal and what was actually accomplished. Include any context about infrastructure or deployment if relevant.]
+
+### Technical Details & Fixes
+* **Features Delivered:** [Bullet list of user-facing changes]
+* **Architecture/DB Changes:** [Note any schema changes, Docker updates, or config shifts]
+* **Challenges Resolved:** [Briefly explain any nasty bugs (like ENOENT or Postgres mismatches) and how we fixed them]
+
+### Files Touched
+[Generate a concise list of the primary files created or modified]
+```
+
+### Test Session Template
+```text
+# Test Run: [Brief Title]
+**Date:** YYYY-MM-DD
+
+### Context
+* **What was tested:** [Which flow, data, or UI component]
+* **Input source:** [e.g., Sample CSV, manual UI entry, specific Zalo payload]
+
+### Observations
+* **What worked:** [List successes]
+* **What didn't:** [List errors, UI glitches, or pipeline failures]
+* **AI & Parser Gaps:** [Critically important: Note if the LLM hallucinated, if the regex parser missed Vietnamese diacritics, or if Copilot gave bad advice]
+
+### Action Items
+- [ ] [Specific thing to fix in the next session]
+```
+
+---
+
 ## After Every Session
 
-1. Update `docs/SESSION_LOG.md` — new entry at top, newest first
-2. Update `docs/CHANGELOG.md` — what was added/changed/fixed
-3. Update `docs/SCHEMA.md` — if any migrations were applied
-4. Run `cd web && npx tsc --noEmit` — confirm clean before committing
-5. Commit: `git add -A && git commit -m "Session N: <one-line summary>"`
+1. **Log it:** Ask me to "generate a code session" so I document the work in `docs/code_sessions/`.
+2. **Changelog:** Update `docs/CHANGELOG.md` — what was added/changed/fixed.
+3. **Schema:** Update `docs/SCHEMA.md` — if any migrations were applied.
+4. **Compile check:** Run `cd web && npx tsc --noEmit` — confirm clean before committing.
+5. **Commit:** `git add -A && git commit -m "Session N: <one-line summary>"`
 
 **Current session number: 14**
 **Last completed session: 13 — 2026-03-15 — GCP VM Deployment, Docker Fixes, DB Schema Alignment**
