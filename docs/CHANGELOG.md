@@ -6,6 +6,27 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Session 15 — 2026-03-16 — P0 Bug Fixes, Schema Cleanup, Deployment Prep
+
+#### Fixed
+- **Critical: Add/Edit Listing server errors** — POST and PUT `/api/listings` referenced `description_vi` and `description_en` columns that don't exist in DB. Removed ghost columns from SQL, validation, types, and form.
+- **Favorites API** — Rebuilt as simple POST toggle (no request body needed) + GET status check. Was crashing because old code tried to parse JSON body from empty requests.
+- **Status validation** — Added `in_negotiations` and `pending_closing` to Zod enum (were in DB constraint but missing from validation).
+
+#### Changed
+- Migration 011 applied: dropped old overlapping `ck_parsed_listings_status` constraint. Single authoritative constraint remains.
+- StatusBadge component updated with all 9 status values including `in_negotiations` and `pending_closing`.
+- LISTING_STATUSES constant updated with `in_negotiations` and `pending_closing` entries.
+- ListingCard favorite toggle simplified to use toggle API (no action body).
+- Docker Compose: added GEMINI_API_KEY passthrough to web container.
+- Demo accounts (pavel/dean) passwords reset to `demo123`.
+
+#### Added
+- `inNegotiations` i18n key (en + vi)
+- `scripts/deploy-vm.sh` — one-command deployment to fresh GCP VM (installs Docker, creates .env, runs migrations, creates demo accounts)
+
+---
+
 ### Added
 - **ProMemo web app** (Next.js 15, React 19, TypeScript, Tailwind v4) at port 8888
   - Agent login with bcrypt + JWT auth (httpOnly cookie). Account creation via admin script only.

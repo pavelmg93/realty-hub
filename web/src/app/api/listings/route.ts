@@ -133,14 +133,13 @@ export async function POST(request: NextRequest) {
       ? crypto.createHash("md5").update(data.description).digest("hex")
       : null;
 
-    const descPrimary = data.description ?? data.description_vi ?? data.description_en ?? null;
     const result = await pool.query(
       `INSERT INTO parsed_listings (
         agent_id, listing_hash,
         property_type, transaction_type, price_raw, price_vnd,
         area_m2, address_raw, ward, street, district,
         num_bedrooms, num_floors, frontage_m, access_road, furnished,
-        description, description_vi, description_en, status, freestyle_text,
+        description, status, freestyle_text,
         legal_status, num_bathrooms, structure_type, direction, depth_m,
         corner_lot, price_per_m2, negotiable, rental_income_vnd,
         has_elevator, nearby_amenities, investment_use_case,
@@ -155,16 +154,16 @@ export async function POST(request: NextRequest) {
         $3, $4, $5, $6,
         $7, $8, $9, $10, $11,
         $12, $13, $14, $15, $16,
-        $17, $18, $19, $20, $21,
-        $22, $23, $24, $25,
-        $26, $27, $28, $29,
-        $30, $31, $32,
-        $33, $34,
+        $17, $18, $19,
+        $20, $21, $22, $23, $24,
+        $25, $26, $27, $28,
+        $29, $30, $31,
+        $32, $33, $34,
         $35, $36,
         $37, $38,
         $39, $40,
-        $41, $42, $43, $44, $45,
-        $46, $47
+        $41, $42, $43,
+        $44, $45
       ) RETURNING *`,
       [
         auth.userId,
@@ -183,9 +182,7 @@ export async function POST(request: NextRequest) {
         data.frontage_m ?? null,
         data.access_road ?? null,
         data.furnished ?? null,
-        descPrimary,
-        data.description_vi ?? null,
-        data.description_en ?? null,
+        data.description ?? null,
         data.status ?? "for_sale",
         data.freestyle_text ?? null,
         data.legal_status ?? null,

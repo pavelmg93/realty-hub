@@ -61,8 +61,6 @@ export const listingSchema = z.object({
   access_road: optStr,
   furnished: optStr,
   description: optStr,
-  description_vi: optStr,
-  description_en: optStr,
   status: z.preprocess(
     (v) => (v === "" || v === null ? undefined : v),
     z
@@ -72,6 +70,8 @@ export const listingSchema = z.object({
         "price_dropped",
         "price_increased",
         "deposit",
+        "in_negotiations",
+        "pending_closing",
         "sold",
         "not_for_sale",
       ])

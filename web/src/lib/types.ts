@@ -30,8 +30,6 @@ export interface Listing {
   access_road: string | null;
   furnished: string | null;
   description: string | null;
-  description_vi: string | null;
-  description_en: string | null;
   confidence: number;
   parse_errors: string | null;
   // 19 new features

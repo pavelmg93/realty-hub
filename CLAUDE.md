@@ -19,11 +19,12 @@ src/                          <- Python pipeline + DB migrations
   db/
     init_db.sql               <- Initial schema
     seed_reference_data.sql   <- Nha Trang wards + streets
-    migrations/               <- 002 through 010, run in order
+    migrations/               <- 002 through 011, run in order
   scraping/                   <- Playwright scraper (inactive for Demo)
   parsing/                    <- Vietnamese regex parser
 scripts/
   create_agent.sh             <- Admin account creation
+  deploy-vm.sh               <- GCP VM deployment (one-command)
 docs/
   SCHEMA.md                   <- Canonical DB schema (source of truth)
   CHANGELOG.md                <- What changed
@@ -100,7 +101,7 @@ docker exec -i re-nhatrang-app-postgres-1 psql -U re_nhatrang -d re_nhatrang \
   < src/db/migrations/010_avatar_listing_i18n.sql
 
 # After fresh docker compose down -v && up -d, run in order:
-# seed_reference_data.sql, then migrations 002 through 010
+# seed_reference_data.sql, then migrations 002 through 011
 ```
 
 **Credentials:**
@@ -108,7 +109,7 @@ docker exec -i re-nhatrang-app-postgres-1 psql -U re_nhatrang -d re_nhatrang \
 - DB: `re_nhatrang`
 - Container: `re-nhatrang-app-postgres-1`
 
-**Current migration level: 010**
+**Current migration level: 011**
 
 ---
 
@@ -268,6 +269,6 @@ When I ask you to "log this test" or "create a test session," you must:
 4. **Compile check:** Run `cd web && npx tsc --noEmit` — confirm clean before committing.
 5. **Commit:** `git add -A && git commit -m "Session N: <one-line summary>"`
 
-**Current session number: 14**
-**Last completed session: 13 — 2026-03-15 — GCP VM Deployment, Docker Fixes, DB Schema Alignment**
+**Current session number: 15**
+**Last completed session: 14 — 2026-03-16 — P0 Bug Fixes, Schema Cleanup, Deployment Prep**
 **Deployment: Google Cloud VM — pull + docker compose up -d to deploy**

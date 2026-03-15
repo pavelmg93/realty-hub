@@ -3,7 +3,7 @@
 **Source of truth for all table definitions.**
 Update this file whenever a migration is applied.
 
-**Current migration level: 010**
+**Current migration level: 011**
 **Last updated: 2026-03-16 (Session 14)**
 
 ---
@@ -326,6 +326,6 @@ Audit log for deals — every stage change, note, call, viewing, offer, etc.
 
 3. **Conversation ordering** — `agent_1_id` is always the lower integer. When creating a conversation, sort the two agent IDs before inserting.
 
-4. **Status constraints** — `parsed_listings` has TWO overlapping check constraints on `status` (legacy + new). The new one (`parsed_listings_status_check`) is the authoritative one. Valid values: `just_listed`, `for_sale`, `price_dropped`, `price_increased`, `in_negotiations`, `deposit`, `pending_closing`, `sold`, `not_for_sale`.
+4. **Status constraints** — Single CHECK constraint (`parsed_listings_status_check`). Valid values: `just_listed`, `for_sale`, `price_dropped`, `price_increased`, `in_negotiations`, `deposit`, `pending_closing`, `sold`, `not_for_sale`. Old overlapping constraint dropped in migration 011.
 
-5. **Migrations location** — `src/db/migrations/001` through `010`. Run in order after a fresh `docker compose down -v && up -d`.
+5. **Migrations location** — `src/db/migrations/002` through `011`. Run in order after a fresh `docker compose down -v && up -d`.

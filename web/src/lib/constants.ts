@@ -3,7 +3,9 @@ export const LISTING_STATUSES = {
   for_sale: { label: "For Sale", color: "bg-emerald-100 text-emerald-800" },
   price_dropped: { label: "Price Dropped", color: "bg-green-100 text-green-800" },
   price_increased: { label: "Price Increased", color: "bg-red-100 text-red-800" },
+  in_negotiations: { label: "Negotiating", color: "bg-amber-100 text-amber-800" },
   deposit: { label: "Deposit", color: "bg-yellow-100 text-yellow-800" },
+  pending_closing: { label: "Pending Closing", color: "bg-purple-100 text-purple-800" },
   sold: { label: "Sold", color: "bg-rose-100 text-rose-800" },
   not_for_sale: { label: "Not for Sale", color: "bg-slate-100 text-slate-600" },
 } as const;
