@@ -201,6 +201,16 @@ playwright install chromium
 
 ---
 
+## Session Kickoff & Scope Management
+
+When we begin a new task, or if I ask "what should we do next":
+1. **Read `docs/SCOPE.md` immediately.**
+2. Focus **only** on the items listed under `## 🚀 Next Actions (Immediate execution)`. 
+3. Do not suggest or write code for items in the Backlog or Someday/Maybe sections unless I explicitly command you to.
+4. When we successfully complete a feature or fix a bug, explicitly remind me to check it off in `docs/SCOPE.md`.
+
+---
+
 ## Logging Workflows (Session & Testing)
 
 When I ask you to "log this session" or "generate a code session," you must:
