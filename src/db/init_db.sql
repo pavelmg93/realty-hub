@@ -91,11 +91,13 @@ CREATE TABLE IF NOT EXISTS parsed_listings (
     -- Web app management columns
     agent_id        INTEGER REFERENCES agents(id),
     status          VARCHAR(20) DEFAULT 'for_sale'
-                    CHECK (status IN ('for_sale', 'in_negotiations', 'pending_closing', 'sold', 'not_for_sale')),
+                    CHECK (status IN ('just_listed', 'for_sale', 'price_dropped', 'price_increased', 'in_negotiations', 'deposit', 'pending_closing', 'sold', 'not_for_sale')),
     archived_at     TIMESTAMP,
     created_at      TIMESTAMP DEFAULT NOW(),
     updated_at      TIMESTAMP DEFAULT NOW(),
-    freestyle_text  TEXT
+    freestyle_text  TEXT,
+    title_standardized VARCHAR(500),
+    commission      VARCHAR(50) DEFAULT 'hh1'
 );
 
 CREATE UNIQUE INDEX IF NOT EXISTS idx_parsed_listing_hash ON parsed_listings(listing_hash);
@@ -165,3 +167,13 @@ CREATE INDEX IF NOT EXISTS idx_messages_conversation ON messages(conversation_id
 CREATE INDEX IF NOT EXISTS idx_messages_sender ON messages(sender_id);
 CREATE INDEX IF NOT EXISTS idx_messages_listing ON messages(listing_id);
 CREATE INDEX IF NOT EXISTS idx_messages_created ON messages(created_at);
+
+-- ---------------------------------------------------------------------------
+-- Listing Favorites
+-- ---------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS listing_favorites (
+    agent_id INTEGER NOT NULL REFERENCES agents(id) ON DELETE CASCADE,
+    listing_id INTEGER NOT NULL REFERENCES parsed_listings(id) ON DELETE CASCADE,
+    created_at TIMESTAMP DEFAULT NOW(),
+    PRIMARY KEY (agent_id, listing_id)
+);

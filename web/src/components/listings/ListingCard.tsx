@@ -7,6 +7,7 @@ import { StatusBadge } from "@/components/ui/StatusBadge";
 import Link from "next/link";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { getPropertyTypeKey, getTransactionTypeKey } from "@/lib/i18n";
+import { Heart } from "lucide-react";
 
 interface Props {
   listing: Listing;
@@ -32,6 +33,38 @@ export default function ListingCard({
   const propertyLabel = propertyKey ? t(propertyKey) : (listing.property_type ?? "");
   const txLabel = txKey ? t(txKey) : (listing.transaction_type ?? "");
 
+  const [isFavorited, setIsFavorited] = useState(listing.is_favorited ?? false);
+  const [isTogglingFavorite, setIsTogglingFavorite] = useState(false);
+
+  const toggleFavorite = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (isTogglingFavorite) return;
+
+    setIsTogglingFavorite(true);
+    const prev = isFavorited;
+    setIsFavorited(!prev); // Optimistic UI update
+
+    try {
+      const res = await fetch(`/api/listings/${listing.id}/favorite`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: prev ? "remove" : "add" }),
+      });
+      if (!res.ok) {
+        setIsFavorited(prev); // Revert on failure
+      } else {
+        const data = await res.json();
+        setIsFavorited(data.favorited);
+      }
+    } catch (err) {
+      console.error("Favorite toggle failed:", err);
+      setIsFavorited(prev); // Revert on error
+    } finally {
+      setIsTogglingFavorite(false);
+    }
+  };
+
   return (
     <div
       className={`rounded-xl p-5 border transition-shadow hover:shadow-[var(--shadow-elevated)] ${isOwner ? "border-l-4" : ""}`}
@@ -55,6 +88,18 @@ export default function ListingCard({
             </span>
           )}
         </div>
+        
+        <button
+          onClick={toggleFavorite}
+          disabled={isTogglingFavorite}
+          className="p-1 rounded-full text-gray-400 hover:text-red-500 hover:bg-red-50 transition-colors focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-1"
+          aria-label={isFavorited ? "Remove from favorites" : "Add to favorites"}
+        >
+          <Heart
+            size={20}
+            className={`transition-colors ${isFavorited ? "fill-red-500 text-red-500" : ""}`}
+          />
+        </button>
       </div>
 
       <div className="mb-2">

@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { spawn } from "child_process";
 import path from "path";
+import pool from "@/lib/db";
+import { getAuthFromCookies } from "@/lib/auth";
 
 function runPython(script: string, input: string): Promise<string> {
   return new Promise((resolve, reject) => {
@@ -36,6 +38,11 @@ function runPython(script: string, input: string): Promise<string> {
 
 export async function POST(request: NextRequest) {
   try {
+    const auth = await getAuthFromCookies();
+    if (!auth) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
     const body = await request.json();
     const { text } = body;
 
@@ -45,6 +52,14 @@ export async function POST(request: NextRequest) {
         { status: 400 },
       );
     }
+
+    // Insert into raw_listings
+    const rawResult = await pool.query(
+      `INSERT INTO raw_listings (agent_id, channel, raw_text) 
+       VALUES ($1, 'web', $2) RETURNING id`,
+      [auth.userId, text]
+    );
+    const rawId = rawResult.rows[0].id;
 
     const projectRoot = path.resolve(process.cwd(), "..");
     const script = `
@@ -63,11 +78,15 @@ print(json.dumps(d, ensure_ascii=False))
     try {
       const stdout = await runPython(script, text);
       const parsed = JSON.parse(stdout);
-      return NextResponse.json({ parsed });
+      
+      await pool.query(`UPDATE raw_listings SET parsed_at = NOW() WHERE id = $1`, [rawId]);
+      
+      return NextResponse.json({ parsed, raw_id: rawId });
     } catch (pyError) {
       console.error("Python parser error:", pyError);
       return NextResponse.json({
         parsed: { description: text },
+        raw_id: rawId,
         warning: "Parser unavailable, text saved as description only",
       });
     }

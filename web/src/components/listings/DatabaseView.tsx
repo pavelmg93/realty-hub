@@ -279,9 +279,11 @@ function LocationPicker({
 }
 
 const STATUS_LABEL_KEYS: Record<string, string> = {
-  for_sale: "open",
-  in_negotiations: "negotiating",
-  pending_closing: "pendingClosing",
+  just_listed: "justListed",
+  for_sale: "forSale",
+  price_dropped: "priceDropped",
+  price_increased: "priceIncreased",
+  deposit: "deposit",
   sold: "sold",
   not_for_sale: "notForSale",
 };

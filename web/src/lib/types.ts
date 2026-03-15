@@ -64,6 +64,8 @@ export interface Listing {
   created_at: string;
   updated_at: string;
   freestyle_text: string | null;
+  title_standardized: string | null;
+  commission: string | null;
   // Joined fields (from feed)
   owner_username?: string;
   owner_first_name?: string;
@@ -73,6 +75,8 @@ export interface Listing {
   // Photos (joined)
   photo_count?: number;
   primary_photo?: string | null;
+  // User interactions
+  is_favorited?: boolean;
 }
 
 export interface ListingPhoto {
@@ -145,8 +149,12 @@ export interface Message {
 }
 
 export type ListingStatus =
+  | "just_listed"
   | "for_sale"
+  | "price_dropped"
+  | "price_increased"
   | "in_negotiations"
+  | "deposit"
   | "pending_closing"
   | "sold"
   | "not_for_sale";

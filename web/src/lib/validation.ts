@@ -67,9 +67,11 @@ export const listingSchema = z.object({
     (v) => (v === "" || v === null ? undefined : v),
     z
       .enum([
+        "just_listed",
         "for_sale",
-        "in_negotiations",
-        "pending_closing",
+        "price_dropped",
+        "price_increased",
+        "deposit",
         "sold",
         "not_for_sale",
       ])
@@ -101,6 +103,8 @@ export const listingSchema = z.object({
   road_width_m: coerceNum,
   num_frontages: coerceInt,
   distance_to_beach_m: coerceNum,
+  title_standardized: optStr,
+  commission: optStr,
 });
 
 export const messageSchema = z.object({

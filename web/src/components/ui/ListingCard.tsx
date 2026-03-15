@@ -6,7 +6,8 @@ import { StatusBadge } from "./StatusBadge";
 import { PriceDisplay } from "./PriceDisplay";
 import { AgentChip } from "./AgentChip";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { MessageSquare, Eye } from "lucide-react";
+import { MessageSquare, Eye, Heart } from "lucide-react";
+import { useState } from "react";
 import type { Listing } from "@/lib/types";
 
 interface ListingCardProps {
@@ -60,6 +61,38 @@ export function ListingCard({
   const isOwner = listing.is_owner ?? false;
   const photoCount = listing.photo_count ?? 0;
 
+  const [isFavorited, setIsFavorited] = useState(listing.is_favorited ?? false);
+  const [isTogglingFavorite, setIsTogglingFavorite] = useState(false);
+
+  const toggleFavorite = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (isTogglingFavorite) return;
+
+    setIsTogglingFavorite(true);
+    const prev = isFavorited;
+    setIsFavorited(!prev); // Optimistic UI update
+
+    try {
+      const res = await fetch(`/api/listings/${listing.id}/favorite`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: prev ? "remove" : "add" }),
+      });
+      if (!res.ok) {
+        setIsFavorited(prev); // Revert on failure
+      } else {
+        const data = await res.json();
+        setIsFavorited(data.favorited);
+      }
+    } catch (err) {
+      console.error("Favorite toggle failed:", err);
+      setIsFavorited(prev); // Revert on error
+    } finally {
+      setIsTogglingFavorite(false);
+    }
+  };
+
   return (
     <div
       className={`relative rounded-lg overflow-hidden border border-[var(--border)] transition-all duration-200 ${
@@ -94,9 +127,22 @@ export function ListingCard({
               status={(listing.status as "for_sale") || "for_sale"}
             />
           </div>
+          
+          <button
+            onClick={toggleFavorite}
+            disabled={isTogglingFavorite}
+            className="absolute top-2 right-2 p-1.5 rounded-full bg-black/40 text-white hover:text-red-500 hover:bg-black/60 transition-colors focus:outline-none focus:ring-2 focus:ring-red-500 backdrop-blur-sm shadow-md"
+            aria-label={isFavorited ? "Remove from favorites" : "Add to favorites"}
+          >
+            <Heart
+              size={16}
+              className={`transition-colors ${isFavorited ? "fill-red-500 text-red-500 border-none" : ""}`}
+            />
+          </button>
+          
           {isOwner && (
             <div
-              className="absolute top-2 right-2 w-2 h-2 rounded-full shadow-[var(--shadow-orange)]"
+              className="absolute top-2 right-10 w-2 h-2 rounded-full shadow-[var(--shadow-orange)]"
               style={{ backgroundColor: "var(--orange)" }}
             />
           )}

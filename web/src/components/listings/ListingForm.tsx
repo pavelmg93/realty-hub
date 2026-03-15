@@ -19,8 +19,6 @@ import FreestyleEditor from "./FreestyleEditor";
 import DatabaseView from "./DatabaseView";
 import { useLanguage } from "@/contexts/LanguageContext";
 
-type Mode = "freestyle" | "database";
-
 const EMPTY_LISTING: ListingInput = {
   property_type: null,
   transaction_type: null,
@@ -180,10 +178,9 @@ interface Props {
 export default function ListingForm({ existing, initialData }: Props) {
   const router = useRouter();
   const { t } = useLanguage();
-  const [mode, setMode] = useState<Mode>(
-    existing ? "database" : initialData ? "database" : "freestyle",
+  const [freestyleText, setFreestyleText] = useState(
+    existing?.freestyle_text || ""
   );
-  const [freestyleText, setFreestyleText] = useState("");
   const [formData, setFormData] = useState<ListingInput>(
     existing ? listingToInput(existing) : { ...EMPTY_LISTING, ...initialData },
   );
@@ -196,12 +193,14 @@ export default function ListingForm({ existing, initialData }: Props) {
   useEffect(() => {
     if (!existing && initialData && Object.keys(initialData).length > 0) {
       setFormData((prev) => ({ ...prev, ...initialData }));
-      setMode("database");
+      if (initialData.freestyle_text) {
+        setFreestyleText(initialData.freestyle_text);
+      }
     }
   }, [existing, initialDataKey]);
 
-  const handleParse = async (text?: string) => {
-    const textToParse = typeof text === "string" ? text : freestyleText;
+  const handleParse = async () => {
+    const textToParse = freestyleText;
     if (!textToParse.trim()) return;
     setParsing(true);
     setError(null);
@@ -233,25 +232,14 @@ export default function ListingForm({ existing, initialData }: Props) {
     }
   };
 
-  const switchMode = (newMode: Mode) => {
-    if (newMode === mode) return;
-
-    if (newMode === "freestyle") {
-      // Database → Freestyle: generate a clean summary from structured fields
-      setFreestyleText(formDataToText(formData));
-    }
-    // Freestyle → Database: no auto-parse. User clicks "Parse Text" explicitly.
-
-    setMode(newMode);
-  };
-
   const handleSave = async () => {
     setSaving(true);
     setError(null);
     try {
       const payload = {
         ...formData,
-        freestyle_text: mode === "freestyle" ? freestyleText || null : null,
+        freestyle_text: freestyleText || null,
+        description: formData.description || freestyleText || null,
       };
 
       const url = existing
@@ -302,56 +290,26 @@ export default function ListingForm({ existing, initialData }: Props) {
         </div>
       )}
 
-      <div
-        className="flex rounded-xl overflow-hidden mb-6 border border-[var(--border)]"
+      <div 
+        className="rounded-xl p-4 shadow-sm border border-[var(--border)] space-y-4 mb-6"
         style={{ backgroundColor: "var(--bg-surface)" }}
       >
-        <button
-          type="button"
-          onClick={() => switchMode("freestyle")}
-          disabled={parsing}
-          className={`flex-1 px-4 py-3 text-sm font-medium transition-colors ${
-            mode === "freestyle"
-              ? "text-white"
-              : "text-[var(--text-muted)] hover:text-[var(--text-secondary)]"
-          }`}
-          style={
-            mode === "freestyle"
-              ? { backgroundColor: "var(--orange)" }
-              : undefined
-          }
-        >
-          {t("freestyleMessage")}
-        </button>
-        <button
-          type="button"
-          onClick={() => switchMode("database")}
-          disabled={parsing}
-          className={`flex-1 px-4 py-3 text-sm font-medium transition-colors ${
-            mode === "database"
-              ? "text-white"
-              : "text-[var(--text-muted)] hover:text-[var(--text-secondary)]"
-          }`}
-          style={
-            mode === "database"
-              ? { backgroundColor: "var(--orange)" }
-              : undefined
-          }
-        >
-          {parsing ? t("parsing") : t("databaseView")}
-        </button>
-      </div>
-
-      {mode === "freestyle" ? (
+        <h2 className="text-sm font-semibold uppercase tracking-wider text-[var(--text-secondary)] border-b border-[var(--border)] pb-2">
+          {t("description")} & AI Parse
+        </h2>
+        <p className="text-xs text-gray-500">Paste your raw listing text here. Click Parse to automatically extract fields.</p>
         <FreestyleEditor
           value={freestyleText}
-          onChange={setFreestyleText}
+          onChange={(v: string) => {
+            setFreestyleText(v);
+            setFormData(prev => ({ ...prev, description: v }));
+          }}
           onParse={handleParse}
           isParsing={parsing}
         />
-      ) : (
-        <DatabaseView data={formData} onChange={setFormData} />
-      )}
+      </div>
+
+      <DatabaseView data={formData} onChange={setFormData} />
 
       <div className="flex items-center gap-3 mt-8 pt-6 border-t border-[var(--border)]">
         <button

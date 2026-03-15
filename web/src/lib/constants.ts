@@ -1,18 +1,11 @@
 export const LISTING_STATUSES = {
+  just_listed: { label: "Just Listed", color: "bg-blue-100 text-blue-800" },
   for_sale: { label: "For Sale", color: "bg-emerald-100 text-emerald-800" },
-  in_negotiations: {
-    label: "In Negotiations",
-    color: "bg-amber-100 text-amber-800",
-  },
-  pending_closing: {
-    label: "Pending Closing",
-    color: "bg-orange-100 text-orange-800",
-  },
+  price_dropped: { label: "Price Dropped", color: "bg-green-100 text-green-800" },
+  price_increased: { label: "Price Increased", color: "bg-red-100 text-red-800" },
+  deposit: { label: "Deposit", color: "bg-yellow-100 text-yellow-800" },
   sold: { label: "Sold", color: "bg-rose-100 text-rose-800" },
-  not_for_sale: {
-    label: "Not for Sale",
-    color: "bg-slate-100 text-slate-600",
-  },
+  not_for_sale: { label: "Not for Sale", color: "bg-slate-100 text-slate-600" },
 } as const;
 
 export const PROPERTY_TYPES = {
@@ -142,4 +135,51 @@ export function formatPrice(vnd: number | null): string {
     return `${tr % 1 === 0 ? tr.toFixed(0) : tr.toFixed(1)} trieu`;
   }
   return vnd.toLocaleString("vi-VN") + " VND";
+}
+
+export function formatPriceShortest(vnd: number | null): string {
+  if (!vnd) return "";
+  if (vnd >= 1_000_000_000) {
+    const ty = vnd / 1_000_000_000;
+    return `${ty % 1 === 0 ? ty.toFixed(0) : ty.toFixed(1)}ty`;
+  }
+  if (vnd >= 1_000_000) {
+    const tr = vnd / 1_000_000;
+    return `${tr % 1 === 0 ? tr.toFixed(0) : tr.toFixed(1)}tr`;
+  }
+  return vnd.toString();
+}
+
+/**
+ * Formula: "<Address> <area> <#floors> <frontage>x<depth> <price-shortest-format> <commission-code>"
+ * Example: "34/2 Nguyen Thien Thuat 100 7 10x10 20ty hh1"
+ */
+export function generateTitleStandardized(data: {
+  address_raw?: string | null;
+  street?: string | null;
+  ward?: string | null;
+  area_m2?: number | null;
+  num_floors?: number | null;
+  frontage_m?: number | null;
+  depth_m?: number | null;
+  price_vnd?: number | null;
+  commission?: string | null;
+}): string {
+  const parts: string[] = [];
+
+  const addr = data.address_raw || data.street || data.ward;
+  if (addr) parts.push(addr);
+  if (data.area_m2) parts.push(data.area_m2.toString());
+  if (data.num_floors) parts.push(data.num_floors.toString());
+  
+  const dimParts: string[] = [];
+  if (data.frontage_m) dimParts.push(data.frontage_m.toString());
+  if (data.depth_m) dimParts.push(data.depth_m.toString());
+  if (dimParts.length > 0) parts.push(dimParts.join("x"));
+  
+  if (data.price_vnd) parts.push(formatPriceShortest(data.price_vnd));
+  
+  parts.push(data.commission || "hh1");
+
+  return parts.join(" ");
 }

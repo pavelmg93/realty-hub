@@ -3,19 +3,23 @@
 import { useLanguage } from "@/contexts/LanguageContext";
 
 type Status =
+  | "just_listed"
   | "for_sale"
-  | "in_negotiations"
-  | "pending_closing"
+  | "price_dropped"
+  | "price_increased"
+  | "deposit"
   | "sold"
   | "not_for_sale";
 
 const STATUS_MAP: Record<
   Status,
-  { color: string; key: "open" | "negotiating" | "pendingClosing" | "sold" | "notForSale" }
+  { color: string; key: "justListed" | "forSale" | "priceDropped" | "priceIncreased" | "deposit" | "sold" | "notForSale" }
 > = {
-  for_sale: { color: "var(--status-open)", key: "open" },
-  in_negotiations: { color: "var(--status-negotiating)", key: "negotiating" },
-  pending_closing: { color: "var(--status-pending)", key: "pendingClosing" },
+  just_listed: { color: "var(--info)", key: "justListed" },
+  for_sale: { color: "var(--status-open)", key: "forSale" },
+  price_dropped: { color: "var(--status-open)", key: "priceDropped" },
+  price_increased: { color: "var(--status-open)", key: "priceIncreased" },
+  deposit: { color: "var(--status-pending)", key: "deposit" },
   sold: { color: "var(--status-sold)", key: "sold" },
   not_for_sale: { color: "var(--status-nfs)", key: "notForSale" },
 };

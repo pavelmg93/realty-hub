@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import pool from "@/lib/db";
 import { getAuthFromCookies } from "@/lib/auth";
 import { listingSchema } from "@/lib/validation";
+import { generateTitleStandardized } from "@/lib/constants";
 import crypto from "crypto";
 
 const LISTING_FILTERS: {
@@ -60,9 +61,17 @@ export async function GET(request: NextRequest) {
       const value = searchParams.get(filter.key);
       if (value === null || value === "") continue;
       if (filter.type === "eq") {
-        conditions.push(`${filter.column} = $${paramIndex}`);
-        params.push(value);
-        paramIndex++;
+        const values = value.split(",");
+        if (values.length > 1) {
+          const placeholders = values.map((_, i) => `$${paramIndex + i}`).join(", ");
+          conditions.push(`${filter.column} IN (${placeholders})`);
+          params.push(...values);
+          paramIndex += values.length;
+        } else {
+          conditions.push(`${filter.column} = $${paramIndex}`);
+          params.push(value);
+          paramIndex++;
+        }
       } else if (filter.type === "gte") {
         const num = parseFloat(value);
         if (!isNaN(num)) {
@@ -85,7 +94,9 @@ export async function GET(request: NextRequest) {
 
     const whereClause = conditions.join(" AND ");
     const result = await pool.query(
-      `SELECT * FROM parsed_listings WHERE ${whereClause} ORDER BY ${safeSort} ${safeOrder}`,
+      `SELECT *,
+        EXISTS(SELECT 1 FROM listing_favorites f WHERE f.listing_id = parsed_listings.id AND f.agent_id = $1) AS is_favorited
+       FROM parsed_listings WHERE ${whereClause} ORDER BY ${safeSort} ${safeOrder}`,
       params
     );
 
@@ -137,7 +148,8 @@ export async function POST(request: NextRequest) {
         total_construction_area, land_characteristics,
         traffic_connectivity, building_type,
         latitude, longitude,
-        road_width_m, num_frontages, distance_to_beach_m
+        road_width_m, num_frontages, distance_to_beach_m,
+        title_standardized, commission
       ) VALUES (
         $1, $2,
         $3, $4, $5, $6,
@@ -151,7 +163,8 @@ export async function POST(request: NextRequest) {
         $35, $36,
         $37, $38,
         $39, $40,
-        $41, $42, $43, $44, $45
+        $41, $42, $43, $44, $45,
+        $46, $47
       ) RETURNING *`,
       [
         auth.userId,
@@ -200,7 +213,9 @@ export async function POST(request: NextRequest) {
         data.longitude ?? null,
         data.road_width_m ?? null,
         data.num_frontages ?? null,
-        data.distance_to_beach_m ?? null
+        data.distance_to_beach_m ?? null,
+        generateTitleStandardized(data),
+        data.commission ?? "hh1"
       ],
     );
 

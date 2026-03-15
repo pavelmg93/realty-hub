@@ -34,6 +34,7 @@ export interface FeedFilterValues {
   has_elevator: string;
   negotiable: string;
   agent_id: string;
+  is_favorited: string;
   sort: string;
   order: string;
 }
@@ -58,6 +59,7 @@ export const DEFAULT_FILTERS: FeedFilterValues = {
   has_elevator: "",
   negotiable: "",
   agent_id: "",
+  is_favorited: "",
   sort: "created_at",
   order: "desc",
 };
@@ -324,6 +326,17 @@ export default function FeedFilters({
               className="rounded accent-[var(--orange)]"
             />
             {t("negotiable")}
+          </label>
+          <label className="flex items-center gap-2 text-xs cursor-pointer text-[var(--text-secondary)]">
+            <input
+              type="checkbox"
+              checked={filters.is_favorited === "true"}
+              onChange={(e) =>
+                set("is_favorited", e.target.checked ? "true" : "")
+              }
+              className="rounded accent-[var(--orange)]"
+            />
+            {t("favoritesOnly") || "Favorites Only"}
           </label>
         </div>
       </div>

@@ -74,9 +74,17 @@ export async function GET(request: NextRequest) {
             paramIndex++;
           }
         } else {
-          conditions.push(`${filter.column} = $${paramIndex}`);
-          params.push(value);
-          paramIndex++;
+          const values = value.split(",");
+          if (values.length > 1) {
+            const placeholders = values.map((_, i) => `$${paramIndex + i}`).join(", ");
+            conditions.push(`${filter.column} IN (${placeholders})`);
+            params.push(...values);
+            paramIndex += values.length;
+          } else {
+            conditions.push(`${filter.column} = $${paramIndex}`);
+            params.push(value);
+            paramIndex++;
+          }
         }
       } else if (filter.type === "gte") {
         const num = parseFloat(value);
@@ -99,6 +107,12 @@ export async function GET(request: NextRequest) {
           conditions.push(`${filter.column} = FALSE`);
         }
       }
+    }
+
+    if (searchParams.get("is_favorited") === "true") {
+      conditions.push(`EXISTS(SELECT 1 FROM listing_favorites f WHERE f.listing_id = pl.id AND f.agent_id = $${paramIndex})`);
+      params.push(auth.userId);
+      paramIndex++;
     }
 
     const whereClause = conditions.join(" AND ");
@@ -131,7 +145,8 @@ export async function GET(request: NextRequest) {
         a.email AS owner_email,
         c.id AS existing_conversation_id,
         (SELECT COUNT(*) FROM listing_photos lp WHERE lp.listing_id = pl.id) AS photo_count,
-        (SELECT lp.file_path FROM listing_photos lp WHERE lp.listing_id = pl.id ORDER BY lp.display_order LIMIT 1) AS primary_photo
+        (SELECT lp.file_path FROM listing_photos lp WHERE lp.listing_id = pl.id ORDER BY lp.display_order LIMIT 1) AS primary_photo,
+        EXISTS(SELECT 1 FROM listing_favorites f WHERE f.listing_id = pl.id AND f.agent_id = $${userIdParam}) AS is_favorited
       FROM parsed_listings pl
       JOIN agents a ON a.id = pl.agent_id
       LEFT JOIN conversations c ON (

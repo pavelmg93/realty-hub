@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import pool from "@/lib/db";
 import { getAuthFromCookies } from "@/lib/auth";
 import { listingSchema } from "@/lib/validation";
+import { generateTitleStandardized } from "@/lib/constants";
 
 export async function GET(
   _request: NextRequest,
@@ -34,7 +35,8 @@ export async function GET(
          WHERE c.listing_id = pl.id
            AND ((c.agent_1_id = $2 AND c.agent_2_id = pl.agent_id)
                 OR (c.agent_1_id = pl.agent_id AND c.agent_2_id = $2))
-         LIMIT 1) AS existing_conversation_id
+         LIMIT 1) AS existing_conversation_id,
+        EXISTS(SELECT 1 FROM listing_favorites f WHERE f.listing_id = pl.id AND f.agent_id = $2) AS is_favorited
       FROM parsed_listings pl
       LEFT JOIN agents a ON a.id = pl.agent_id
       WHERE pl.id = $1`,
@@ -118,8 +120,9 @@ export async function PUT(
         land_characteristics = $36, traffic_connectivity = $37, building_type = $38,
         latitude = $39, longitude = $40,
         road_width_m = $41, num_frontages = $42, distance_to_beach_m = $43,
+        title_standardized = $44, commission = $45,
         updated_at = NOW()
-      WHERE id = $44
+      WHERE id = $46
       RETURNING *`,
       [
         data.property_type ?? null,
@@ -167,6 +170,8 @@ export async function PUT(
         data.road_width_m ?? null,
         data.num_frontages ?? null,
         data.distance_to_beach_m ?? null,
+        generateTitleStandardized(data),
+        data.commission ?? "hh1",
         listingId,
       ],
     );
