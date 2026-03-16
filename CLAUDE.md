@@ -263,12 +263,22 @@ When I ask you to "log this test" or "create a test session," you must:
 
 ## After Every Session
 
-1. **Log it:** Ask me to "generate a code session" so I document the work in `docs/code_sessions/`.
-2. **Changelog:** Update `docs/CHANGELOG.md` — what was added/changed/fixed.
-3. **Schema:** Update `docs/SCHEMA.md` — if any migrations were applied.
-4. **Compile check:** Run `cd web && npx tsc --noEmit` — confirm clean before committing.
-5. **Commit:** `git add -A && git commit -m "Session N: <one-line summary>"`
+1. **Export chat:** Run `/export` to save a summary to `docs/chat_exports/YYYY-MM-DD-<slug>.md`. Do this proactively when the conversation is getting long, before context compaction hits.
+2. **Log it:** Ask me to "generate a code session" so I document the work in `docs/code_sessions/`.
+3. **Changelog:** Update `docs/CHANGELOG.md` — what was added/changed/fixed.
+4. **Schema:** Update `docs/SCHEMA.md` — if any migrations were applied.
+5. **Compile check:** Run `cd web && npx tsc --noEmit` — confirm clean before committing.
+6. **Commit:** `git add -A && git commit -m "Session N: <one-line summary>"`
 
-**Current session number: 16**
-**Last completed session: 15 — 2026-03-16 — UI Polish, Gemini Integration, i18n Fix**
-**Deployment: Google Cloud VM — pull + docker compose up -d to deploy**
+## Chat Exports
+
+Saved in `docs/chat_exports/`. Run `/export` any time — especially:
+- When the conversation is getting long (proactively, before compaction)
+- After completing a major feature or debugging session
+- Before ending a session
+
+The export captures: summary, decisions, files changed, problems solved, pending items, deployment notes.
+
+**Current session number: 17**
+**Last completed session: 16 — 2026-03-16 — Photo & Document Staging at Listing Creation**
+**Deployment: Google Cloud VM — see `docs/DEPLOYMENT.md` for full guide**
