@@ -263,7 +263,7 @@ When I ask you to "log this test" or "create a test session," you must:
 
 ## After Every Session
 
-1. **Export chat:** Run `/export` to save a summary to `docs/chat_exports/YYYY-MM-DD-<slug>.md`. Do this proactively when the conversation is getting long, before context compaction hits.
+1. **Export chat:** Run `/save-chat` to save a summary to `docs/chat_exports/YYYY-MM-DD-<slug>.md`. Do this proactively when the conversation is getting long, before context compaction hits. (Note: `/export` is a built-in that saves a raw `.txt` transcript to the current dir — use that too if you want the full transcript.)
 2. **Log it:** Ask me to "generate a code session" so I document the work in `docs/code_sessions/`.
 3. **Changelog:** Update `docs/CHANGELOG.md` — what was added/changed/fixed.
 4. **Schema:** Update `docs/SCHEMA.md` — if any migrations were applied.
@@ -272,7 +272,7 @@ When I ask you to "log this test" or "create a test session," you must:
 
 ## Chat Exports
 
-Saved in `docs/chat_exports/`. Run `/export` any time — especially:
+Saved in `docs/chat_exports/`. Run `/save-chat` any time — especially:
 - When the conversation is getting long (proactively, before compaction)
 - After completing a major feature or debugging session
 - Before ending a session
