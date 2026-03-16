@@ -38,7 +38,7 @@ export default function ListingsPage() {
       if (tab === "active") {
         params.set("status", "just_listed,for_sale,price_dropped,price_increased");
       } else if (tab === "under_contract") {
-        params.set("status", "in_negotiations,deposit,pending_closing");
+        params.set("status", "deposit");
       } else if (tab === "sold") {
         params.set("status", "sold");
       }
@@ -199,18 +199,6 @@ export default function ListingsPage() {
           {t("archived")}
         </button>
 
-        {viewMode === "grid" && (
-          <GridToggle value={cols} onChange={setCols} />
-        )}
-
-        <button
-          type="button"
-          onClick={() => setViewMode((m) => (m === "grid" ? "map" : "grid"))}
-          className="inline-flex items-center gap-2 px-3 py-2 text-sm rounded-lg border border-[var(--border)] text-[var(--text-secondary)] hover:bg-[var(--bg-hover)]"
-          style={{ backgroundColor: "var(--bg-surface)" }}
-        >
-          <Map size={16} /> {viewMode === "map" ? t("grid") : t("map")}
-        </button>
       </div>
 
       {showFilters && (

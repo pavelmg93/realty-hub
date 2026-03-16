@@ -1,81 +1,108 @@
 # ProMemo — Project Scope & Action Hub
-**Session 14 · 2026-03-16 · Picking up from AntiGravity handoff**
+**Session 15 · 2026-03-16 · UI Polish, Gemini Integration, i18n Fix**
 
 ---
 
-## 🎯 Current Milestone: Session 14 — Listing Form Rebuild & Schema Consistency Pass
+## 🎯 Current Milestone: Session 15 — Listing UI Polish + Gemini AI Parse + i18n Cleanup
 
-**Objective:** Eliminate the two critical server errors blocking basic listing workflow (Add + Edit), rebuild the New Listing form against the full `parsed_listings` schema with inline AI parse, rebuild My Listings to match Stitch mockups, and add the five schema/UI improvements (favorites, title_standardized, commission, status expansions, i18n pass).
+**Objective:** Bring New Listing and My Listings pages to Stitch quality with photos/docs,
+wire up real Gemini parsing, fix card display (title_standardized + status badges),
+enforce Feed visibility rules, fix all dropdown i18n gaps, and restore agent header
+in conversation threads.
 
 ---
 
 ## 🚀 Next Actions (Immediate execution)
 
-### P0 — Bugs (unblock before anything else)
-* [x] **[API: listings POST]** Fixed — root cause was `description_vi` and `description_en` ghost columns in INSERT SQL that don't exist in DB. Removed from POST, PUT, validation, types.
-* [x] **[API: listings PUT]** Fixed — same root cause as POST. Removed ghost columns.
-* [x] **[DB: migration 011]** Applied `011_drop_old_status_constraint.sql` — dropped overlapping `ck_parsed_listings_status`. `title_standardized` and `commission` already existed (added by earlier sessions). SCHEMA.md updated to level 011.
+### P0 — Wrap Session 14 First
+* [x] **[Housekeeping]** Session 14 logged and committed.
 
-### P1 — New Listing Form Rebuild
-* [x] **[UI: New Listing]** Already built by Cursor/AntiGravity — has AI parse textarea + form sections + DatabaseView. Works end-to-end after P0 fix.
-* [x] **[UI: Description block]** Freeflow textarea + "Parse with AI" button already implemented. Mock parser extracts price, area, ward, floors, street, property type.
-* [x] **[UI: Create Listing button]** Works — INSERTs into `parsed_listings`, redirects to My Listings.
-* [x] **[API: `/api/ai/parse-listing`]** Route exists with mock regex parser. Ready for Gemini upgrade when key is configured.
+### P1 — Conversation Thread Regression
+* [x] **[UI: MessageThread header]** Verified — already working. `GET /api/conversations/[id]`
+  returns `other_agent_name`, `other_agent_id`, `other_agent_avatar_url`. Header renders
+  agent name + initials avatar circle. `avatar_url` column added in migration 010.
 
-### P2 — My Listings Rebuild
-* [x] **[UI: My Listings]** Already built — grid 1/2/3 toggle, map toggle, status filter tabs (All / Active / Under Contract / Sold / Archived), search bar, filters panel, orange ring on own cards.
-* [x] **[Schema parity]** Feed and My Listings share FeedFilters component with same filter set. Feed adds Agent filter.
+### P2 — New Listing Form: Photos + Remove Dead Button
+* [x] **[UI: New Listing — remove "Parse Text"]** Removed FreestyleEditor + dead `handleParse`
+  (called non-existent `/api/parse`). Replaced with simple description textarea.
+* [ ] **[UI: New Listing — Photos]** PhotoUploader staging mode — deferred.
+* [ ] **[UI: New Listing — Documents]** DocumentManager staging mode — deferred.
 
-### P3 — Schema & Status Improvements
-* [x] **[DB: migration 011]** Dropped old constraint. New constraint includes all 9 statuses. Added `in_negotiations` and `pending_closing` to Zod validation enum.
-* [x] **[UI: StatusBadge]** Updated with all 9 statuses including `in_negotiations` and `pending_closing`. Shows on all listing cards.
-* [x] **[Logic: title_standardized]** Already implemented in `web/src/lib/constants.ts` → `generateTitleStandardized()`. Auto-generated on INSERT/UPDATE.
+### P3 — My Listings: Card UX
+* [x] **[UI: ListingCard — photo thumbnail]** Added `primary_photo` + `photo_count`
+  subqueries to `GET /api/listings`. Card now shows photo thumbnail with count badge.
+* [x] **[UI: ListingCard — remove "View" button]** Entire card wrapped in `<Link>`.
+  Edit/Inquiries/Archive use `e.stopPropagation()`.
 
-### P4 — Feed: Favorites
-* [x] **[UI: FeedCard]** Heart icon on every ListingCard with optimistic toggle. Uses lucide-react Heart icon.
-* [x] **[API: `/api/listings/[id]/favorite`]** Rebuilt as simple toggle (POST) + status check (GET). No request body needed.
-* [x] **[UI: FeedFilters]** "Favorites Only" checkbox already in filter panel. Feed API supports `is_favorited=true`.
+### P4 — Card Display: title_standardized + Status Badges
+* [x] **[UI: ListingCard + FeedCard — headline]** Both cards now show two-line display:
+  Line 1: `address_raw`, Line 2: specs from `title_standardized` or fallback.
+* [x] **[Logic: generateTitleStandardized()]** Updated in `constants.ts`. Formula:
+  `<area>m² <floors>T <frontage>x<depth> <commission> <price>`. No address in title.
+* [x] **[UI: StatusBadge on card thumbnails]** Badge top-left of photo, hidden for `for_sale`.
 
-### P5 — i18n Pass
-* [x] **[i18n]** Added `inNegotiations` key to en + vi. All other keys were already present from Cursor/AntiGravity work.
+### P5 — Status Enum: Reduce to 7
+* [x] **[Constants]** Removed `in_negotiations`/`pending_closing`. Final 7 values.
+* [x] **[Validation]** Zod enum updated.
+* [x] **[DB: migration 012]** Applied. Rows migrated, CHECK constraint updated.
+* [x] **[i18n]** Dead keys removed, all 7 statuses have vi/en labels.
+* [x] **[SCHEMA.md]** Updated to migration level 012.
+
+### P6 — Feed Visibility Rules
+* [x] **[API: feed query]** Added condition: `pl.status NOT IN ('sold', 'not_for_sale')
+  OR EXISTS(listing_favorites WHERE agent_id = $current)`.
+
+### P7 — Gemini API Integration
+* [x] **[Config]** `GEMINI_API_KEY` already in `.env.example` and docker-compose.
+* [x] **[API: `/api/ai/parse-listing`]** Rewrote with Gemini 1.5 Flash + mock fallback.
+  Returns `ai_used: bool`. Installed `@google/generative-ai`.
+* [ ] **[UI: parse feedback]** Confidence indicators — deferred.
+
+### P8 — i18n: Dropdown Field Values
+* [x] **[i18n]** Added `FIELD_VALUE_LABELS` map + `getFieldValueLabel()` helper.
+  Covers: property_type, transaction_type, status, furnished, legal_status,
+  direction, access_road, structure_type, building_type. Applied to FeedCard.
+
+### P9 — Screenshots Folder
+* [ ] **[Repo]** Create `docs/screenshots/`. Commit current-state PNGs with
+  descriptive names. Claude Code reads these as visual reference for UI tasks.
 
 ---
 
 ## ⏳ Waiting On (Blocked)
 
-* [ ] **[Stitch mockups]** Access to `stitch_property_details_view/` directory — needed for P1 (New Listing) and P2 (My Listings). Confirm files are present in repo before starting those tasks.
-* [ ] **[GEMINI_API_KEY]** Must be set in `.env` / VM environment before the AI parse route can be tested end-to-end.
+* [ ] **[GEMINI_API_KEY]** Pavel to obtain and add to `.env`. Required for P7.
 
 ---
 
 ## 🧊 Backlog (Upcoming, not active this session)
 
-* [ ] **[CRM]** Person profile: document uploads + interaction history log (deal_events) per ROADMAP-v2 §3.
-* [ ] **[CRM: Deals]** Pre-populate 2–3 seed deals in different stages for demo walkthrough.
-* [ ] **[Messaging]** Property context bar in thread (Session 12 partial) — verify working after schema alignment.
-* [ ] **[Auth]** JWT expiry + refresh tokens before any public URL goes live (7-day expiry minimum).
-* [ ] **[Deployment]** GCP Cloud Run / Cloud SQL migration from VM docker-compose — post-demo-stabilization.
-* [ ] **[Photos: R2]** Migrate `./uploads/` to Cloudflare R2 presigned URLs for production photo storage.
-* [ ] **[Agent avatars]** `avatar_url` on agents table + upload flow (flagged in Session 12).
+* [ ] **[CRM]** Person profile: document uploads + interaction history log.
+* [ ] **[CRM: Deals]** Pre-populate 2–3 seed deals for demo walkthrough.
+* [ ] **[Auth]** JWT expiry + refresh tokens before public URL goes live.
+* [ ] **[Agent avatars]** `avatar_url` on agents table — migration 012 (add alongside
+  status constraint fix, same migration file).
+* [ ] **[Photos: R2]** Cloudflare R2 for production photo storage.
+* [ ] **[Deployment]** GCP VM sync after Session 15 stabilizes.
 
 ---
 
 ## 🌌 Someday / Maybe
 
-* [ ] Re-enable Kestra + Python scraping pipeline for bulk listing ingestion (post-demo).
+* [ ] Re-enable Kestra + scraping pipeline post-demo.
 * [ ] pgvector semantic search on listing descriptions.
-* [ ] Push notifications (FCM) for new messages and deal stage changes.
-* [ ] Auto-post to Zalo / TikTok / LinkedIn via MCP (scaffolded in Full Listing View).
-* [ ] Public listing pages (`/l/[id]?token=xxx`) for client sharing without login.
-* [ ] Analytics dashboard — deal conversion rates, listing performance (BigQuery post-MVP).
+* [ ] Push notifications (FCM).
+* [ ] Auto-post to Zalo / TikTok / LinkedIn.
+* [ ] Public listing pages (`/l/[id]?token=xxx`).
+* [ ] Analytics dashboard (BigQuery post-MVP).
 
 ---
 
-## 📋 Known Tech Debt (fix opportunistically)
+## 📋 Known Tech Debt
 
 | Issue | Priority | Notes |
 |---|---|---|
-| BIGINT as string from node-postgres | High | Always `parseInt(row.price_vnd) \|\| null` — add shared `coerceBigInt` helper to `lib/db.ts` if not already there |
-| Turbopack stale 404s in dev | Low | `rm -rf web/.next` as workaround; consider `--turbo` flag audit |
-| Two overlapping CHECK constraints on `parsed_listings.status` | Medium | Legacy constraint still present — verify new one is authoritative, drop old one in migration 011 |
-| `cho_thue` → `ban` data fix (migration 005) | Done | Verify applied on GCP VM DB |
+| BIGINT as string from node-postgres | High | `parseInt(row.price_vnd) \|\| null` everywhere |
+| `avatar_url` missing from agents table | Medium | Add in migration 012 alongside status fix |
+| Session 14 not committed or code_session logged | High | P0 of Session 15 |
+| Turbopack stale 404s in dev | Low | `rm -rf web/.next` workaround |

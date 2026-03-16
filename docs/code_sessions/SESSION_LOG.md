@@ -5,6 +5,53 @@ successful session. **Newest sessions first.**
 
 ---
 
+## Session 15 — 2026-03-16 — UI Polish, Gemini Integration, i18n Fix
+
+### Summary
+Executed SCOPE.md P1-P8. Fixed conversation thread header, removed dead Parse Text from New Listing, added photo thumbnails to My Listings cards, implemented two-line headline display, reduced status enum to 7, added feed visibility rules, integrated Gemini 1.5 Flash AI parse, added bilingual i18n field value labels. Fixed multiple SQL bugs (missing columns: archived_at, avatar_url on conversations/agents queries). Migration 012 applied.
+
+### Features Delivered
+- Gemini 1.5 Flash AI parse with regex mock fallback
+- FIELD_VALUE_LABELS bilingual map for all dropdown fields
+- My Listings: photo thumbnails, clickable cards, favorite hearts
+- Two-line headline (address + specs) on all card components (text-xl)
+- Feed: sold/not_for_sale hidden unless favorited
+- Conversation header: agent name + initials avatar working
+
+### Architecture Decisions
+- `generateTitleStandardized()` changed to specs-only (no address) — address is Line 1, title is Line 2
+- Removed `avatar_url` from conversation API queries — column not applied to DB
+- Removed `archived_at` from conversation API — column not on conversations table
+
+### Challenges
+- Nested `<a>` hydration error: outer card Link + inner Edit/Inquiries Links
+- Messages "Loading..." hang: conversation [id] API queried non-existent columns → 500 → null conversation → infinite loading
+- "agent undefined": race condition rendering header before fetchConversation completed
+
+### Test Results
+- TypeScript: clean (`npx tsc --noEmit` passes)
+- Next.js build: succeeds
+- Docker: web container builds and serves on port 8888
+- Login, Add Listing, Edit Listing, Favorites, Feed, Messages all functional
+
+### Files Created/Modified
+- 20 source files modified, 1 migration created, 1 npm package added
+- See `docs/code_sessions/2026-03-16-session15-ui-polish-gemini-i18n.md` for full list
+
+---
+
+## Session 14 — 2026-03-16 — P0 Bug Fixes, Schema Cleanup, Deployment Prep
+
+### Summary
+Picked up from Cursor/AntiGravity handoff. Fixed critical Add/Edit Listing crashes (ghost columns), rebuilt Favorites API as toggle, added missing status enum values, prepared GCP deployment script. Migration 011 applied.
+
+### Features Delivered
+- Add/Edit Listing working end-to-end
+- Favorites toggle API (simple POST, no body)
+- deploy-vm.sh for GCP deployment
+- GEMINI_API_KEY passthrough in docker-compose
+
+---
 
 ## Session 13 — 2026-03-15 — Google Cloud VM Deployment, Docker Fixes, DB Schema Alignment
 

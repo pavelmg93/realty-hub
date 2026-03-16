@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { ListingInput } from "@/lib/validation";
 import { Listing } from "@/lib/types";
@@ -15,7 +15,6 @@ import {
   BUILDING_TYPES,
   formatPrice,
 } from "@/lib/constants";
-import FreestyleEditor from "./FreestyleEditor";
 import DatabaseView from "./DatabaseView";
 import { useLanguage } from "@/contexts/LanguageContext";
 
@@ -174,59 +173,18 @@ interface Props {
 export default function ListingForm({ existing, initialData }: Props) {
   const router = useRouter();
   const { t } = useLanguage();
-  const [freestyleText, setFreestyleText] = useState(
-    existing?.freestyle_text || ""
-  );
   const [formData, setFormData] = useState<ListingInput>(
     existing ? listingToInput(existing) : { ...EMPTY_LISTING, ...initialData },
   );
   const [saving, setSaving] = useState(false);
-  const [parsing, setParsing] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const lastParsedText = useRef<string>("");
 
   const initialDataKey = initialData ? JSON.stringify(initialData) : "";
   useEffect(() => {
     if (!existing && initialData && Object.keys(initialData).length > 0) {
       setFormData((prev) => ({ ...prev, ...initialData }));
-      if (initialData.freestyle_text) {
-        setFreestyleText(initialData.freestyle_text);
-      }
     }
   }, [existing, initialDataKey]);
-
-  const handleParse = async () => {
-    const textToParse = freestyleText;
-    if (!textToParse.trim()) return;
-    setParsing(true);
-    setError(null);
-    try {
-      const res = await fetch("/api/parse", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ text: textToParse }),
-      });
-      if (!res.ok) {
-        setError("Failed to parse text");
-        return;
-      }
-      const { parsed } = await res.json();
-      // Merge parsed values into form data (only non-null values override)
-      const merged = { ...formData };
-      for (const [key, value] of Object.entries(parsed)) {
-        if (value !== null && value !== undefined) {
-          (merged as Record<string, unknown>)[key] = value;
-        }
-      }
-      merged.freestyle_text = textToParse;
-      setFormData(merged);
-      lastParsedText.current = textToParse;
-    } catch {
-      setError("Parse request failed");
-    } finally {
-      setParsing(false);
-    }
-  };
 
   const handleSave = async () => {
     setSaving(true);
@@ -234,8 +192,6 @@ export default function ListingForm({ existing, initialData }: Props) {
     try {
       const payload = {
         ...formData,
-        freestyle_text: freestyleText || null,
-        description: formData.description || freestyleText || null,
       };
 
       const url = existing
@@ -286,32 +242,13 @@ export default function ListingForm({ existing, initialData }: Props) {
         </div>
       )}
 
-      <div 
-        className="rounded-xl p-4 shadow-sm border border-[var(--border)] space-y-4 mb-6"
-        style={{ backgroundColor: "var(--bg-surface)" }}
-      >
-        <h2 className="text-sm font-semibold uppercase tracking-wider text-[var(--text-secondary)] border-b border-[var(--border)] pb-2">
-          {t("description")} & AI Parse
-        </h2>
-        <p className="text-xs text-gray-500">Paste your raw listing text here. Click Parse to automatically extract fields.</p>
-        <FreestyleEditor
-          value={freestyleText}
-          onChange={(v: string) => {
-            setFreestyleText(v);
-            setFormData(prev => ({ ...prev, description: v }));
-          }}
-          onParse={handleParse}
-          isParsing={parsing}
-        />
-      </div>
-
       <DatabaseView data={formData} onChange={setFormData} />
 
       <div className="flex items-center gap-3 mt-8 pt-6 border-t border-[var(--border)]">
         <button
           type="button"
           onClick={handleSave}
-          disabled={saving || parsing}
+          disabled={saving}
           className="px-6 py-2.5 text-white text-sm rounded-lg disabled:opacity-50 font-medium transition-colors"
           style={{ backgroundColor: "var(--orange)" }}
         >

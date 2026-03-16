@@ -1,18 +1,20 @@
 "use client";
 
 import { Listing } from "@/lib/types";
-import {
-  formatPrice,
-  LEGAL_STATUS_TYPES,
-  ACCESS_ROAD_TYPES,
-  DIRECTION_TYPES,
-  FURNISHED_TYPES,
-  STRUCTURE_TYPES,
-  BUILDING_TYPES,
-} from "@/lib/constants";
+import { formatPrice, formatPriceShortest } from "@/lib/constants";
 import { StatusBadge } from "@/components/ui/StatusBadge";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { getPropertyTypeKey, getTransactionTypeKey } from "@/lib/i18n";
+import { getPropertyTypeKey, getTransactionTypeKey, getFieldValueLabel } from "@/lib/i18n";
+
+function buildSpecsLine(l: Listing): string {
+  const parts: string[] = [];
+  if (l.area_m2) parts.push(`${l.area_m2}m²`);
+  if (l.num_floors) parts.push(`${l.num_floors}T`);
+  if (l.frontage_m && l.depth_m) parts.push(`${l.frontage_m}x${l.depth_m}`);
+  if (l.commission) parts.push(l.commission);
+  if (l.price_vnd) parts.push(formatPriceShortest(l.price_vnd));
+  return parts.join(" ");
+}
 
 interface Props {
   listing: Listing;
@@ -22,7 +24,7 @@ interface Props {
 }
 
 export default function FeedCard({ listing, currentUserId, onMessage, onClick }: Props) {
-  const { t } = useLanguage();
+  const { t, lang } = useLanguage();
   const propertyKey = getPropertyTypeKey(listing.property_type ?? undefined);
   const txKey = getTransactionTypeKey(listing.transaction_type ?? undefined);
   const propertyLabel = propertyKey ? t(propertyKey) : (listing.property_type ?? "");
@@ -73,69 +75,44 @@ export default function FeedCard({ listing, currentUserId, onMessage, onClick }:
         </div>
       </div>
 
-      {/* Price */}
-      {listing.price_vnd && (
-        <p className="text-xl font-bold text-[var(--text-primary)] mb-1">
-          {formatPrice(listing.price_vnd)}
-        </p>
-      )}
-
-      {/* Specs */}
-      <div className="flex flex-wrap gap-3 text-sm text-[var(--text-secondary)] mb-3">
-        {listing.area_m2 && <span className="font-medium">{listing.area_m2}m²</span>}
-        {listing.num_bedrooms && (
-          <span className="flex items-center gap-1">
-            <svg className="w-3.5 h-3.5 text-[var(--text-muted)]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg>
-            {listing.num_bedrooms} bed
-          </span>
-        )}
-        {listing.num_bathrooms && <span>{listing.num_bathrooms} bath</span>}
-        {listing.num_floors && <span>{listing.num_floors} floor</span>}
-        {listing.frontage_m && <span>{listing.frontage_m}m front</span>}
-        {listing.depth_m && <span>{listing.depth_m}m deep</span>}
-      </div>
-
-      {/* Location */}
-      {(listing.ward || listing.street) && (
-        <p className="text-sm text-[var(--text-muted)] mb-3 flex items-center gap-1">
-          <svg className="w-3.5 h-3.5 text-[var(--text-muted)] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-          </svg>
-          {[listing.street, listing.ward].filter(Boolean).join(", ")}
-        </p>
-      )}
+      {/* Two-line headline */}
+      <p className="text-xl font-bold text-[var(--text-primary)] truncate leading-tight">
+        {listing.address_raw || [listing.street, listing.ward].filter(Boolean).join(", ") || ""}
+      </p>
+      <p className="text-xl font-bold text-[var(--text-primary)] truncate leading-tight mb-2">
+        {listing.title_standardized || buildSpecsLine(listing)}
+      </p>
 
       {/* Feature tags */}
       <div className="flex flex-wrap gap-1.5 mb-3">
         {listing.legal_status && (
           <span className="text-xs px-1.5 py-0.5 rounded text-[var(--text-secondary)]" style={{ backgroundColor: "var(--bg-hover)" }}>
-            {LEGAL_STATUS_TYPES[listing.legal_status as keyof typeof LEGAL_STATUS_TYPES] || listing.legal_status}
+            {getFieldValueLabel("legal_status", listing.legal_status, lang)}
           </span>
         )}
         {listing.direction && (
           <span className="text-xs px-1.5 py-0.5 rounded text-[var(--text-secondary)]" style={{ backgroundColor: "var(--bg-hover)" }}>
-            {DIRECTION_TYPES[listing.direction as keyof typeof DIRECTION_TYPES] || listing.direction}
+            {getFieldValueLabel("direction", listing.direction, lang)}
           </span>
         )}
         {listing.access_road && (
           <span className="text-xs px-1.5 py-0.5 rounded text-[var(--text-secondary)]" style={{ backgroundColor: "var(--bg-hover)" }}>
-            {ACCESS_ROAD_TYPES[listing.access_road as keyof typeof ACCESS_ROAD_TYPES] || listing.access_road}
+            {getFieldValueLabel("access_road", listing.access_road, lang)}
           </span>
         )}
         {listing.furnished && (
           <span className="text-xs px-1.5 py-0.5 rounded text-[var(--text-secondary)]" style={{ backgroundColor: "var(--bg-hover)" }}>
-            {FURNISHED_TYPES[listing.furnished as keyof typeof FURNISHED_TYPES] || listing.furnished}
+            {getFieldValueLabel("furnished", listing.furnished, lang)}
           </span>
         )}
         {listing.structure_type && (
           <span className="text-xs px-1.5 py-0.5 rounded text-[var(--text-secondary)]" style={{ backgroundColor: "var(--bg-hover)" }}>
-            {STRUCTURE_TYPES[listing.structure_type as keyof typeof STRUCTURE_TYPES] || listing.structure_type}
+            {getFieldValueLabel("structure_type", listing.structure_type, lang)}
           </span>
         )}
         {listing.building_type && (
           <span className="text-xs px-1.5 py-0.5 rounded text-[var(--text-secondary)]" style={{ backgroundColor: "var(--bg-hover)" }}>
-            {BUILDING_TYPES[listing.building_type as keyof typeof BUILDING_TYPES] || listing.building_type}
+            {getFieldValueLabel("building_type", listing.building_type, lang)}
           </span>
         )}
         {listing.corner_lot && (

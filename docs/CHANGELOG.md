@@ -6,24 +6,37 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
-### Session 15 — 2026-03-16 — P0 Bug Fixes, Schema Cleanup, Deployment Prep
-
-#### Fixed
-- **Critical: Add/Edit Listing server errors** — POST and PUT `/api/listings` referenced `description_vi` and `description_en` columns that don't exist in DB. Removed ghost columns from SQL, validation, types, and form.
-- **Favorites API** — Rebuilt as simple POST toggle (no request body needed) + GET status check. Was crashing because old code tried to parse JSON body from empty requests.
-- **Status validation** — Added `in_negotiations` and `pending_closing` to Zod enum (were in DB constraint but missing from validation).
-
-#### Changed
-- Migration 011 applied: dropped old overlapping `ck_parsed_listings_status` constraint. Single authoritative constraint remains.
-- StatusBadge component updated with all 9 status values including `in_negotiations` and `pending_closing`.
-- LISTING_STATUSES constant updated with `in_negotiations` and `pending_closing` entries.
-- ListingCard favorite toggle simplified to use toggle API (no action body).
-- Docker Compose: added GEMINI_API_KEY passthrough to web container.
-- Demo accounts (pavel/dean) passwords reset to `demo123`.
+### Session 15 — 2026-03-16 — UI Polish, Gemini Integration, i18n Fix
 
 #### Added
-- `inNegotiations` i18n key (en + vi)
-- `scripts/deploy-vm.sh` — one-command deployment to fresh GCP VM (installs Docker, creates .env, runs migrations, creates demo accounts)
+- **Gemini AI parse** — `/api/ai/parse-listing` now uses Gemini 1.5 Flash with mock regex fallback. Installed `@google/generative-ai`. Returns `ai_used: bool`.
+- **i18n: FIELD_VALUE_LABELS** — bilingual (en/vi) labels for all dropdown field values (property_type, transaction_type, status, furnished, legal_status, direction, access_road, structure_type, building_type). `getFieldValueLabel()` helper function.
+- **My Listings card photos** — `GET /api/listings` now returns `primary_photo` and `photo_count` subqueries. Card shows photo thumbnail with count badge.
+- **Feed visibility rules** — Sold/not_for_sale listings hidden from feed unless favorited by current agent.
+
+#### Changed
+- **Card two-line headline** — Both ListingCard (My Listings) and FeedCard (ui/ListingCard) now display: Line 1 = address_raw, Line 2 = specs (area/floors/dims/commission/price).
+- **generateTitleStandardized()** — Updated formula: `<area>m² <floors>T <frontage>x<depth> <commission> <price>`. Address is no longer part of title_standardized.
+- **My Listings card** — Entire card is now clickable (wrapped in `<Link>`). Removed standalone "View" button. Edit/Inquiries/Archive use stopPropagation.
+- **StatusBadge** — Positioned top-left of card photo area. Hidden for `for_sale` (default status).
+- **Status enum reduced to 7** — Removed `in_negotiations` and `pending_closing`. Migration 012 applied (rows migrated, CHECK constraint updated).
+- **FeedCard feature tags** — Now use bilingual `getFieldValueLabel()` instead of English-only constants.
+- **ListingForm** — Removed dead FreestyleEditor + "Parse Text" button (called non-existent `/api/parse`). Replaced with simple description textarea.
+- **My Listings page** — Removed duplicate GridToggle and Map button from tab bar.
+
+#### Fixed
+- **Nested `<a>` hydration error** — Inner Link tags in ListingCard replaced with `<button>` + `router.push()`.
+- **Messages "Loading..." hang** — Conversation [id] API queried non-existent `archived_at` and `avatar_url` columns causing 500 errors. Removed both; added error handling to fetchConversation.
+- **"agent undefined" in thread header** — Race condition: component rendered before fetchConversation completed. Added loading guard.
+- **Conversation list missing agent names** — Added `other_agent_first_name` and `other_agent_phone` to conversations list API.
+- **PATCH handler SQL error** — Referenced non-existent `archived_by_agent_id` column; replaced with `updated_at = NOW()`.
+
+#### Previous (Session 14)
+- Fixed Add/Edit Listing ghost column errors (description_vi/description_en)
+- Rebuilt Favorites API as toggle
+- Migration 011: dropped old status constraint
+- `scripts/deploy-vm.sh` for GCP VM deployment
+- Demo accounts password reset
 
 ---
 

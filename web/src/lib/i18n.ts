@@ -12,9 +12,7 @@ export const translations = {
     priceDropped: "Price Dropped",
     priceIncreased: "Price Increased",
     deposit: "Deposit",
-    inNegotiations: "Negotiating",
     negotiating: "Negotiating",
-    pendingClosing: "Pending Closing",
     sold: "Sold",
     notForSale: "Not For Sale",
     forSale: "For Sale",
@@ -233,9 +231,7 @@ export const translations = {
     priceDropped: "Giảm giá",
     priceIncreased: "Tăng giá",
     deposit: "Đã cọc",
-    inNegotiations: "Đang thương lượng",
     negotiating: "Đang thương lượng",
-    pendingClosing: "Chờ ký hợp đồng",
     sold: "Đã bán",
     notForSale: "Không bán",
     forSale: "Bán",
@@ -468,4 +464,92 @@ export function getPropertyTypeKey(code: string | null | undefined): Translation
 export function getTransactionTypeKey(code: string | null | undefined): TranslationKey | null {
   if (!code) return null;
   return TRANSACTION_TYPE_I18N[code] ?? null;
+}
+
+/**
+ * Bilingual labels for dropdown/enum field values.
+ * Keys = DB stored values, values = { en, vi }.
+ * Display-layer only — never translate stored DB values.
+ */
+export const FIELD_VALUE_LABELS: Record<string, Record<string, { en: string; vi: string }>> = {
+  property_type: {
+    nha_pho: { en: "Townhouse", vi: "Nhà phố" },
+    nha_rieng: { en: "House", vi: "Nhà riêng" },
+    dat: { en: "Land", vi: "Đất" },
+    can_ho: { en: "Apartment", vi: "Căn hộ" },
+    phong_tro: { en: "Room", vi: "Phòng trọ" },
+    villa: { en: "Villa", vi: "Biệt thự" },
+    biet_thu: { en: "Villa", vi: "Biệt thự" },
+    khach_san: { en: "Hotel", vi: "Khách sạn" },
+    mat_bang: { en: "Commercial", vi: "Mặt bằng" },
+    kho_xuong: { en: "Warehouse", vi: "Kho xưởng" },
+  },
+  transaction_type: {
+    ban: { en: "For Sale", vi: "Bán" },
+    cho_thue: { en: "For Rent", vi: "Cho thuê" },
+  },
+  status: {
+    just_listed: { en: "Just Listed", vi: "Mới đăng" },
+    for_sale: { en: "For Sale", vi: "Đang bán" },
+    price_dropped: { en: "Price Dropped", vi: "Giảm giá" },
+    price_increased: { en: "Price Increased", vi: "Tăng giá" },
+    deposit: { en: "Deposit", vi: "Đặt cọc" },
+    sold: { en: "Sold", vi: "Đã bán" },
+    not_for_sale: { en: "Not For Sale", vi: "Không bán" },
+  },
+  furnished: {
+    full: { en: "Fully Furnished", vi: "Nội thất đầy đủ" },
+    co_ban: { en: "Basic", vi: "Cơ bản" },
+    khong: { en: "Unfurnished", vi: "Không nội thất" },
+  },
+  legal_status: {
+    so_hong: { en: "Pink Book", vi: "Sổ hồng" },
+    so_do: { en: "Red Book", vi: "Sổ đỏ" },
+    hoan_cong: { en: "Completed", vi: "Hoàn công" },
+    tho_cu: { en: "Residential Land", vi: "Thổ cư" },
+    phap_ly_chuan: { en: "Legal Clear", vi: "Pháp lý chuẩn" },
+    hop_dong: { en: "Contract", vi: "Hợp đồng" },
+    giay_tay: { en: "Handwritten", vi: "Giấy tay" },
+  },
+  direction: {
+    dong: { en: "East", vi: "Đông" },
+    tay: { en: "West", vi: "Tây" },
+    nam: { en: "South", vi: "Nam" },
+    bac: { en: "North", vi: "Bắc" },
+    dong_nam: { en: "Southeast", vi: "Đông Nam" },
+    tay_nam: { en: "Southwest", vi: "Tây Nam" },
+    dong_bac: { en: "Northeast", vi: "Đông Bắc" },
+    tay_bac: { en: "Northwest", vi: "Tây Bắc" },
+  },
+  access_road: {
+    mat_duong: { en: "Road-facing", vi: "Mặt đường" },
+    hem_oto: { en: "Car Alley", vi: "Hẻm ô tô" },
+    hem_thong: { en: "Through Alley", vi: "Hẻm thông" },
+    hem_rong: { en: "Wide Alley", vi: "Hẻm rộng" },
+    hem_nho: { en: "Narrow Alley", vi: "Hẻm nhỏ" },
+    hem: { en: "Alley", vi: "Hẻm" },
+    hem_xe_may: { en: "Motorbike Alley", vi: "Hẻm xe máy" },
+  },
+  structure_type: {
+    me_duc: { en: "Concrete Frame", vi: "Đúc" },
+    gac_lung: { en: "Mezzanine", vi: "Gác lửng" },
+    tret_lau: { en: "Ground + Upper", vi: "Trệt lầu" },
+    cap_4: { en: "Single Story", vi: "Cấp 4" },
+  },
+  building_type: {
+    xay_moi: { en: "Newly Built", vi: "Xây mới" },
+    kien_co: { en: "Solid", vi: "Kiên cố" },
+    nha_cu: { en: "Old House", vi: "Nhà cũ" },
+    moi_sua: { en: "Renovated", vi: "Mới sửa" },
+  },
+};
+
+/** Get a bilingual label for a field value. Returns the value itself if no label found. */
+export function getFieldValueLabel(field: string, value: string | null | undefined, lang: Lang): string {
+  if (!value) return "";
+  const labels = FIELD_VALUE_LABELS[field];
+  if (!labels) return value;
+  const entry = labels[value];
+  if (!entry) return value;
+  return entry[lang];
 }

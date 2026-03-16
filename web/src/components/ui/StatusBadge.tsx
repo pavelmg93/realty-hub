@@ -8,9 +8,7 @@ type Status =
   | "for_sale"
   | "price_dropped"
   | "price_increased"
-  | "in_negotiations"
   | "deposit"
-  | "pending_closing"
   | "sold"
   | "not_for_sale";
 
@@ -22,9 +20,7 @@ const STATUS_MAP: Record<
   for_sale: { color: "var(--status-open)", key: "forSale" },
   price_dropped: { color: "var(--status-open)", key: "priceDropped" },
   price_increased: { color: "var(--status-open)", key: "priceIncreased" },
-  in_negotiations: { color: "var(--status-pending)", key: "inNegotiations" },
   deposit: { color: "var(--status-pending)", key: "deposit" },
-  pending_closing: { color: "var(--status-pending)", key: "pendingClosing" },
   sold: { color: "var(--status-sold)", key: "sold" },
   not_for_sale: { color: "var(--status-nfs)", key: "notForSale" },
 };
@@ -37,7 +33,10 @@ export function StatusBadge({
   size?: "sm" | "md";
 }) {
   const { t } = useLanguage();
-  const cfg = STATUS_MAP[status as Status] ?? STATUS_MAP.for_sale;
+  // Don't show badge for "for_sale" (default status)
+  if (status === "for_sale") return null;
+  const cfg = STATUS_MAP[status as Status];
+  if (!cfg) return null;
   return (
     <span
       style={{ backgroundColor: cfg.color }}

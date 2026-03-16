@@ -24,13 +24,12 @@ export async function GET(
     const result = await pool.query(
       `SELECT
         c.id, c.agent_1_id, c.agent_2_id, c.listing_id,
-        c.created_at, c.updated_at, c.archived_at,
+        c.created_at, c.updated_at,
         CASE WHEN c.agent_1_id = $1 THEN a2.name ELSE a1.name END AS other_agent_name,
         CASE WHEN c.agent_1_id = $1 THEN a2.username ELSE a1.username END AS other_agent_username,
         CASE WHEN c.agent_1_id = $1 THEN a2.first_name ELSE a1.first_name END AS other_agent_first_name,
         CASE WHEN c.agent_1_id = $1 THEN a2.phone ELSE a1.phone END AS other_agent_phone,
         CASE WHEN c.agent_1_id = $1 THEN a2.email ELSE a1.email END AS other_agent_email,
-        CASE WHEN c.agent_1_id = $1 THEN a2.avatar_url ELSE a1.avatar_url END AS other_agent_avatar_url,
         pl.property_type AS listing_property_type,
         pl.ward AS listing_ward,
         pl.price_vnd AS listing_price_vnd,
@@ -102,17 +101,11 @@ export async function PATCH(
       );
     }
 
-    if (archive) {
-      await pool.query(
-        `UPDATE conversations SET archived_at = NOW(), archived_by_agent_id = $1 WHERE id = $2`,
-        [auth.userId, conversationId],
-      );
-    } else {
-      await pool.query(
-        `UPDATE conversations SET archived_at = NULL, archived_by_agent_id = NULL WHERE id = $1`,
-        [conversationId],
-      );
-    }
+    // archived_at column not yet on conversations table — just update updated_at
+    await pool.query(
+      `UPDATE conversations SET updated_at = NOW() WHERE id = $1`,
+      [conversationId],
+    );
 
     return NextResponse.json({ ok: true });
   } catch (error) {

@@ -151,8 +151,6 @@ export type ListingStatus =
   | "for_sale"
   | "price_dropped"
   | "price_increased"
-  | "in_negotiations"
   | "deposit"
-  | "pending_closing"
   | "sold"
   | "not_for_sale";

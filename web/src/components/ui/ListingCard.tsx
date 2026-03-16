@@ -3,12 +3,22 @@
 import Image from "next/image";
 import Link from "next/link";
 import { StatusBadge } from "./StatusBadge";
-import { PriceDisplay } from "./PriceDisplay";
 import { AgentChip } from "./AgentChip";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { formatPriceShortest } from "@/lib/constants";
 import { MessageSquare, Eye, Heart } from "lucide-react";
 import { useState } from "react";
 import type { Listing } from "@/lib/types";
+
+function buildSpecsLine(l: Listing): string {
+  const parts: string[] = [];
+  if (l.area_m2) parts.push(`${l.area_m2}m²`);
+  if (l.num_floors) parts.push(`${l.num_floors}T`);
+  if (l.frontage_m && l.depth_m) parts.push(`${l.frontage_m}x${l.depth_m}`);
+  if (l.commission) parts.push(l.commission);
+  if (l.price_vnd) parts.push(formatPriceShortest(l.price_vnd));
+  return parts.join(" ");
+}
 
 interface ListingCardProps {
   listing: Listing & {
@@ -156,23 +166,13 @@ export function ListingCard({
       </Link>
 
       <div className="p-3">
-        <PriceDisplay vnd={listing.price_vnd} size="sm" />
-
-        <p className="text-[var(--text-secondary)] text-xs mt-1 truncate">
-          {[listing.street, listing.ward, listing.district]
-            .filter(Boolean)
-            .join(", ")}
+        {/* Two-line headline */}
+        <p className="text-xl font-bold text-[var(--text-primary)] truncate leading-tight">
+          {listing.address_raw || [listing.street, listing.ward].filter(Boolean).join(", ") || ""}
         </p>
-
-        <div className="flex items-center gap-3 mt-2 text-[11px] text-[var(--text-muted)]">
-          {listing.area_m2 != null && <span>{listing.area_m2}m²</span>}
-          {listing.num_bedrooms != null && (
-            <span>{listing.num_bedrooms} PN</span>
-          )}
-          {listing.num_bathrooms != null && (
-            <span>{listing.num_bathrooms} WC</span>
-          )}
-        </div>
+        <p className="text-xl font-bold text-[var(--text-primary)] truncate leading-tight">
+          {listing.title_standardized || buildSpecsLine(listing)}
+        </p>
 
         <div className="flex items-center justify-between mt-3">
           {agent && <AgentChip agent={agent} />}

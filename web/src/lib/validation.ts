@@ -70,8 +70,6 @@ export const listingSchema = z.object({
         "price_dropped",
         "price_increased",
         "deposit",
-        "in_negotiations",
-        "pending_closing",
         "sold",
         "not_for_sale",
       ])

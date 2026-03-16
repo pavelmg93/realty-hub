@@ -44,12 +44,18 @@ export default function ConversationPage() {
   }, [conversationId, t]);
 
   const fetchConversation = useCallback(async () => {
-    const res = await fetch(`/api/conversations/${conversationId}`, { credentials: "include" });
-    if (res.ok) {
-      const data = await res.json();
-      if (data.conversation) setConversation(data.conversation);
+    try {
+      const res = await fetch(`/api/conversations/${conversationId}`, { credentials: "include" });
+      if (res.ok) {
+        const data = await res.json();
+        if (data.conversation) setConversation(data.conversation);
+      } else {
+        setError(t("conversationNotFound"));
+      }
+    } catch {
+      setError(t("failedLoadMessages"));
     }
-  }, [conversationId]);
+  }, [conversationId, t]);
 
   useEffect(() => {
     fetchMessages();
@@ -77,12 +83,6 @@ export default function ConversationPage() {
     }
   };
 
-  if (loading) {
-    return (
-      <div className="text-center py-12 text-[var(--text-muted)]">{t("loadingMessages")}</div>
-    );
-  }
-
   if (error) {
     return (
       <div className="text-center py-12">
@@ -97,12 +97,18 @@ export default function ConversationPage() {
     );
   }
 
+  if (loading || !conversation) {
+    return (
+      <div className="text-center py-12 text-[var(--text-muted)]">{t("loadingMessages")}</div>
+    );
+  }
+
   const otherName =
-    conversation?.other_agent_first_name ||
-    conversation?.other_agent_name ||
-    conversation?.other_agent_username ||
+    conversation.other_agent_first_name ||
+    conversation.other_agent_name ||
+    conversation.other_agent_username ||
     t("agent");
-  const otherAvatar = conversation?.other_agent_avatar_url;
+  const otherAvatar = conversation.other_agent_avatar_url;
 
   const handleArchive = async () => {
     try {

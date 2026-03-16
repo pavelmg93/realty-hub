@@ -34,7 +34,7 @@ export default function ConversationList({
         >
           <div className="flex items-center justify-between">
             <span className="font-medium text-sm text-[var(--text-primary)]">
-              {c.other_agent_name || c.other_agent_username || "Agent"}
+              {c.other_agent_first_name || c.other_agent_name || c.other_agent_username || "Agent"}
             </span>
             {(c.unread_count ?? 0) > 0 && (
               <span

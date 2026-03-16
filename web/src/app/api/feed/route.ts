@@ -115,6 +115,11 @@ export async function GET(request: NextRequest) {
       paramIndex++;
     }
 
+    // P6: Hide sold/not_for_sale unless favorited by current agent
+    conditions.push(`(pl.status NOT IN ('sold', 'not_for_sale') OR EXISTS(SELECT 1 FROM listing_favorites f WHERE f.listing_id = pl.id AND f.agent_id = $${paramIndex}))`);
+    params.push(auth.userId);
+    paramIndex++;
+
     const whereClause = conditions.join(" AND ");
 
     // Count total for pagination

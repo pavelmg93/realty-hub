@@ -109,7 +109,7 @@ docker exec -i re-nhatrang-app-postgres-1 psql -U re_nhatrang -d re_nhatrang \
 - DB: `re_nhatrang`
 - Container: `re-nhatrang-app-postgres-1`
 
-**Current migration level: 011**
+**Current migration level: 012**
 
 ---
 
@@ -269,6 +269,6 @@ When I ask you to "log this test" or "create a test session," you must:
 4. **Compile check:** Run `cd web && npx tsc --noEmit` — confirm clean before committing.
 5. **Commit:** `git add -A && git commit -m "Session N: <one-line summary>"`
 
-**Current session number: 15**
-**Last completed session: 14 — 2026-03-16 — P0 Bug Fixes, Schema Cleanup, Deployment Prep**
+**Current session number: 16**
+**Last completed session: 15 — 2026-03-16 — UI Polish, Gemini Integration, i18n Fix**
 **Deployment: Google Cloud VM — pull + docker compose up -d to deploy**

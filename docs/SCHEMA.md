@@ -3,7 +3,7 @@
 **Source of truth for all table definitions.**
 Update this file whenever a migration is applied.
 
-**Current migration level: 011**
+**Current migration level: 012**
 **Last updated: 2026-03-16 (Session 14)**
 
 ---
@@ -139,12 +139,12 @@ Core listing records. All listing UI reads/writes here.
 
 ```
 just_listed | for_sale | price_dropped | price_increased |
-in_negotiations | deposit | pending_closing | sold | not_for_sale
+deposit | sold | not_for_sale
 ```
 
 Display order: Just Listed → For Sale → Price Dropped → Price Increased → Deposit → Sold → Not for Sale
 
-"For Sale" is the default and is not shown as a badge on thumbnails.
+"For Sale" is the default and is **not shown as a badge** on thumbnails.
 
 ### title_standardized formula
 
@@ -326,6 +326,8 @@ Audit log for deals — every stage change, note, call, viewing, offer, etc.
 
 3. **Conversation ordering** — `agent_1_id` is always the lower integer. When creating a conversation, sort the two agent IDs before inserting.
 
-4. **Status constraints** — Single CHECK constraint (`parsed_listings_status_check`). Valid values: `just_listed`, `for_sale`, `price_dropped`, `price_increased`, `in_negotiations`, `deposit`, `pending_closing`, `sold`, `not_for_sale`. Old overlapping constraint dropped in migration 011.
+4. **Status constraints** — Single CHECK constraint (`parsed_listings_status_check`). Valid values: `just_listed`, `for_sale`, `price_dropped`, `price_increased`, `deposit`, `sold`, `not_for_sale`. Reduced from 9 to 7 in migration 012.
 
-5. **Migrations location** — `src/db/migrations/002` through `011`. Run in order after a fresh `docker compose down -v && up -d`.
+5. **Migrations location** — `src/db/migrations/002` through `012`. Run in order after a fresh `docker compose down -v && up -d`.
+
+6. **avatar_url NOT in DB** — Migration 010 defines `avatar_url` on agents, but it was never applied to the production/demo DB. Code handles this gracefully (shows initials avatar). Do not reference `agents.avatar_url` in SQL queries until the migration is applied.
