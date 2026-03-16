@@ -1,3 +1,8 @@
+---
+name: savechat
+description: Save a structured summary of the current conversation to docs/chat_exports/. Use before context compaction or at end of session.
+---
+
 Review the full conversation so far and create a chat export file.
 
 1. Determine today's date and a 3-5 word slug describing the main topic of this conversation.
