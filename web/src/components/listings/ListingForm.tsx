@@ -3,7 +3,9 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { ListingInput } from "@/lib/validation";
-import { Listing } from "@/lib/types";
+import { Listing, StagedPhoto, StagedDocument } from "@/lib/types";
+import PhotoUploader from "@/components/photos/PhotoUploader";
+import DocumentManager from "@/components/documents/DocumentManager";
 import {
   PROPERTY_TYPES,
   TRANSACTION_TYPES,
@@ -178,6 +180,8 @@ export default function ListingForm({ existing, initialData }: Props) {
   );
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [stagedPhotos, setStagedPhotos] = useState<StagedPhoto[]>([]);
+  const [stagedDocuments, setStagedDocuments] = useState<StagedDocument[]>([]);
 
   const initialDataKey = initialData ? JSON.stringify(initialData) : "";
   useEffect(() => {
@@ -205,8 +209,9 @@ export default function ListingForm({ existing, initialData }: Props) {
         body: JSON.stringify(payload),
       });
 
+      const data = await res.json();
+
       if (!res.ok) {
-        const data = await res.json();
         let msg = data.error || "Failed to save listing";
         if (data.details?.fieldErrors) {
           const fields = Object.entries(data.details.fieldErrors)
@@ -216,6 +221,39 @@ export default function ListingForm({ existing, initialData }: Props) {
         }
         setError(msg);
         return;
+      }
+
+      // Register staged photos and documents with the newly created listing
+      if (!existing && (stagedPhotos.length > 0 || stagedDocuments.length > 0)) {
+        const newListingId = data.listing?.id;
+        if (newListingId) {
+          for (const staged of stagedPhotos) {
+            await fetch(`/api/listings/${newListingId}/photos`, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                file_path: staged.file_path,
+                original_name: staged.original_name,
+                file_size: staged.file_size,
+              }),
+            });
+          }
+          for (const staged of stagedDocuments) {
+            await fetch(`/api/listings/${newListingId}/documents`, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                file_path: staged.file_path,
+                file_name: staged.file_name,
+                original_name: staged.original_name,
+                file_size: staged.file_size,
+                mime_type: staged.mime_type,
+                category: staged.category,
+                notes: staged.notes,
+              }),
+            });
+          }
+        }
       }
 
       router.push("/dashboard/listings");
@@ -243,6 +281,32 @@ export default function ListingForm({ existing, initialData }: Props) {
       )}
 
       <DatabaseView data={formData} onChange={setFormData} />
+
+      {/* Photo upload — staging mode for new listings */}
+      {!existing && (
+        <div className="mt-6 pt-6 border-t border-[var(--border)]">
+          <h3 className="text-base font-semibold text-[var(--text-primary)] mb-3">
+            {t("photos")}
+          </h3>
+          <PhotoUploader
+            stagedPhotos={stagedPhotos}
+            onStagedPhotosChange={setStagedPhotos}
+          />
+        </div>
+      )}
+
+      {/* Document upload — staging mode for new listings */}
+      {!existing && (
+        <div className="mt-6 pt-6 border-t border-[var(--border)]">
+          <h3 className="text-base font-semibold text-[var(--text-primary)] mb-3">
+            {t("documents")}
+          </h3>
+          <DocumentManager
+            stagedDocuments={stagedDocuments}
+            onStagedDocumentsChange={setStagedDocuments}
+          />
+        </div>
+      )}
 
       <div className="flex items-center gap-3 mt-8 pt-6 border-t border-[var(--border)]">
         <button

@@ -1,34 +1,50 @@
 "use client";
 
 import { useState, useRef } from "react";
-import { ListingPhoto } from "@/lib/types";
+import { ListingPhoto, StagedPhoto } from "@/lib/types";
+import { useLanguage } from "@/contexts/LanguageContext";
 
-interface Props {
+/**
+ * PhotoUploader supports two modes:
+ * 1. **Registered mode** (listingId provided): uploads file to disk AND registers with listing in DB.
+ * 2. **Staging mode** (no listingId): uploads file to disk only, stores metadata for later registration.
+ */
+
+interface RegisteredProps {
   listingId: number;
   photos: ListingPhoto[];
   onPhotosChange: (photos: ListingPhoto[]) => void;
   readOnly?: boolean;
+  stagedPhotos?: never;
+  onStagedPhotosChange?: never;
 }
 
-export default function PhotoUploader({
-  listingId,
-  photos,
-  onPhotosChange,
-  readOnly = false,
-}: Props) {
+interface StagedProps {
+  listingId?: undefined;
+  stagedPhotos: StagedPhoto[];
+  onStagedPhotosChange: (photos: StagedPhoto[]) => void;
+  readOnly?: boolean;
+  photos?: never;
+  onPhotosChange?: never;
+}
+
+type Props = RegisteredProps | StagedProps;
+
+export default function PhotoUploader(props: Props) {
+  const { readOnly = false } = props;
+  const isStaging = props.listingId == null;
+
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const { t } = useLanguage();
 
   const handleUpload = async (files: FileList) => {
     setUploading(true);
     setError(null);
 
-    const newPhotos: ListingPhoto[] = [];
-
     for (const file of Array.from(files)) {
       try {
-        // Upload file
         const formData = new FormData();
         formData.append("file", file);
         formData.append("type", "photo");
@@ -46,43 +62,57 @@ export default function PhotoUploader({
 
         const uploadData = await uploadRes.json();
 
-        // Register photo with listing
-        const photoRes = await fetch(`/api/listings/${listingId}/photos`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
+        if (isStaging) {
+          // Staging mode: just keep metadata
+          const staged: StagedPhoto = {
             file_path: uploadData.file_path,
             original_name: uploadData.original_name,
             file_size: uploadData.file_size,
-          }),
-        });
+          };
+          props.onStagedPhotosChange([...props.stagedPhotos, staged]);
+        } else {
+          // Registered mode: also register with listing in DB
+          const photoRes = await fetch(`/api/listings/${props.listingId}/photos`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              file_path: uploadData.file_path,
+              original_name: uploadData.original_name,
+              file_size: uploadData.file_size,
+            }),
+          });
 
-        if (photoRes.ok) {
-          const { photo } = await photoRes.json();
-          newPhotos.push(photo);
+          if (photoRes.ok) {
+            const { photo } = await photoRes.json();
+            props.onPhotosChange([...props.photos, photo]);
+          }
         }
       } catch {
         setError("Upload failed");
       }
     }
 
-    if (newPhotos.length > 0) {
-      onPhotosChange([...photos, ...newPhotos]);
-    }
     setUploading(false);
   };
 
-  const handleDelete = async (photoId: number) => {
-    try {
-      const res = await fetch(
-        `/api/listings/${listingId}/photos?photoId=${photoId}`,
-        { method: "DELETE" },
-      );
-      if (res.ok) {
-        onPhotosChange(photos.filter((p) => p.id !== photoId));
+  const handleDelete = async (index: number) => {
+    if (isStaging) {
+      // Staging mode: just remove from array
+      props.onStagedPhotosChange(props.stagedPhotos.filter((_, i) => i !== index));
+    } else {
+      // Registered mode: delete from DB
+      const photo = props.photos[index];
+      try {
+        const res = await fetch(
+          `/api/listings/${props.listingId}/photos?photoId=${photo.id}`,
+          { method: "DELETE" },
+        );
+        if (res.ok) {
+          props.onPhotosChange(props.photos.filter((p) => p.id !== photo.id));
+        }
+      } catch {
+        setError("Delete failed");
       }
-    } catch {
-      setError("Delete failed");
     }
   };
 
@@ -92,6 +122,21 @@ export default function PhotoUploader({
       handleUpload(e.dataTransfer.files);
     }
   };
+
+  // Unified photo list for rendering
+  const displayPhotos = isStaging
+    ? props.stagedPhotos.map((p, i) => ({
+        key: `staged-${i}`,
+        src: `/api/files/${p.file_path}`,
+        alt: p.original_name || `Photo ${i + 1}`,
+        index: i,
+      }))
+    : props.photos.map((p, i) => ({
+        key: `photo-${p.id}`,
+        src: `/api/files/${p.file_path}`,
+        alt: p.original_name || `Photo ${i + 1}`,
+        index: i,
+      }));
 
   return (
     <div>
@@ -109,22 +154,22 @@ export default function PhotoUploader({
       )}
 
       {/* Photo grid */}
-      {photos.length > 0 && (
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 mb-4">
-          {photos.map((photo, idx) => (
+      {displayPhotos.length > 0 && (
+        <div className="grid grid-cols-3 sm:grid-cols-4 gap-2 mb-3">
+          {displayPhotos.map((photo) => (
             <div
-              key={photo.id}
+              key={photo.key}
               className="relative group aspect-square rounded-lg overflow-hidden"
               style={{ backgroundColor: "var(--bg-elevated)" }}
             >
               <img
-                src={`/api/files/${photo.file_path}`}
-                alt={photo.original_name || `Photo ${idx + 1}`}
+                src={photo.src}
+                alt={photo.alt}
                 className="w-full h-full object-cover"
               />
-              {idx === 0 && (
+              {photo.index === 0 && (
                 <span
-                  className="absolute top-2 left-2 text-xs px-2 py-0.5 rounded-full font-medium text-white"
+                  className="absolute top-1 left-1 text-[10px] px-1.5 py-0.5 rounded-full font-medium text-white"
                   style={{ backgroundColor: "var(--orange)" }}
                 >
                   Primary
@@ -132,8 +177,8 @@ export default function PhotoUploader({
               )}
               {!readOnly && (
                 <button
-                  onClick={() => handleDelete(photo.id)}
-                  className="absolute top-2 right-2 w-7 h-7 rounded-full opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-sm text-white"
+                  onClick={() => handleDelete(photo.index)}
+                  className="absolute top-1 right-1 w-6 h-6 rounded-full opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-xs text-white"
                   style={{ backgroundColor: "var(--error)" }}
                 >
                   &times;
@@ -150,7 +195,7 @@ export default function PhotoUploader({
           onDrop={handleDrop}
           onDragOver={(e) => e.preventDefault()}
           onClick={() => fileInputRef.current?.click()}
-          className="border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-colors hover:border-[var(--orange)]"
+          className="border-2 border-dashed rounded-lg p-6 text-center cursor-pointer transition-colors hover:border-[var(--orange)]"
           style={{
             borderColor: "var(--border)",
             backgroundColor: "var(--bg-surface)",
@@ -168,7 +213,7 @@ export default function PhotoUploader({
             }}
           />
           <svg
-            className="w-10 h-10 mx-auto mb-3 text-[var(--text-muted)]"
+            className="w-8 h-8 mx-auto mb-2 text-[var(--text-muted)]"
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
@@ -181,22 +226,22 @@ export default function PhotoUploader({
             />
           </svg>
           {uploading ? (
-            <p className="text-sm text-[var(--text-muted)]">Uploading...</p>
+            <p className="text-sm text-[var(--text-muted)]">{t("uploading") || "Uploading..."}</p>
           ) : (
             <>
               <p className="text-sm font-medium text-[var(--text-secondary)]">
-                Click or drag photos here
+                {t("clickOrDragPhotos") || "Click or drag photos here"}
               </p>
               <p className="text-xs text-[var(--text-muted)] mt-1">
-                JPEG, PNG, WebP, GIF (max 20MB each)
+                JPEG, PNG, WebP, GIF (max 20MB)
               </p>
             </>
           )}
         </div>
       )}
 
-      {photos.length === 0 && readOnly && (
-        <p className="text-sm text-[var(--text-muted)] italic">No photos uploaded</p>
+      {displayPhotos.length === 0 && readOnly && (
+        <p className="text-sm text-[var(--text-muted)] italic">{t("noPhoto")}</p>
       )}
     </div>
   );

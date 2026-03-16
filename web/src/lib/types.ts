@@ -87,6 +87,13 @@ export interface ListingPhoto {
   created_at: string;
 }
 
+/** Photo uploaded to disk but not yet registered with a listing (used during creation). */
+export interface StagedPhoto {
+  file_path: string;
+  original_name: string;
+  file_size: number;
+}
+
 export interface ListingDocument {
   id: number;
   listing_id: number;
@@ -108,6 +115,17 @@ export type DocumentCategory =
   | "construction_permit"
   | "proposal"
   | "other";
+
+/** Document uploaded to disk but not yet registered with a listing (used during creation). */
+export interface StagedDocument {
+  file_path: string;
+  file_name: string;
+  original_name: string;
+  file_size: number;
+  mime_type: string;
+  category: DocumentCategory;
+  notes: string | null;
+}
 
 export interface Conversation {
   id: number;

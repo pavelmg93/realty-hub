@@ -13,6 +13,8 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - **i18n: FIELD_VALUE_LABELS** — bilingual (en/vi) labels for all dropdown field values (property_type, transaction_type, status, furnished, legal_status, direction, access_road, structure_type, building_type). `getFieldValueLabel()` helper function.
 - **My Listings card photos** — `GET /api/listings` now returns `primary_photo` and `photo_count` subqueries. Card shows photo thumbnail with count badge.
 - **Feed visibility rules** — Sold/not_for_sale listings hidden from feed unless favorited by current agent.
+- **Photo upload at listing creation** — PhotoUploader staging mode: uploads to disk during form fill, registers with listing after creation. `StagedPhoto` type added.
+- **Document upload at listing creation** — DocumentManager staging mode: same pattern. `StagedDocument` type added. Category picker + notes field available during creation.
 
 #### Changed
 - **Card two-line headline** — Both ListingCard (My Listings) and FeedCard (ui/ListingCard) now display: Line 1 = address_raw, Line 2 = specs (area/floors/dims/commission/price).

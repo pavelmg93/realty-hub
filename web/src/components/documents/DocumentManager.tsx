@@ -1,23 +1,40 @@
 "use client";
 
 import { useState, useRef } from "react";
-import { ListingDocument, DocumentCategory } from "@/lib/types";
+import { ListingDocument, StagedDocument, DocumentCategory } from "@/lib/types";
 import { DOCUMENT_CATEGORIES } from "@/lib/constants";
 import { useLanguage } from "@/contexts/LanguageContext";
 
-interface Props {
+/**
+ * DocumentManager supports two modes:
+ * 1. **Registered mode** (listingId provided): uploads file to disk AND registers with listing in DB.
+ * 2. **Staging mode** (no listingId): uploads file to disk only, stores metadata for later registration.
+ */
+
+interface RegisteredProps {
   listingId: number;
   documents: ListingDocument[];
   onDocumentsChange: (docs: ListingDocument[]) => void;
   readOnly?: boolean;
+  stagedDocuments?: never;
+  onStagedDocumentsChange?: never;
 }
 
-export default function DocumentManager({
-  listingId,
-  documents,
-  onDocumentsChange,
-  readOnly = false,
-}: Props) {
+interface StagedProps {
+  listingId?: undefined;
+  stagedDocuments: StagedDocument[];
+  onStagedDocumentsChange: (docs: StagedDocument[]) => void;
+  readOnly?: boolean;
+  documents?: never;
+  onDocumentsChange?: never;
+}
+
+type Props = RegisteredProps | StagedProps;
+
+export default function DocumentManager(props: Props) {
+  const { readOnly = false } = props;
+  const isStaging = props.listingId == null;
+
   const { t } = useLanguage();
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -29,8 +46,6 @@ export default function DocumentManager({
   const handleUpload = async (files: FileList) => {
     setUploading(true);
     setError(null);
-
-    const newDocs: ListingDocument[] = [];
 
     for (const file of Array.from(files)) {
       try {
@@ -51,10 +66,8 @@ export default function DocumentManager({
 
         const uploadData = await uploadRes.json();
 
-        const docRes = await fetch(`/api/listings/${listingId}/documents`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
+        if (isStaging) {
+          const staged: StagedDocument = {
             file_path: uploadData.file_path,
             file_name: file.name,
             original_name: uploadData.original_name,
@@ -62,36 +75,53 @@ export default function DocumentManager({
             mime_type: uploadData.mime_type,
             category: selectedCategory,
             notes: notes || null,
-          }),
-        });
+          };
+          props.onStagedDocumentsChange([...props.stagedDocuments, staged]);
+        } else {
+          const docRes = await fetch(`/api/listings/${props.listingId}/documents`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              file_path: uploadData.file_path,
+              file_name: file.name,
+              original_name: uploadData.original_name,
+              file_size: uploadData.file_size,
+              mime_type: uploadData.mime_type,
+              category: selectedCategory,
+              notes: notes || null,
+            }),
+          });
 
-        if (docRes.ok) {
-          const { document } = await docRes.json();
-          newDocs.push(document);
+          if (docRes.ok) {
+            const { document } = await docRes.json();
+            props.onDocumentsChange([...props.documents, document]);
+          }
         }
       } catch {
         setError("Upload failed");
       }
     }
 
-    if (newDocs.length > 0) {
-      onDocumentsChange([...documents, ...newDocs]);
-    }
     setNotes("");
     setUploading(false);
   };
 
-  const handleDelete = async (docId: number) => {
-    try {
-      const res = await fetch(
-        `/api/listings/${listingId}/documents?docId=${docId}`,
-        { method: "DELETE" },
-      );
-      if (res.ok) {
-        onDocumentsChange(documents.filter((d) => d.id !== docId));
+  const handleDelete = async (index: number) => {
+    if (isStaging) {
+      props.onStagedDocumentsChange(props.stagedDocuments.filter((_, i) => i !== index));
+    } else {
+      const doc = props.documents[index];
+      try {
+        const res = await fetch(
+          `/api/listings/${props.listingId}/documents?docId=${doc.id}`,
+          { method: "DELETE" },
+        );
+        if (res.ok) {
+          props.onDocumentsChange(props.documents.filter((d) => d.id !== doc.id));
+        }
+      } catch {
+        setError("Delete failed");
       }
-    } catch {
-      setError("Delete failed");
     }
   };
 
@@ -104,15 +134,49 @@ export default function DocumentManager({
 
   const isPDF = (mime: string | null) => mime === "application/pdf";
 
+  // Unified display list
+  type DisplayDoc = {
+    key: string;
+    file_path: string;
+    name: string;
+    file_size: number | null;
+    mime_type: string | null;
+    category: string;
+    notes: string | null;
+    index: number;
+  };
+
+  const displayDocs: DisplayDoc[] = isStaging
+    ? props.stagedDocuments.map((d, i) => ({
+        key: `staged-${i}`,
+        file_path: d.file_path,
+        name: d.original_name || d.file_name,
+        file_size: d.file_size,
+        mime_type: d.mime_type,
+        category: d.category,
+        notes: d.notes,
+        index: i,
+      }))
+    : props.documents.map((d, i) => ({
+        key: `doc-${d.id}`,
+        file_path: d.file_path,
+        name: d.original_name || d.file_name,
+        file_size: d.file_size,
+        mime_type: d.mime_type,
+        category: d.category,
+        notes: d.notes,
+        index: i,
+      }));
+
   // Group by category
-  const grouped = documents.reduce(
+  const grouped = displayDocs.reduce(
     (acc, doc) => {
       const cat = doc.category || "other";
       if (!acc[cat]) acc[cat] = [];
       acc[cat].push(doc);
       return acc;
     },
-    {} as Record<string, ListingDocument[]>,
+    {} as Record<string, DisplayDoc[]>,
   );
 
   return (
@@ -139,17 +203,13 @@ export default function DocumentManager({
           <div className="space-y-2">
             {docs.map((doc) => (
               <div
-                key={doc.id}
+                key={doc.key}
                 className="flex items-center gap-3 p-3 rounded-lg border border-[var(--border)] group"
                 style={{ backgroundColor: "var(--bg-surface)" }}
               >
                 {/* Icon */}
                 <div
-                  className={`w-10 h-10 rounded-lg flex items-center justify-center shrink-0 ${
-                    isPDF(doc.mime_type)
-                      ? "opacity-90"
-                      : "opacity-90"
-                  }`}
+                  className="w-10 h-10 rounded-lg flex items-center justify-center shrink-0 opacity-90"
                   style={
                     isPDF(doc.mime_type)
                       ? { backgroundColor: "rgba(239, 68, 68, 0.2)", color: "var(--error)" }
@@ -157,11 +217,7 @@ export default function DocumentManager({
                   }
                 >
                   {isPDF(doc.mime_type) ? (
-                    <svg
-                      className="w-5 h-5"
-                      fill="currentColor"
-                      viewBox="0 0 20 20"
-                    >
+                    <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
                       <path
                         fillRule="evenodd"
                         d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z"
@@ -169,12 +225,7 @@ export default function DocumentManager({
                       />
                     </svg>
                   ) : (
-                    <svg
-                      className="w-5 h-5"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path
                         strokeLinecap="round"
                         strokeLinejoin="round"
@@ -188,13 +239,11 @@ export default function DocumentManager({
                 {/* Info */}
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-medium text-[var(--text-primary)] truncate">
-                    {doc.original_name || doc.file_name}
+                    {doc.name}
                   </p>
                   <div className="flex gap-2 text-xs text-[var(--text-muted)]">
                     {doc.file_size && <span>{formatSize(doc.file_size)}</span>}
-                    {doc.notes && (
-                      <span className="truncate">{doc.notes}</span>
-                    )}
+                    {doc.notes && <span className="truncate">{doc.notes}</span>}
                   </div>
                 </div>
 
@@ -210,7 +259,7 @@ export default function DocumentManager({
                   </a>
                   {!readOnly && (
                     <button
-                      onClick={() => handleDelete(doc.id)}
+                      onClick={() => handleDelete(doc.index)}
                       className="px-2 py-1 text-xs rounded transition-colors opacity-0 group-hover:opacity-100"
                       style={{
                         backgroundColor: "rgba(239, 68, 68, 0.2)",
@@ -227,7 +276,7 @@ export default function DocumentManager({
         </div>
       ))}
 
-      {documents.length === 0 && readOnly && (
+      {displayDocs.length === 0 && readOnly && (
         <p className="text-sm text-[var(--text-muted)] italic">No documents uploaded</p>
       )}
 
@@ -284,7 +333,7 @@ export default function DocumentManager({
               color: "var(--text-secondary)",
             }}
           >
-            {uploading ? "Uploading..." : "Choose files to upload"}
+            {uploading ? (t("uploading")) : "Choose files to upload"}
           </button>
           <p className="text-xs text-[var(--text-muted)] mt-2 text-center">
             Images and PDFs accepted (max 20MB each)

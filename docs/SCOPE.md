@@ -25,8 +25,8 @@ in conversation threads.
 ### P2 — New Listing Form: Photos + Remove Dead Button
 * [x] **[UI: New Listing — remove "Parse Text"]** Removed FreestyleEditor + dead `handleParse`
   (called non-existent `/api/parse`). Replaced with simple description textarea.
-* [ ] **[UI: New Listing — Photos]** PhotoUploader staging mode — deferred.
-* [ ] **[UI: New Listing — Documents]** DocumentManager staging mode — deferred.
+* [x] **[UI: New Listing — Photos]** PhotoUploader staging mode — uploads to disk, registers after listing creation.
+* [x] **[UI: New Listing — Documents]** DocumentManager staging mode — same pattern as photos.
 
 ### P3 — My Listings: Card UX
 * [x] **[UI: ListingCard — photo thumbnail]** Added `primary_photo` + `photo_count`
