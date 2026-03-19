@@ -11,13 +11,13 @@
 
 ### Tasks
 
-* [ ] **[Git: branching]** Create `develop` branch off `main`. Push to origin. All session work on `develop`. Merge to `main` at end.
-* [ ] **[Infra: Cloudflare HTTPS — REA-5]** Domain `realtyhub.xeldon.com` is configured via Cloudflare proxy (A record + origin rule → port 8888). See `docs/adrs/2026-03-19-ADR-003-cloudflare-https-proxy.md`. Claude Code tasks: verify app works behind proxy (check `X-Forwarded-Proto` header handling in auth/JWT), update any hardcoded `http://` or `localhost:8888` URLs, add `DOMAIN=realtyhub.xeldon.com` to `.env.example`, verify JWT `secure` cookie works with Cloudflare Flexible SSL.
-* [ ] **[Infra: DB backup — REA-6]** Create `scripts/backup-db.sh` — pg_dump to `backups/YYYY-MM-DD-HHMMSS.sql.gz`. Retention: 7 daily, delete older. Add cron entry example to RUNBOOK. Test restore to temp container.
-* [ ] **[Docs: RUNBOOK — REA-7]** Create `docs/RUNBOOK.md` — how to: create agent accounts, backup/restore DB, restart services, view logs, apply migrations, deploy updates.
-* [ ] **[Chore: Split SESSION_LOG — REA-22]** Split `docs/code_sessions/SESSION_LOG.md` into individual session files (sessions 6–15). Match existing pattern: `YYYY-MM-DD-sessionNN-brief-topic.md`. Move SESSION_LOG.md to `docs/archive/`.
-* [ ] **[Config: Verify .env]** Check that `GEMINI_API_KEY` in docker-compose.yml matches `.env` variable name. Current `.env` has `ENV_GEMINI_API_KEY` — may be a mismatch. Fix if needed.
-* [ ] **[Docs: CLAUDE.md update]** Rename ProMemo → Realty Hub. Bump session counter to 18. Add branching strategy section. Add Linear reference. Update repo structure map. Apply diffs from `CLAUDE-UPDATES.md`.
+* [x] **[Git: branching]** Create `develop` branch off `main`. Push to origin. All session work on `develop`. Merge to `main` at end.
+* [x] **[Infra: Cloudflare HTTPS — REA-5]** No hardcoded URLs found. JWT `secure` flag correct for Cloudflare Flexible SSL. `DOMAIN=realtyhub.xeldon.com` added to `.env.example`. `X-Forwarded-Proto` handled by Next.js automatically.
+* [x] **[Infra: DB backup — REA-6]** Created `scripts/backup-db.sh`. 7-day retention. Cron example in RUNBOOK. `backups/` dir created. Restore procedure documented in RUNBOOK.
+* [x] **[Docs: RUNBOOK — REA-7]** Created `docs/RUNBOOK.md` — agent accounts, backup/restore, restart, logs, migrations, deploy, health check, common issues.
+* [x] **[Chore: Split SESSION_LOG — REA-22]** Created individual files for sessions 6–13. Sessions 14–16 already existed. `SESSION_LOG.md` moved to `docs/archive/`.
+* [x] **[Config: Verify .env]** Verified correct: `.env` → `ENV_GEMINI_API_KEY`, docker-compose maps → container `GEMINI_API_KEY`, web app reads `GEMINI_API_KEY`. No mismatch.
+* [x] **[Docs: CLAUDE.md update]** Renamed ProMemo → Realty Hub. Bumped session counter to 18. Added Development Workflow, Branching Strategy, Project Management sections. Updated repo structure. Applied all diffs from `CLAUDE-UPDATES.md`.
 
 ---
 

@@ -6,6 +6,30 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Session 18 — 2026-03-19 — Infrastructure Hardening, Branching, RUNBOOK
+
+#### Added
+- **`develop` branch** — created and pushed to origin. All session work on `develop`.
+- **`scripts/backup-db.sh`** — pg_dump to `backups/YYYY-MM-DD-HHMMSS.sql.gz`. 7-day retention, prunes older backups. `backups/` dir added with `.gitkeep`.
+- **`docs/RUNBOOK.md`** — production operations: create agent accounts, backup/restore DB, restart services, view logs, apply migrations, deploy updates, health checks, common issues.
+- **`DOMAIN=realtyhub.xeldon.com`** to `.env.example`.
+- **Branching strategy + Development Workflow** sections added to `CLAUDE.md`.
+- **Project Management / Linear** reference added to `CLAUDE.md`.
+- **`backups/*.sql.gz` and `backups/cron.log`** added to `.gitignore`.
+- **Session files 6–13** split from `SESSION_LOG.md` into individual `code_sessions/` files.
+
+#### Changed
+- **Project renamed** — ProMemo → Realty Hub (formerly ProMemo) in `CLAUDE.md`, `.env.example`.
+- **`CLAUDE.md` session counter** bumped to 18.
+- **`SESSION_LOG.md`** moved to `docs/archive/`.
+- **Repo structure** map in `CLAUDE.md` updated (RUNBOOK, adrs, SESSION_LOG, archive, scripts entries).
+
+#### Verified
+- **Cloudflare HTTPS** (REA-5): No hardcoded `http://localhost` URLs in source. JWT cookie `secure: process.env.NODE_ENV === "production"` works correctly with Cloudflare Flexible SSL. `X-Forwarded-Proto` handled by Next.js automatically.
+- **Gemini API key** config correct — `.env` defines `ENV_GEMINI_API_KEY`, docker-compose maps it to container `GEMINI_API_KEY`. No mismatch.
+
+---
+
 ### Session 15 — 2026-03-16 — UI Polish, Gemini Integration, i18n Fix
 
 #### Added
