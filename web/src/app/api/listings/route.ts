@@ -97,7 +97,7 @@ export async function GET(request: NextRequest) {
       `SELECT parsed_listings.*,
         EXISTS(SELECT 1 FROM listing_favorites f WHERE f.listing_id = parsed_listings.id AND f.agent_id = $1) AS is_favorited,
         (SELECT COUNT(*) FROM listing_photos lp WHERE lp.listing_id = parsed_listings.id) AS photo_count,
-        (SELECT lp.file_path FROM listing_photos lp WHERE lp.listing_id = parsed_listings.id ORDER BY lp.display_order LIMIT 1) AS primary_photo
+        (SELECT lp.file_path FROM listing_photos lp WHERE lp.listing_id = parsed_listings.id ORDER BY lp.is_primary DESC, lp.display_order LIMIT 1) AS primary_photo
        FROM parsed_listings WHERE ${whereClause} ORDER BY ${safeSort} ${safeOrder}`,
       params
     );

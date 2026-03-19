@@ -3,19 +3,19 @@ import { getAuthFromCookies } from "@/lib/auth";
 
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY || "";
 
-const SYSTEM_PROMPT = `You are a Vietnamese real estate listing parser. Given raw listing text in Vietnamese, extract structured fields.
+const SYSTEM_PROMPT = `Bạn là chuyên gia phân tích tin rao bất động sản Việt Nam. Nhiệm vụ: trích xuất thông tin có cấu trúc từ tin rao thô.
 
-Return ONLY valid JSON with this exact structure:
+Trả về ONLY JSON hợp lệ với cấu trúc sau:
 {
   "fields": {
     "property_type": "nha_pho" | "can_ho" | "dat" | "villa" | "nha_rieng" | "phong_tro" | "mat_bang" | "kho_xuong" | null,
     "transaction_type": "ban" | "cho_thue" | null,
     "price_vnd": number | null,
-    "price_raw": "original price string" | null,
+    "price_raw": "chuỗi giá gốc" | null,
     "area_m2": number | null,
-    "address_raw": "full address string" | null,
-    "ward": "phường/xã name" | null,
-    "street": "street name" | null,
+    "address_raw": "địa chỉ đầy đủ" | null,
+    "ward": "tên phường/xã" | null,
+    "street": "tên đường" | null,
     "district": "quận/huyện" | null,
     "num_bedrooms": number | null,
     "num_bathrooms": number | null,
@@ -32,23 +32,52 @@ Return ONLY valid JSON with this exact structure:
     "structure_type": string | null,
     "building_type": string | null,
     "road_width_m": number | null,
-    "distance_to_beach_m": number | null
+    "distance_to_beach_m": number | null,
+    "commission": string | null
   },
-  "confidence": { "field_name": 0.0-1.0 },
+  "confidence": { "tên_field": 0.0-1.0 },
   "duplicate_warning": { "found": false, "listing_id": null, "similarity": 0 },
-  "description_draft": "Clean Vietnamese description of the property, 2-3 sentences",
+  "description_draft": "Mô tả sạch tiếng Việt 2-3 câu",
   "follow_up_questions": [
-    { "field": "field_name", "question_vi": "Vietnamese question", "question_en": "English question" }
+    { "field": "tên_field", "question_vi": "Câu hỏi tiếng Việt", "question_en": "English question" }
   ]
 }
 
-Rules:
-- Prices: "3.5 tỷ" = 3500000000, "500 triệu" = 500000000
-- Only include fields you can extract with confidence
-- Generate 1-3 follow-up questions for important missing fields
-- description_draft should be a clean summary, not just copying the input
-- All monetary values in VND (đồng)
-- Default transaction_type to "ban" (sale) unless rental language is present`;
+QUY TẮC QUAN TRỌNG:
+
+Giá:
+- "3.5 tỷ" hoặc "3,5 tỷ" = 3500000000
+- "800 triệu" hoặc "800tr" = 800000000
+- "1.2 tỷ rưỡi" = 1250000000
+- "thương lượng" / "tl" → negotiable=true, price_vnd=null
+- Lưu chuỗi giá gốc vào price_raw
+
+Hướng (direction):
+- Đ / Đông → "dong"
+- T / Tây → "tay"
+- N / Nam → "nam"
+- B / Bắc → "bac"
+- ĐN / Đông Nam → "dong_nam"
+- TN / Tây Nam → "tay_nam"
+- ĐB / Đông Bắc → "dong_bac"
+- TB / Tây Bắc → "tay_bac"
+
+Đặc điểm lô đất:
+- "nở hậu" / "nở hau" = lô đất mở rộng phía sau → ghi vào description_draft
+- "đất vuông" / "vuông vức" → ghi vào description_draft
+- "2 mặt tiền" / "2MT" → corner_lot=true
+
+Số liên hệ:
+- Nếu có nhiều số điện thoại, lấy số đầu tiên
+- Không đưa số điện thoại vào các field khác
+
+Mặc định:
+- transaction_type = "ban" nếu không có từ "cho thuê", "cho thuê", "thuê"
+- Chỉ điền field khi có đủ dữ liệu để tự tin
+- description_draft phải là mô tả sạch, không copy nguyên văn
+- Tạo 1-3 câu hỏi follow-up cho các field quan trọng còn thiếu`;
+
+const GEMINI_TIMEOUT_MS = 30000;
 
 type ParseResponse = {
   fields: Record<string, unknown>;
@@ -60,38 +89,54 @@ type ParseResponse = {
   ai_used: boolean;
 };
 
+async function callGeminiOnce(text: string): Promise<ParseResponse> {
+  const { GoogleGenerativeAI } = await import("@google/generative-ai");
+  const genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
+  const model = genAI.getGenerativeModel({
+    model: "gemini-1.5-flash",
+    generationConfig: { responseMimeType: "application/json" },
+  });
+
+  const result = await model.generateContent([
+    { text: SYSTEM_PROMPT },
+    { text: `Phân tích tin rao này:\n\n${text}` },
+  ]);
+
+  const responseText = result.response.text();
+  const parsed = JSON.parse(responseText);
+
+  return {
+    fields: parsed.fields || {},
+    confidence: parsed.confidence || {},
+    duplicate_warning: parsed.duplicate_warning || { found: false, listing_id: null, similarity: 0 },
+    description_draft: parsed.description_draft || text.slice(0, 500),
+    follow_up_questions: parsed.follow_up_questions || [],
+    geo_from_exif: null,
+    ai_used: true,
+  };
+}
+
 async function parseWithGemini(text: string): Promise<ParseResponse | null> {
   if (!GEMINI_API_KEY) return null;
 
-  try {
-    const { GoogleGenerativeAI } = await import("@google/generative-ai");
-    const genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
-    const model = genAI.getGenerativeModel({
-      model: "gemini-1.5-flash",
-      generationConfig: { responseMimeType: "application/json" },
-    });
-
-    const result = await model.generateContent([
-      { text: SYSTEM_PROMPT },
-      { text: `Parse this listing:\n\n${text}` },
+  const withTimeout = (attempt: () => Promise<ParseResponse>) =>
+    Promise.race([
+      attempt(),
+      new Promise<never>((_, reject) =>
+        setTimeout(() => reject(new Error("Gemini timeout")), GEMINI_TIMEOUT_MS)
+      ),
     ]);
 
-    const responseText = result.response.text();
-    const parsed = JSON.parse(responseText);
-
-    return {
-      fields: parsed.fields || {},
-      confidence: parsed.confidence || {},
-      duplicate_warning: parsed.duplicate_warning || { found: false, listing_id: null, similarity: 0 },
-      description_draft: parsed.description_draft || text.slice(0, 500),
-      follow_up_questions: parsed.follow_up_questions || [],
-      geo_from_exif: null,
-      ai_used: true,
-    };
-  } catch (err) {
-    console.error("Gemini parse failed, falling back to mock:", err);
-    return null;
+  // Try once, retry once on failure
+  for (let attempt = 0; attempt < 2; attempt++) {
+    try {
+      return await withTimeout(() => callGeminiOnce(text));
+    } catch (err) {
+      console.error(`Gemini attempt ${attempt + 1} failed:`, err);
+      if (attempt === 1) return null;
+    }
   }
+  return null;
 }
 
 function parseWithMock(text: string): ParseResponse {

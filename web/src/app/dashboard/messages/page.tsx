@@ -155,13 +155,18 @@ export default function MessagesPage() {
       </div>
 
       {loading ? (
-        <div className="text-center py-12 text-[var(--text-muted)]">{t("loading")}</div>
+        <div className="space-y-3">
+          {[...Array(3)].map((_, i) => (
+            <div key={i} className="h-20 rounded-xl animate-pulse" style={{ backgroundColor: "var(--bg-elevated)" }} />
+          ))}
+        </div>
       ) : conversations.length === 0 ? (
         <div
-          className="rounded-xl border border-[var(--border)] py-12 text-center text-[var(--text-muted)]"
+          className="rounded-xl border border-[var(--border)] py-16 text-center"
           style={{ backgroundColor: "var(--bg-surface)" }}
         >
-          {t("noConversations")}
+          <p className="text-[var(--text-muted)] mb-2">{t("noConversations")}</p>
+          <p className="text-xs text-[var(--text-muted)]">{t("startMessaging") || "Nhắn tin với môi giới từ Bảng tin"}</p>
         </div>
       ) : (
         <div

@@ -27,10 +27,25 @@ export async function GET(request: NextRequest) {
     const safeSort = allowedSort.includes(sort) ? sort : "created_at";
     const safeOrder = allowedOrder.includes(order) ? order : "desc";
 
+    // Full-text search
+    const q = searchParams.get("q")?.trim() || "";
+
     // Build dynamic WHERE clauses
     const conditions: string[] = ["pl.archived_at IS NULL"];
     const params: (string | number | boolean)[] = [];
     let paramIndex = 1;
+
+    if (q) {
+      conditions.push(`pl.search_vector @@ to_tsquery('simple', unaccent($${paramIndex}))`);
+      // Convert search term to tsquery format (prefix match, handle spaces)
+      const tsQuery = q
+        .split(/\s+/)
+        .filter(Boolean)
+        .map((w) => w + ":*")
+        .join(" & ");
+      params.push(tsQuery);
+      paramIndex++;
+    }
 
     // Filter parameters
     const filters: {
@@ -150,7 +165,7 @@ export async function GET(request: NextRequest) {
         a.email AS owner_email,
         c.id AS existing_conversation_id,
         (SELECT COUNT(*) FROM listing_photos lp WHERE lp.listing_id = pl.id) AS photo_count,
-        (SELECT lp.file_path FROM listing_photos lp WHERE lp.listing_id = pl.id ORDER BY lp.display_order LIMIT 1) AS primary_photo,
+        (SELECT lp.file_path FROM listing_photos lp WHERE lp.listing_id = pl.id ORDER BY lp.is_primary DESC, lp.display_order LIMIT 1) AS primary_photo,
         EXISTS(SELECT 1 FROM listing_favorites f WHERE f.listing_id = pl.id AND f.agent_id = $${userIdParam}) AS is_favorited
       FROM parsed_listings pl
       JOIN agents a ON a.id = pl.agent_id

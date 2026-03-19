@@ -81,15 +81,18 @@ export interface ListingPhoto {
   id: number;
   listing_id: number;
   file_path: string;
+  thumb_path: string | null;
   original_name: string | null;
   file_size: number | null;
   display_order: number;
+  is_primary: boolean;
   created_at: string;
 }
 
 /** Photo uploaded to disk but not yet registered with a listing (used during creation). */
 export interface StagedPhoto {
   file_path: string;
+  thumb_path: string | null;
   original_name: string;
   file_size: number;
 }

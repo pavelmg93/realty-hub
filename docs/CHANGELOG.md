@@ -6,6 +6,25 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Session 19 — 2026-03-19 — Feature Sprint (Photos, Search, Share, UX)
+
+#### Added
+- **REA-9: Photo validation + HEIC + thumbnails** — 10MB limit, HEIC→JPEG conversion via `sharp`, 400px thumbnail generation (`thumb_<file>`). DELETE endpoint now removes files from disk. Client-side validation feedback in PhotoUploader.
+- **REA-10: Primary photo selection** — Star icon in PhotoUploader to set primary. `is_primary` + `thumb_path` columns on `listing_photos` (migration 013). Feed and My Listings prefer `is_primary=TRUE` photo. First uploaded photo auto-set as primary.
+- **REA-11: Gemini Vietnamese prompts** — Rewrote system prompt entirely in Vietnamese. Handles abbreviated prices, compass directions, nở hậu, multiple contacts. 30s timeout with 1 retry before regex fallback.
+- **REA-13: Feed full-text search** — Migration 013: `unaccent` extension, `search_vector` tsvector + GIN index. API: `?q=<term>` prefix matching. Feed UI: search bar with 300ms debounce, result count, clear button.
+- **REA-14: Share card v1** — "Create Post" generates real Vietnamese text. Zalo / Facebook format toggle. One-click copy to clipboard.
+- **REA-15: i18n** — Added 10 missing keys (searchListings, shareText, setPrimary, photo errors, empty states) en+vi.
+- **REA-17: Skeletons + empty states** — Skeleton loaders on Feed (4 cards), My Listings (4 cards), Messages (3 rows). Empty states with CTAs.
+- **Migration 013** — `listing_photos.is_primary`, `listing_photos.thumb_path`, `parsed_listings.search_vector` (tsvector + GIN), `unaccent` extension.
+
+#### Changed
+- **Upload route** — 20MB → 10MB limit. Photos auto-converted to JPEG + thumbnail via `sharp`. HEIC/HEIF supported.
+- **CLAUDE.md** — Branching updated to `main` as daily branch. Session counter → 19. CLAUDE-UPDATES.md deleted.
+- **SCHEMA.md** — `listing_photos` table updated.
+
+---
+
 ### Session 18 — 2026-03-19 — Infrastructure Hardening, Branching, RUNBOOK
 
 #### Added

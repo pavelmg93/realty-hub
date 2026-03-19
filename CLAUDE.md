@@ -246,15 +246,12 @@ Two loops. Files are the handoff, not conversation memory.
 
 ## Branching Strategy
 
-- **`main`** = production. Always deployable. Runs on GCP VM.
-- **`develop`** = daily work branch. Claude Code commits here.
-- **Feature branches** (`feature/<name>`) = risky work off `develop`. Merge back when stable.
+- **`main`** = production + daily work. Always deployable. Runs on GCP VM. Claude Code commits here.
+- **Feature branches** (`feature/<name>`) = only for risky multi-session refactors. Branch off `main`, merge back when stable.
 
 Daily workflow:
-1. Before session: `git checkout develop && git pull`
-2. Claude Code works on `develop`
-3. After validated: `git checkout main && git merge develop && git push`
-4. Deploy: `ssh VM && git pull && ./scripts/deploy-vm.sh update`
+1. Claude Code works on `main`
+2. After validated: deploy via `ssh VM && git pull && ./scripts/deploy-vm.sh update`
 
 ## Project Management
 
@@ -326,8 +323,8 @@ When I ask you to "log this test" or "create a test session," you must:
 
 Saved in `docs/chat_exports/`. Use `/export` (built-in, 0 tokens) to save a raw transcript to the project root. `scripts/claude-log.sh` (runs every 30 min via cron) moves it to `docs/chat_exports/{DATE}/` and appends to a daily markdown summary.
 
-**Current session number: 18**
-**Last completed session: 17 — 2026-03-17 — VM Deploy, /export Pipeline, DEPLOYMENT.md**
+**Current session number: 19**
+**Last completed session: 18 — 2026-03-19 — Infrastructure Hardening, RUNBOOK, Branching**
 **Deployment: Google Cloud VM — see `docs/DEPLOYMENT.md` for full guide**
 **Sprint: Pilot Launch (Mar 19–22) — see `docs/SCOPE.md`**
 **Linear: https://linear.app/realty-hub**

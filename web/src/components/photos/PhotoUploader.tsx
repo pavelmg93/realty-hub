@@ -4,6 +4,9 @@ import { useState, useRef } from "react";
 import { ListingPhoto, StagedPhoto } from "@/lib/types";
 import { useLanguage } from "@/contexts/LanguageContext";
 
+const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
+const ALLOWED_TYPES = ["image/jpeg", "image/png", "image/webp", "image/heic", "image/heif"];
+
 /**
  * PhotoUploader supports two modes:
  * 1. **Registered mode** (listingId provided): uploads file to disk AND registers with listing in DB.
@@ -30,6 +33,16 @@ interface StagedProps {
 
 type Props = RegisteredProps | StagedProps;
 
+function clientValidate(file: File): string | null {
+  if (file.size > MAX_FILE_SIZE) return `${file.name}: file too large (max 10MB)`;
+  const mime = file.type.toLowerCase();
+  const isAllowed = ALLOWED_TYPES.includes(mime) ||
+    file.name.toLowerCase().endsWith(".heic") ||
+    file.name.toLowerCase().endsWith(".heif");
+  if (!isAllowed) return `${file.name}: unsupported type (JPEG, PNG, WebP, HEIC only)`;
+  return null;
+}
+
 export default function PhotoUploader(props: Props) {
   const { readOnly = false } = props;
   const isStaging = props.listingId == null;
@@ -44,6 +57,12 @@ export default function PhotoUploader(props: Props) {
     setError(null);
 
     for (const file of Array.from(files)) {
+      const validationError = clientValidate(file);
+      if (validationError) {
+        setError(validationError);
+        continue;
+      }
+
       try {
         const formData = new FormData();
         formData.append("file", file);
@@ -63,20 +82,20 @@ export default function PhotoUploader(props: Props) {
         const uploadData = await uploadRes.json();
 
         if (isStaging) {
-          // Staging mode: just keep metadata
           const staged: StagedPhoto = {
             file_path: uploadData.file_path,
+            thumb_path: uploadData.thumb_path || null,
             original_name: uploadData.original_name,
             file_size: uploadData.file_size,
           };
           props.onStagedPhotosChange([...props.stagedPhotos, staged]);
         } else {
-          // Registered mode: also register with listing in DB
           const photoRes = await fetch(`/api/listings/${props.listingId}/photos`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
               file_path: uploadData.file_path,
+              thumb_path: uploadData.thumb_path || null,
               original_name: uploadData.original_name,
               file_size: uploadData.file_size,
             }),
@@ -97,10 +116,8 @@ export default function PhotoUploader(props: Props) {
 
   const handleDelete = async (index: number) => {
     if (isStaging) {
-      // Staging mode: just remove from array
       props.onStagedPhotosChange(props.stagedPhotos.filter((_, i) => i !== index));
     } else {
-      // Registered mode: delete from DB
       const photo = props.photos[index];
       try {
         const res = await fetch(
@@ -116,6 +133,23 @@ export default function PhotoUploader(props: Props) {
     }
   };
 
+  const handleSetPrimary = async (photoId: number) => {
+    if (isStaging) return; // primary = first in staging mode
+    try {
+      const res = await fetch(`/api/listings/${props.listingId}/photos`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ photoId }),
+      });
+      if (res.ok) {
+        const { photos } = await res.json();
+        props.onPhotosChange(photos);
+      }
+    } catch {
+      setError("Failed to set primary photo");
+    }
+  };
+
   const handleDrop = (e: React.DragEvent) => {
     e.preventDefault();
     if (!readOnly && e.dataTransfer.files.length > 0) {
@@ -127,15 +161,19 @@ export default function PhotoUploader(props: Props) {
   const displayPhotos = isStaging
     ? props.stagedPhotos.map((p, i) => ({
         key: `staged-${i}`,
-        src: `/api/files/${p.file_path}`,
+        src: `/api/files/${p.thumb_path || p.file_path}`,
         alt: p.original_name || `Photo ${i + 1}`,
         index: i,
+        isPrimary: i === 0,
+        id: null as null,
       }))
     : props.photos.map((p, i) => ({
         key: `photo-${p.id}`,
-        src: `/api/files/${p.file_path}`,
+        src: `/api/files/${p.thumb_path || p.file_path}`,
         alt: p.original_name || `Photo ${i + 1}`,
         index: i,
+        isPrimary: p.is_primary,
+        id: p.id,
       }));
 
   return (
@@ -167,14 +205,27 @@ export default function PhotoUploader(props: Props) {
                 alt={photo.alt}
                 className="w-full h-full object-cover"
               />
-              {photo.index === 0 && (
+              {/* Primary badge */}
+              {photo.isPrimary && (
                 <span
                   className="absolute top-1 left-1 text-[10px] px-1.5 py-0.5 rounded-full font-medium text-white"
                   style={{ backgroundColor: "var(--orange)" }}
                 >
-                  Primary
+                  ★
                 </span>
               )}
+              {/* Star button to set as primary (registered mode, non-primary photos, not readOnly) */}
+              {!readOnly && !isStaging && !photo.isPrimary && photo.id !== null && (
+                <button
+                  onClick={() => handleSetPrimary(photo.id!)}
+                  className="absolute top-1 left-1 w-6 h-6 rounded-full opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-xs text-white"
+                  style={{ backgroundColor: "rgba(0,0,0,0.5)" }}
+                  title="Set as primary photo"
+                >
+                  ☆
+                </button>
+              )}
+              {/* Delete button */}
               {!readOnly && (
                 <button
                   onClick={() => handleDelete(photo.index)}
@@ -204,7 +255,7 @@ export default function PhotoUploader(props: Props) {
           <input
             ref={fileInputRef}
             type="file"
-            accept="image/jpeg,image/png,image/webp,image/gif"
+            accept="image/jpeg,image/png,image/webp,image/heic,image/heif,.heic,.heif"
             multiple
             className="hidden"
             onChange={(e) => {
@@ -226,14 +277,14 @@ export default function PhotoUploader(props: Props) {
             />
           </svg>
           {uploading ? (
-            <p className="text-sm text-[var(--text-muted)]">{t("uploading") || "Uploading..."}</p>
+            <p className="text-sm text-[var(--text-muted)]">{t("uploading")}</p>
           ) : (
             <>
               <p className="text-sm font-medium text-[var(--text-secondary)]">
-                {t("clickOrDragPhotos") || "Click or drag photos here"}
+                {t("clickOrDragPhotos")}
               </p>
               <p className="text-xs text-[var(--text-muted)] mt-1">
-                JPEG, PNG, WebP, GIF (max 20MB)
+                JPEG, PNG, WebP, HEIC (max 10MB)
               </p>
             </>
           )}

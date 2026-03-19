@@ -211,10 +211,26 @@ export default function ListingsPage() {
       )}
 
       {loading ? (
-        <div className="text-center py-12 text-[var(--text-muted)]">{t("loading")}</div>
+        <div className={`grid gap-4 ${cols === 1 ? "grid-cols-1" : cols === 2 ? "grid-cols-2" : "grid-cols-3"}`}>
+          {[...Array(4)].map((_, i) => (
+            <div key={i} className="h-48 rounded-xl animate-pulse" style={{ backgroundColor: "var(--bg-elevated)" }} />
+          ))}
+        </div>
       ) : listings.length === 0 ? (
-        <div className="text-center py-12 text-[var(--text-muted)]">
-          {tab === "active" ? t("noActiveListings") : t("noArchivedListings")}
+        <div className="text-center py-16">
+          <p className="text-[var(--text-muted)] mb-3">
+            {tab === "active" ? t("noActiveListings") : t("noArchivedListings")}
+          </p>
+          {tab === "active" && (
+            <button
+              type="button"
+              onClick={() => router.push("/dashboard/listings/new")}
+              className="px-4 py-2 text-sm font-medium rounded-lg text-white"
+              style={{ backgroundColor: "var(--orange)" }}
+            >
+              {t("addListing")}
+            </button>
+          )}
         </div>
       ) : viewMode === "map" ? (
         <DynamicFeedMap

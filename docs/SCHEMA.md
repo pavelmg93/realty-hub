@@ -162,11 +162,17 @@ Example: `34/2 Nguyen Thien Thuat 100 7 10x10 20ty hh1`
 |---|---|---|
 | `id` | integer PK | auto |
 | `listing_id` | integer FK→parsed_listings | CASCADE delete |
-| `file_path` | varchar(500) NOT NULL | relative path under `uploads/listings/<id>/` |
+| `file_path` | varchar(500) NOT NULL | relative path under `uploads/` |
+| `thumb_path` | text | 400px thumbnail path (migration 013) |
 | `original_name` | varchar(255) | |
 | `file_size` | integer | bytes |
 | `display_order` | smallint | default 0 |
+| `is_primary` | boolean | default false; partial unique index per listing (migration 013) |
 | `created_at` | timestamp | default now() |
+
+**Migration 013 also adds:**
+- `parsed_listings.search_vector` — generated tsvector column (address_raw, ward, street, district, description) + GIN index
+- `unaccent` extension for diacritics-insensitive full-text search
 
 ---
 

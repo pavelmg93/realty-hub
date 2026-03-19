@@ -50,7 +50,9 @@ export default function ListingViewPage() {
   const [activePhotoIdx, setActivePhotoIdx] = useState(0);
   const [translatedDesc, setTranslatedDesc] = useState<string | null>(null);
   const [shareCopied, setShareCopied] = useState(false);
-  const [showCreatePost, setShowCreatePost] = useState(false);
+  const [showShareCard, setShowShareCard] = useState(false);
+  const [shareFormat, setShareFormat] = useState<"zalo" | "facebook">("zalo");
+  const [shareTextCopied, setShareTextCopied] = useState(false);
 
   useEffect(() => {
     setActivePhotoIdx(0);
@@ -144,6 +146,69 @@ export default function ListingViewPage() {
     });
   };
 
+  const generateShareText = (format: "zalo" | "facebook"): string => {
+    if (!listing) return "";
+    const parts: string[] = [];
+    const propLabel = label(listing.property_type, PROPERTY_TYPES);
+    const txnLabel = label(listing.transaction_type, TRANSACTION_TYPES);
+    const priceStr = listing.price_raw || (listing.price_vnd ? formatPrice(listing.price_vnd) : "");
+    const area = listing.area_m2 ? `${listing.area_m2}m²` : "";
+    const ward = listing.ward ? `P. ${listing.ward}` : "";
+    const street = listing.street || "";
+    const address = listing.address_raw || [street, ward].filter(Boolean).join(", ");
+
+    if (format === "zalo") {
+      parts.push(`🏠 ${propLabel} ${txnLabel}`.trim());
+      if (address) parts.push(`📍 ${address}`);
+      if (priceStr) parts.push(`💰 ${priceStr}`);
+      if (area) parts.push(`📐 ${area}`);
+      const specs: string[] = [];
+      if (listing.num_bedrooms) specs.push(`${listing.num_bedrooms} PN`);
+      if (listing.num_bathrooms) specs.push(`${listing.num_bathrooms} WC`);
+      if (listing.num_floors) specs.push(`${listing.num_floors} tầng`);
+      if (specs.length) parts.push(`🏗 ${specs.join(" • ")}`);
+      if (listing.description) parts.push(`\n${listing.description.slice(0, 200)}`);
+      const contact = listing.owner_phone || listing.owner_email || "";
+      if (contact) parts.push(`\n📞 ${contact}`);
+    } else {
+      // Facebook — more detail + hashtags
+      parts.push(`🏠 ${propLabel.toUpperCase()} — ${txnLabel.toUpperCase()}`);
+      if (address) parts.push(`📍 ${address}`);
+      if (priceStr) parts.push(`💰 Giá: ${priceStr}${listing.negotiable ? " (thương lượng)" : ""}`);
+      if (area) parts.push(`📐 Diện tích: ${area}`);
+      const specs: string[] = [];
+      if (listing.num_bedrooms) specs.push(`${listing.num_bedrooms} phòng ngủ`);
+      if (listing.num_bathrooms) specs.push(`${listing.num_bathrooms} WC`);
+      if (listing.num_floors) specs.push(`${listing.num_floors} tầng`);
+      if (listing.frontage_m) specs.push(`mặt tiền ${listing.frontage_m}m`);
+      if (specs.length) parts.push(`🏗 ${specs.join(" • ")}`);
+      const features: string[] = [];
+      if (listing.access_road) features.push(label(listing.access_road, ACCESS_ROAD_TYPES));
+      if (listing.furnished && listing.furnished !== "khong") features.push(label(listing.furnished, FURNISHED_TYPES));
+      if (listing.legal_status) features.push(label(listing.legal_status, LEGAL_STATUS_TYPES));
+      if (listing.has_elevator) features.push("Có thang máy");
+      if (features.length) parts.push(`✅ ${features.join(" • ")}`);
+      if (listing.description) parts.push(`\n📝 ${listing.description.slice(0, 300)}`);
+      const contact = listing.owner_phone || listing.owner_email || "";
+      if (contact) parts.push(`\n📞 Liên hệ: ${contact}`);
+      const tags = ["#batdongsan", "#nhatrang", "#khanhhoa",
+        listing.transaction_type === "ban" ? "#banbatdongsan" : "#chothuenha",
+        ward ? `#${ward.replace(/\s+/g, "").toLowerCase()}` : ""
+      ].filter(Boolean);
+      parts.push(`\n${tags.join(" ")}`);
+    }
+
+    return parts.join("\n");
+  };
+
+  const handleCopyShareText = () => {
+    const text = generateShareText(shareFormat);
+    void navigator.clipboard.writeText(text).then(() => {
+      setShareTextCopied(true);
+      setTimeout(() => setShareTextCopied(false), 2000);
+    });
+  };
+
   const handleArchive = async () => {
     const res = await fetch(`/api/listings/${listing.id}/archive`, {
       method: "POST",
@@ -174,32 +239,52 @@ export default function ListingViewPage() {
             >
               <Archive size={16} /> {t("archive")}
             </button>
-            <div className="relative">
-              <button
-                type="button"
-                onClick={() => setShowCreatePost((v) => !v)}
-                className="inline-flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-lg border border-[var(--border)] text-[var(--text-primary)] hover:bg-[var(--bg-hover)]"
-              >
-                <Share2 size={16} /> {t("createPost")}
-              </button>
-              {showCreatePost && (
-                <div className="absolute left-0 top-full mt-1 py-2 rounded-lg border border-[var(--border)] shadow-lg z-10 min-w-[180px]" style={{ backgroundColor: "var(--bg-surface)" }}>
-                  <p className="px-3 py-1 text-xs text-[var(--text-muted)] uppercase">Scaffold — Demo</p>
-                  {["Zalo", "TikTok", "LinkedIn", "Instagram", "Facebook", "BDS.vn"].map((channel) => (
-                    <button
-                      key={channel}
-                      type="button"
-                      className="block w-full text-left px-3 py-2 text-sm text-[var(--text-primary)] hover:bg-[var(--bg-hover)]"
-                    >
-                      {channel}
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
+            <button
+              type="button"
+              onClick={() => setShowShareCard((v) => !v)}
+              className={`inline-flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-lg border transition-colors ${showShareCard ? "border-[var(--orange)] text-[var(--orange)]" : "border-[var(--border)] text-[var(--text-primary)] hover:bg-[var(--bg-hover)]"}`}
+            >
+              <Share2 size={16} /> {t("createPost")}
+            </button>
           </>
         )}
       </div>
+
+      {/* Share card panel */}
+      {showShareCard && (
+        <div className="mb-4 p-4 rounded-xl border border-[var(--border)]" style={{ backgroundColor: "var(--bg-surface)" }}>
+          <div className="flex items-center gap-2 mb-3">
+            <span className="text-sm font-medium text-[var(--text-primary)]">{t("shareText") || "Chia sẻ văn bản"}</span>
+            <div className="flex rounded-lg overflow-hidden border border-[var(--border)]">
+              {(["zalo", "facebook"] as const).map((fmt) => (
+                <button
+                  key={fmt}
+                  type="button"
+                  onClick={() => setShareFormat(fmt)}
+                  className="px-3 py-1 text-xs font-medium transition-colors"
+                  style={{
+                    backgroundColor: shareFormat === fmt ? "var(--orange)" : "transparent",
+                    color: shareFormat === fmt ? "white" : "var(--text-secondary)",
+                  }}
+                >
+                  {fmt === "zalo" ? "Zalo" : "Facebook"}
+                </button>
+              ))}
+            </div>
+          </div>
+          <pre className="text-xs text-[var(--text-secondary)] whitespace-pre-wrap bg-[var(--bg-elevated)] rounded-lg p-3 mb-3 max-h-48 overflow-y-auto font-sans">
+            {generateShareText(shareFormat)}
+          </pre>
+          <button
+            type="button"
+            onClick={handleCopyShareText}
+            className="px-4 py-2 text-sm font-medium rounded-lg text-white transition-colors"
+            style={{ backgroundColor: "var(--orange)" }}
+          >
+            {shareTextCopied ? "✓ Đã sao chép!" : "📋 Copy văn bản"}
+          </button>
+        </div>
+      )}
 
       {/* Header */}
       <div className="flex items-start justify-between mb-6">
