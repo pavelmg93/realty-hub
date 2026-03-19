@@ -1,108 +1,76 @@
-# ProMemo — Project Scope & Action Hub
-**Session 15 · 2026-03-16 · UI Polish, Gemini Integration, i18n Fix**
+# Realty Hub — Project Scope
+**Sprint:** Pilot Launch (Mar 19–22, 2026)
+**Target:** 10-user pilot at Nha Trang FIDT office, Mon Mar 23
 
 ---
 
-## 🎯 Current Milestone: Session 15 — Listing UI Polish + Gemini AI Parse + i18n Cleanup
+## 🔴 Current Session: 18 — Infrastructure Hardening
 
-**Objective:** Bring New Listing and My Listings pages to Stitch quality with photos/docs,
-wire up real Gemini parsing, fix card display (title_standardized + status badges),
-enforce Feed visibility rules, fix all dropdown i18n gaps, and restore agent header
-in conversation threads.
+**Branch:** `main` (no develop branch yet — set up in this session)
+**Linear:** REA-5, REA-6, REA-7, REA-22
 
----
+### Tasks
 
-## 🚀 Next Actions (Immediate execution)
-
-### P0 — Wrap Session 14 First
-* [x] **[Housekeeping]** Session 14 logged and committed.
-
-### P1 — Conversation Thread Regression
-* [x] **[UI: MessageThread header]** Verified — already working. `GET /api/conversations/[id]`
-  returns `other_agent_name`, `other_agent_id`, `other_agent_avatar_url`. Header renders
-  agent name + initials avatar circle. `avatar_url` column added in migration 010.
-
-### P2 — New Listing Form: Photos + Remove Dead Button
-* [x] **[UI: New Listing — remove "Parse Text"]** Removed FreestyleEditor + dead `handleParse`
-  (called non-existent `/api/parse`). Replaced with simple description textarea.
-* [x] **[UI: New Listing — Photos]** PhotoUploader staging mode — uploads to disk, registers after listing creation.
-* [x] **[UI: New Listing — Documents]** DocumentManager staging mode — same pattern as photos.
-
-### P3 — My Listings: Card UX
-* [x] **[UI: ListingCard — photo thumbnail]** Added `primary_photo` + `photo_count`
-  subqueries to `GET /api/listings`. Card now shows photo thumbnail with count badge.
-* [x] **[UI: ListingCard — remove "View" button]** Entire card wrapped in `<Link>`.
-  Edit/Inquiries/Archive use `e.stopPropagation()`.
-
-### P4 — Card Display: title_standardized + Status Badges
-* [x] **[UI: ListingCard + FeedCard — headline]** Both cards now show two-line display:
-  Line 1: `address_raw`, Line 2: specs from `title_standardized` or fallback.
-* [x] **[Logic: generateTitleStandardized()]** Updated in `constants.ts`. Formula:
-  `<area>m² <floors>T <frontage>x<depth> <commission> <price>`. No address in title.
-* [x] **[UI: StatusBadge on card thumbnails]** Badge top-left of photo, hidden for `for_sale`.
-
-### P5 — Status Enum: Reduce to 7
-* [x] **[Constants]** Removed `in_negotiations`/`pending_closing`. Final 7 values.
-* [x] **[Validation]** Zod enum updated.
-* [x] **[DB: migration 012]** Applied. Rows migrated, CHECK constraint updated.
-* [x] **[i18n]** Dead keys removed, all 7 statuses have vi/en labels.
-* [x] **[SCHEMA.md]** Updated to migration level 012.
-
-### P6 — Feed Visibility Rules
-* [x] **[API: feed query]** Added condition: `pl.status NOT IN ('sold', 'not_for_sale')
-  OR EXISTS(listing_favorites WHERE agent_id = $current)`.
-
-### P7 — Gemini API Integration
-* [x] **[Config]** `GEMINI_API_KEY` already in `.env.example` and docker-compose.
-* [x] **[API: `/api/ai/parse-listing`]** Rewrote with Gemini 1.5 Flash + mock fallback.
-  Returns `ai_used: bool`. Installed `@google/generative-ai`.
-* [ ] **[UI: parse feedback]** Confidence indicators — deferred.
-
-### P8 — i18n: Dropdown Field Values
-* [x] **[i18n]** Added `FIELD_VALUE_LABELS` map + `getFieldValueLabel()` helper.
-  Covers: property_type, transaction_type, status, furnished, legal_status,
-  direction, access_road, structure_type, building_type. Applied to FeedCard.
-
-### P9 — Screenshots Folder
-* [ ] **[Repo]** Create `docs/screenshots/`. Commit current-state PNGs with
-  descriptive names. Claude Code reads these as visual reference for UI tasks.
+* [ ] **[Git: branching]** Create `develop` branch off `main`. Push to origin. All session work on `develop`. Merge to `main` at end.
+* [ ] **[Infra: Cloudflare HTTPS — REA-5]** Domain `realtyhub.xeldon.com` is configured via Cloudflare proxy (A record + origin rule → port 8888). See `docs/adrs/2026-03-19-ADR-003-cloudflare-https-proxy.md`. Claude Code tasks: verify app works behind proxy (check `X-Forwarded-Proto` header handling in auth/JWT), update any hardcoded `http://` or `localhost:8888` URLs, add `DOMAIN=realtyhub.xeldon.com` to `.env.example`, verify JWT `secure` cookie works with Cloudflare Flexible SSL.
+* [ ] **[Infra: DB backup — REA-6]** Create `scripts/backup-db.sh` — pg_dump to `backups/YYYY-MM-DD-HHMMSS.sql.gz`. Retention: 7 daily, delete older. Add cron entry example to RUNBOOK. Test restore to temp container.
+* [ ] **[Docs: RUNBOOK — REA-7]** Create `docs/RUNBOOK.md` — how to: create agent accounts, backup/restore DB, restart services, view logs, apply migrations, deploy updates.
+* [ ] **[Chore: Split SESSION_LOG — REA-22]** Split `docs/code_sessions/SESSION_LOG.md` into individual session files (sessions 6–15). Match existing pattern: `YYYY-MM-DD-sessionNN-brief-topic.md`. Move SESSION_LOG.md to `docs/archive/`.
+* [ ] **[Config: Verify .env]** Check that `GEMINI_API_KEY` in docker-compose.yml matches `.env` variable name. Current `.env` has `ENV_GEMINI_API_KEY` — may be a mismatch. Fix if needed.
+* [ ] **[Docs: CLAUDE.md update]** Rename ProMemo → Realty Hub. Bump session counter to 18. Add branching strategy section. Add Linear reference. Update repo structure map. Apply diffs from `CLAUDE-UPDATES.md`.
 
 ---
 
-## ⏳ Waiting On (Blocked)
+## ⏭️ Queue (execute in order if time permits)
 
-* [ ] **[GEMINI_API_KEY]** Pavel to obtain and add to `.env`. Required for P7.
-
----
-
-## 🧊 Backlog (Upcoming, not active this session)
-
-* [ ] **[CRM]** Person profile: document uploads + interaction history log.
-* [ ] **[CRM: Deals]** Pre-populate 2–3 seed deals for demo walkthrough.
-* [ ] **[Auth]** JWT expiry + refresh tokens before public URL goes live.
-* [ ] **[Agent avatars]** `avatar_url` on agents table — migration 012 (add alongside
-  status constraint fix, same migration file).
-* [ ] **[Photos: R2]** Cloudflare R2 for production photo storage.
-* [ ] **[Deployment]** GCP VM sync after Session 15 stabilizes.
+1. **Photo upload: validation, HEIC conversion, thumbnails — REA-9** Max file size (10MB), allowed types (jpeg/png/webp/heic). Auto-convert HEIC→JPEG via `sharp`. Generate 400px thumbnails. Verify delete cleans disk.
+2. **Photo: primary photo selection — REA-10** Star icon or drag-to-first. Feed/card always shows primary.
+3. **Gemini parse: improved Vietnamese prompts — REA-11** Better system prompt for tỷ/triệu, directions, nở hậu, contacts. JSON output matching schema. Timeout 30s, retry 1x, regex fallback.
+4. **Feed: full-text search — REA-13** tsvector + GIN index. `unaccent` for diacritics. Search bar on Feed page, debounced 300ms.
+5. **Listing export: share card v1 — REA-14** Shareable image (1080×1350) + one-click copy text. Platform templates (Zalo/Facebook).
+6. **Vietnamese UI translations — REA-15** Full i18n pass: buttons, navigation, error messages, form labels, placeholders. Recurring — mark progress, don't mark done.
+7. **Gemini parse: image/OCR — REA-12** Send screenshots to Gemini Vision for text extraction.
+8. **Mobile responsiveness — REA-16** Critical flows on mobile viewport: Feed, Add Listing, Messages.
+9. **Loading skeletons + empty states + toasts — REA-17** Replace "Loading..." and `alert()` with proper UX.
+10. **Create 10 pilot accounts — REA-8** Run `scripts/create_agent.sh` with names/phones from FIDT boss. (Blocked by user list.)
 
 ---
 
-## 🌌 Someday / Maybe
+## ✅ Done (Sessions 14–17)
 
-* [ ] Re-enable Kestra + scraping pipeline post-demo.
-* [ ] pgvector semantic search on listing descriptions.
-* [ ] Push notifications (FCM).
-* [ ] Auto-post to Zalo / TikTok / LinkedIn.
-* [ ] Public listing pages (`/l/[id]?token=xxx`).
-* [ ] Analytics dashboard (BigQuery post-MVP).
+* [x] **[P0: API listings POST]** Fixed Add Listing server error — ghost columns. (Session 14)
+* [x] **[P0: API listings PUT]** Fixed Edit Listing server error — same. (Session 14)
+* [x] **[P0: DB constraint]** Dropped stale `ck_parsed_listings_status`. Migration 011. (Session 14)
+* [x] **[Favorites]** Idempotent toggle API. Heart icon. "Favorites only" filter. (Session 14)
+* [x] **[Conversation header]** Agent name + initials avatar restored. (Session 15)
+* [x] **[New Listing — remove Parse Text]** Dead FreestyleEditor removed. (Session 15)
+* [x] **[My Listings cards]** Photo thumbnails, photo_count badge, clickable cards. (Session 15)
+* [x] **[Card two-line headline]** Line 1 = address, Line 2 = specs. ADR-002. (Session 15)
+* [x] **[Status enum → 7]** Removed in_negotiations, pending_closing. Migration 012. (Session 15)
+* [x] **[Feed visibility]** Sold/not_for_sale hidden unless favorited. (Session 15)
+* [x] **[i18n: FIELD_VALUE_LABELS]** Bilingual dropdown labels. Partial — UI chrome gaps remain (REA-15). (Session 15)
+* [x] **[Gemini AI parse]** 1.5 Flash + regex fallback. (Session 15)
+* [x] **[Photos: staging at creation]** Upload during form fill, register after. (Session 16)
+* [x] **[Docs: staging at creation]** Same pattern for documents. (Session 16)
+* [x] **[VM deploy]** promemo-demo-2 at 136.110.34.97:8888. (Session 17)
+* [x] **[/export + claude-log.sh]** Chat export pipeline. (Session 17)
+* [x] **[DEPLOYMENT.md]** Created. (Session 17)
+* [x] **[Bug: nested <a> hydration]** Link → button + router.push(). (Session 15)
+* [x] **[Bug: messages loading hang]** Removed non-existent columns from API. (Session 15)
+* [x] **[Bug: agent undefined]** Loading guard for race condition. (Session 15)
+* [x] **[Bug: PATCH handler SQL]** Fixed non-existent column reference. (Session 15)
 
 ---
 
-## 📋 Known Tech Debt
+## 🧊 Backlog (not this sprint)
 
-| Issue | Priority | Notes |
-|---|---|---|
-| BIGINT as string from node-postgres | High | `parseInt(row.price_vnd) \|\| null` everywhere |
-| `avatar_url` missing from agents table | Medium | Add in migration 012 alongside status fix |
-| Session 14 not committed or code_session logged | High | P0 of Session 15 |
-| Turbopack stale 404s in dev | Low | `rm -rf web/.next` workaround |
+* [ ] Migrate photos to GCS — REA-18
+* [ ] Agent avatar upload — REA-19
+* [ ] Notifications — REA-20
+* [ ] API rate limiting — REA-21
+* [ ] JWT expiry + refresh tokens
+* [ ] Cloud Run / Cloud SQL migration
+* [ ] CRM: person profile docs + deal events
+* [ ] pgvector semantic search
+* [ ] Public listing pages (`/l/[id]?token=xxx`)
+* [ ] Upgrade Cloudflare SSL to "Full (Strict)" with origin cert
