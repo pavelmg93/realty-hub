@@ -2,7 +2,7 @@
 
 set -euo pipefail
 
-ROOT="$HOME/dev_projects/re-nhatrang"
+ROOT="$(pwd)"
 EXPORT_BASE="$ROOT/docs/chat_exports"
 
 DATE=$(date +%F)
