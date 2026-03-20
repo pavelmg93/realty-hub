@@ -47,9 +47,11 @@ fi
 # ─── 3. Create uploads directories with proper permissions ───
 echo ">>> Setting up uploads directory..."
 mkdir -p uploads/listings uploads/photos uploads/documents uploads/avatars
-# The web container runs as root inside Alpine, and the volume is mounted
-# as ./uploads:/app/uploads. Ensure the host dir is writable.
-chmod -R 777 uploads
+# chmod only on fresh deploy — in update mode files are owned by the container
+# (root inside Alpine) and cannot be chmodded by the host user.
+if [ "$MODE" != "update" ]; then
+  chmod -R 777 uploads 2>/dev/null || true
+fi
 echo ">>> uploads directory ready (listings, photos, documents, avatars)"
 
 # ─── 4. Build and start containers ───
