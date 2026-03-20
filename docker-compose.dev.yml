@@ -1,0 +1,16 @@
+# docker-compose.dev.yml — Local development overrides
+#
+# Usage:
+#   docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d
+#
+# Adds hot-reload bind mounts to the web service and runs Next.js in dev mode.
+# The ./web:/app bind mount makes code changes live-reload without rebuilding.
+
+services:
+  web:
+    volumes:
+      - ./web:/app
+      - /app/node_modules
+      - /app/.next
+      - ./uploads:/app/uploads
+    command: sh -c "npm install && npm run dev"

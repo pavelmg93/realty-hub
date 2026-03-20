@@ -270,15 +270,14 @@ Three demo users for testing. Password for all: `demo123`.
 Create the three demo users (run from repo root; use `PORT=3000` if not using Docker):
 
 ```bash
-./scripts/create_agent.sh dean "Duy Dean Pham" demo123 0868331111 dean@fidt.vn
-./scripts/create_agent.sh sarah "Sarah Tran" demo123 0909123456 sarah@fidt.vn
-./scripts/create_agent.sh minh "Minh Le" demo123 0916789123 minh@fidt.vn
+./scripts/create_agent.sh dean "Duy" "Pham" pilot123 0868331111 dean@fidt.vn
+./scripts/create_agent.sh pavel "Pavel" "Garanin" pilot123 0868763267 pavel@fidt.vn
 ```
 
 To create additional accounts (admin only):
 
 ```bash
-./scripts/create_agent.sh <username> <first_name> <password> [phone] [email]
+./scripts/create_agent.sh <username> <first_name> <last_name> <password> [phone] [email]
 # With Docker (default): script uses port 8888. With local dev: PORT=3000 ./scripts/create_agent.sh ...
 ```
 

@@ -6,6 +6,27 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Session 20 — 2026-03-21 — Infra Hardening + Pilot Polish
+
+#### Added
+- **REA-25: Docker volume pinning** — Named volumes `realty-hub-pg-data`, `realty-hub-redis-data`, `realty-hub-uploads-data`. Migration 014: `schema_migrations` tracking table + backfill of all 013 prior migrations. `scripts/migrate.sh` — idempotent migration runner that skips already-applied versions.
+- **REA-24: Production Dockerfile** — Split into prod (`docker-compose.yml`) and dev (`docker-compose.dev.yml`) compose files. Dockerfile now runs `npm run build && npm start` for production. Dev compose adds bind mounts + overrides CMD to `npm run dev`.
+- **REA-17: loading.tsx skeletons** — Next.js route loading files for dashboard, listing detail, feed, messages — instant spinner/skeleton on navigation.
+- **REA-27: OPERATIONS.md** — New ops cheatsheet with Docker, DB, VM, deploy, cleanup commands.
+- **sonner** — Toast library installed, `<Toaster />` added to root Providers (ready for future `toast.error()` / `toast.success()` usage).
+
+#### Fixed
+- **REA-26: Multi-photo upload bug** — When uploading multiple files, `onStagedPhotosChange` was called with a stale closure value causing each file to overwrite the last. Fixed by accumulating into a local array and calling once at the end.
+- **REA-11: AI price parsing** — Unified price parsing via `parseVietnamesePrice()` utility in parse route. Both Gemini and mock parser now return `price_short` (e.g., `"3.5 tỷ"`) alongside `price_vnd`.
+
+#### Changed
+- **REA-23: CLAUDE.md** — Branching Strategy updated. Session counter → 20. Demo passwords updated to `pilot123`.
+- **create_agent.sh** — New signature: `<username> <first_name> <last_name> <password> [phone] [email]`. Updated in CLAUDE.md, RUNBOOK.md, DEPLOYMENT.md, USAGE.md.
+- **deploy-vm.sh** — Migration loop replaced by `./scripts/migrate.sh` call. Pilot account commands updated.
+- **REA-16: UI margins** — Feed and My Listings pages: `px-4 sm:px-6 py-4 max-w-3xl mx-auto`. Messages page: `px-4 sm:px-6 py-4`.
+
+---
+
 ### Session 19 — 2026-03-19 — Feature Sprint (Photos, Search, Share, UX)
 
 #### Added

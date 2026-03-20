@@ -56,6 +56,10 @@ export default function PhotoUploader(props: Props) {
     setUploading(true);
     setError(null);
 
+    // Accumulate into local arrays so multiple files don't clobber each other
+    const newStaged: StagedPhoto[] = isStaging ? [...props.stagedPhotos] : [];
+    const newRegistered: import("@/lib/types").ListingPhoto[] = !isStaging ? [...props.photos] : [];
+
     for (const file of Array.from(files)) {
       const validationError = clientValidate(file);
       if (validationError) {
@@ -82,13 +86,12 @@ export default function PhotoUploader(props: Props) {
         const uploadData = await uploadRes.json();
 
         if (isStaging) {
-          const staged: StagedPhoto = {
+          newStaged.push({
             file_path: uploadData.file_path,
             thumb_path: uploadData.thumb_path || null,
             original_name: uploadData.original_name,
             file_size: uploadData.file_size,
-          };
-          props.onStagedPhotosChange([...props.stagedPhotos, staged]);
+          });
         } else {
           const photoRes = await fetch(`/api/listings/${props.listingId}/photos`, {
             method: "POST",
@@ -103,12 +106,18 @@ export default function PhotoUploader(props: Props) {
 
           if (photoRes.ok) {
             const { photo } = await photoRes.json();
-            props.onPhotosChange([...props.photos, photo]);
+            newRegistered.push(photo);
           }
         }
       } catch {
         setError("Upload failed");
       }
+    }
+
+    if (isStaging) {
+      props.onStagedPhotosChange(newStaged);
+    } else {
+      props.onPhotosChange(newRegistered);
     }
 
     setUploading(false);

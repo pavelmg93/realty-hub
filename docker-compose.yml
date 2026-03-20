@@ -128,9 +128,6 @@ services:
       UPLOAD_DIR: /app/uploads
       GEMINI_API_KEY: ${ENV_GEMINI_API_KEY:-}
     volumes:
-      - ./web:/app
-      - /app/node_modules
-      - /app/.next
       - ./uploads:/app/uploads
     depends_on:
       app-postgres:
@@ -156,8 +153,11 @@ volumes:
   # kestra-data:
   # kestra-pg-data:
   app-pg-data:
+    name: realty-hub-pg-data
   redis-data:
+    name: realty-hub-redis-data
   uploads-data:
+    name: realty-hub-uploads-data
 
 networks:
   re-nhatrang:

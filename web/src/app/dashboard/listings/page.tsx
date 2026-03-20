@@ -91,7 +91,7 @@ export default function ListingsPage() {
   };
 
   return (
-    <div className="p-3">
+    <div className="px-4 sm:px-6 py-4 max-w-3xl mx-auto">
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-lg font-semibold text-[var(--text-primary)]">
           {t("myListings")}

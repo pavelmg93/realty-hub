@@ -125,11 +125,11 @@ docker exec -i re-nhatrang-app-postgres-1 psql -U re_nhatrang -d re_nhatrang \
 No public signup. Admin creates accounts only:
 
 ```bash
-./scripts/create_agent.sh <username> <display_name> <password> [phone] [email]
+./scripts/create_agent.sh <username> <first_name> <last_name> <password> [phone] [email]
 
-# Demo accounts:
-./scripts/create_agent.sh pavel "Pavel" demo123
-./scripts/create_agent.sh dean "Duy (Dean) Pham" demo123 0868331111 dean@fidt.vn
+# Pilot accounts:
+./scripts/create_agent.sh pavel "Pavel" "Garanin" pilot123 0868763267 pavel@fidt.vn
+./scripts/create_agent.sh dean "Duy" "Pham" pilot123 0868331111 dean@fidt.vn
 ```
 
 ---
@@ -204,8 +204,8 @@ playwright install chromium
 
 | Username | Password |
 |---|---|
-| `pavel` | `demo123` |
-| `dean` | `demo123` |
+| `pavel` | `pilot123` |
+| `dean` | `pilot123` |
 
 ---
 
@@ -247,7 +247,7 @@ Two loops. Files are the handoff, not conversation memory.
 ## Branching Strategy
 
 - **`main`** = production + daily work. Always deployable. Runs on GCP VM. Claude Code commits here.
-- **Feature branches** (`feature/<name>`) = only for risky multi-session refactors. Branch off `main`, merge back when stable.
+- **Feature branches** (`feature/<n>`) = only for risky multi-session refactors. Branch off `main`, merge back when stable.
 
 Daily workflow:
 1. Claude Code works on `main`
@@ -323,8 +323,8 @@ When I ask you to "log this test" or "create a test session," you must:
 
 Saved in `docs/chat_exports/`. Use `/export` (built-in, 0 tokens) to save a raw transcript to the project root. `scripts/claude-log.sh` (runs every 30 min via cron) moves it to `docs/chat_exports/{DATE}/` and appends to a daily markdown summary.
 
-**Current session number: 19**
-**Last completed session: 18 — 2026-03-19 — Infrastructure Hardening, RUNBOOK, Branching**
+**Current session number: 20**
+**Last completed session: 19 — 2026-03-19 — Feature Sprint: Photos, FTS, Share Card, UX**
 **Deployment: Google Cloud VM — see `docs/DEPLOYMENT.md` for full guide**
 **Sprint: Pilot Launch (Mar 19–22) — see `docs/SCOPE.md`**
 **Linear: https://linear.app/realty-hub**

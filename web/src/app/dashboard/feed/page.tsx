@@ -104,7 +104,7 @@ export default function FeedPage() {
   const currentUserId = user?.id ?? 0;
 
   return (
-    <div className="p-3">
+    <div className="px-4 sm:px-6 py-4 max-w-3xl mx-auto">
       {/* Search bar */}
       <div className="relative mb-3">
         <svg

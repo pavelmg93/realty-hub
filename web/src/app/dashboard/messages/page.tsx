@@ -108,7 +108,7 @@ export default function MessagesPage() {
   };
 
   return (
-    <div className="max-w-2xl mx-auto p-3">
+    <div className="max-w-2xl mx-auto px-4 sm:px-6 py-4">
       <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
         <h1 className="text-lg font-semibold text-[var(--text-primary)]">{t("inquiries")}</h1>
         <div className="flex items-center gap-2">

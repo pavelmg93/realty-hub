@@ -79,6 +79,36 @@ Mặc định:
 
 const GEMINI_TIMEOUT_MS = 30000;
 
+/** Convert price_vnd number to short Vietnamese string, e.g. 3500000000 → "3.5 tỷ" */
+function priceVndToShort(vnd: number): string {
+  if (vnd >= 1_000_000_000) {
+    const ty = vnd / 1_000_000_000;
+    return `${ty % 1 === 0 ? ty.toFixed(0) : ty.toFixed(1).replace(/\.0$/, "")} tỷ`;
+  }
+  if (vnd >= 1_000_000) {
+    const trieu = vnd / 1_000_000;
+    return `${trieu % 1 === 0 ? trieu.toFixed(0) : trieu.toFixed(0)} triệu`;
+  }
+  return `${vnd.toLocaleString("vi-VN")} đ`;
+}
+
+/** Parse Vietnamese price text to VND number, e.g. "3.5 tỷ" → 3500000000 */
+export function parseVietnamesePrice(text: string): number | null {
+  // "3.5 tỷ", "3,5 tỷ", "3 tỷ rưỡi" (rưỡi = 0.5)
+  const tyMatch = text.match(/(\d+(?:[.,]\d+)?)\s*tỷ(?:\s+rưỡi)?/i);
+  if (tyMatch) {
+    const base = parseFloat(tyMatch[1].replace(",", ".")) * 1_000_000_000;
+    const isRuoi = /rưỡi/i.test(text);
+    return Math.round(base + (isRuoi ? 500_000_000 : 0));
+  }
+  // "800 triệu", "800tr", "800 tr"
+  const trieuMatch = text.match(/(\d+(?:[.,]\d+)?)\s*(?:triệu|trieu|tr\b)/i);
+  if (trieuMatch) {
+    return Math.round(parseFloat(trieuMatch[1].replace(",", ".")) * 1_000_000);
+  }
+  return null;
+}
+
 type ParseResponse = {
   fields: Record<string, unknown>;
   confidence: Record<string, number>;
@@ -105,8 +135,12 @@ async function callGeminiOnce(text: string): Promise<ParseResponse> {
   const responseText = result.response.text();
   const parsed = JSON.parse(responseText);
 
+  const fields = parsed.fields || {};
+  if (typeof fields.price_vnd === "number" && fields.price_vnd > 0) {
+    fields.price_short = priceVndToShort(fields.price_vnd);
+  }
   return {
-    fields: parsed.fields || {},
+    fields,
     confidence: parsed.confidence || {},
     duplicate_warning: parsed.duplicate_warning || { found: false, listing_id: null, similarity: 0 },
     description_draft: parsed.description_draft || text.slice(0, 500),
@@ -143,17 +177,11 @@ function parseWithMock(text: string): ParseResponse {
   const fields: Record<string, unknown> = {};
   const confidence: Record<string, number> = {};
 
-  const viPrice = text.match(/(\d+(?:[.,]\d+)?)\s*(tỷ|ty|tỉ)/i);
-  if (viPrice) {
-    const num = parseFloat(viPrice[1].replace(",", "."));
-    fields.price_vnd = Math.round(num * 1_000_000_000);
+  const parsedPrice = parseVietnamesePrice(text);
+  if (parsedPrice) {
+    fields.price_vnd = parsedPrice;
+    fields.price_short = priceVndToShort(parsedPrice);
     confidence.price_vnd = 0.85;
-  }
-  const viPriceTr = text.match(/(\d+(?:[.,]\d+)?)\s*(triệu|trieu|tr)/i);
-  if (!viPrice && viPriceTr) {
-    const num = parseFloat(viPriceTr[1].replace(",", "."));
-    fields.price_vnd = Math.round(num * 1_000_000);
-    confidence.price_vnd = 0.8;
   }
 
   const viArea = text.match(/(\d+(?:[.,]\d+)?)\s*m²/i) || text.match(/(\d+(?:[.,]\d+)?)\s*m\s*2/i);

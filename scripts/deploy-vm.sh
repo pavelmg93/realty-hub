@@ -80,12 +80,8 @@ done
 echo ">>> Running seed data..."
 docker compose exec -T app-postgres psql -U re_nhatrang -d re_nhatrang < src/db/seed_reference_data.sql 2>&1 | tail -1
 
-echo ">>> Running all migrations..."
-for migration in src/db/migrations/*.sql; do
-  echo "   Applying: $(basename "$migration")"
-  docker compose exec -T app-postgres psql -U re_nhatrang -d re_nhatrang < "$migration" 2>&1 | tail -1
-done
-echo ">>> Migrations complete"
+echo ">>> Running migrations (skips already-applied)..."
+./scripts/migrate.sh
 
 # ─── 7. Wait for Next.js to compile, then create demo accounts ───
 if [ "$MODE" != "update" ]; then
@@ -102,8 +98,8 @@ if [ "$MODE" != "update" ]; then
   done
 
   echo ">>> Creating demo accounts..."
-  ./scripts/create_agent.sh pavel "Pavel" demo123 || true
-  ./scripts/create_agent.sh dean "Duy (Dean) Pham" demo123 0868331111 dean@fidt.vn || true
+  ./scripts/create_agent.sh pavel "Pavel" "Garanin" pilot123 0868763267 pavel@fidt.vn || true
+  ./scripts/create_agent.sh dean "Duy" "Pham" pilot123 0868331111 dean@fidt.vn || true
 fi
 
 # ─── 8. Summary ───
@@ -114,7 +110,7 @@ echo ""
 echo "  Web app:  http://${IP}:8888"
 echo "  pgAdmin:  http://${IP}:5050"
 echo ""
-echo "  Demo accounts: pavel/demo123, dean/demo123"
+echo "  Demo accounts: pavel/pilot123, dean/pilot123"
 echo ""
 echo "  Useful commands:"
 echo "    docker compose logs web -f --tail=50    # view logs"

@@ -9,7 +9,7 @@
 | Rebuild web only | `docker compose build web && docker compose up -d web` |
 | View logs | `docker compose logs web -f --tail=50` |
 | Run a migration | `docker compose exec -T app-postgres psql -U re_nhatrang -d re_nhatrang < src/db/migrations/XXX.sql` |
-| Create agent | `./scripts/create_agent.sh <user> "<name>" <pass> [phone] [email]` |
+| Create agent | `./scripts/create_agent.sh <user> <first_name> <last_name> <pass> [phone] [email]` |
 | DB shell | `docker compose exec -T app-postgres psql -U re_nhatrang -d re_nhatrang` |
 
 ---
@@ -68,10 +68,8 @@ git pull
 docker compose build web
 docker compose up -d web
 
-# Run new migrations
-for migration in src/db/migrations/*.sql; do
-  docker compose exec -T app-postgres psql -U re_nhatrang -d re_nhatrang < "$migration" 2>&1 | tail -1
-done
+# Run new migrations (skips already-applied)
+./scripts/migrate.sh
 ```
 
 ---
@@ -87,11 +85,9 @@ chmod -R 777 uploads
 Log out and back in after Docker install (group change needs new session), or prefix with `sudo`.
 
 ### "Column does not exist" errors
-Missing migrations. Run all:
+Missing migrations. Run all (skips already-applied):
 ```bash
-for migration in src/db/migrations/*.sql; do
-  docker compose exec -T app-postgres psql -U re_nhatrang -d re_nhatrang < "$migration" 2>&1 | tail -1
-done
+./scripts/migrate.sh
 ```
 
 ### Next.js takes forever to start
@@ -110,11 +106,9 @@ docker compose down web && docker compose build web --no-cache && docker compose
 Only happens with `docker compose down -v` (the `-v` flag removes volumes). Never use `-v` unless you want a fresh DB. After a fresh DB, re-run:
 ```bash
 docker compose exec -T app-postgres psql -U re_nhatrang -d re_nhatrang < src/db/seed_reference_data.sql
-for migration in src/db/migrations/*.sql; do
-  docker compose exec -T app-postgres psql -U re_nhatrang -d re_nhatrang < "$migration"
-done
-./scripts/create_agent.sh pavel "Pavel" demo123
-./scripts/create_agent.sh dean "Duy (Dean) Pham" demo123 0868331111 dean@fidt.vn
+./scripts/migrate.sh
+./scripts/create_agent.sh pavel "Pavel" "Garanin" pilot123 0868763267 pavel@fidt.vn
+./scripts/create_agent.sh dean "Duy" "Pham" pilot123 0868331111 dean@fidt.vn
 ```
 
 ---

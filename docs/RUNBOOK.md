@@ -15,11 +15,11 @@ No public signup. Admin only.
 ssh pavel@136.110.34.97
 
 # Create account
-./scripts/create_agent.sh <username> <display_name> <password> [phone] [email]
+./scripts/create_agent.sh <username> <first_name> <last_name> <password> [phone] [email]
 
 # Examples
-./scripts/create_agent.sh pavel "Pavel" demo123
-./scripts/create_agent.sh dean "Duy (Dean) Pham" demo123 0868331111 dean@fidt.vn
+./scripts/create_agent.sh pavel "Pavel" "Garanin" pilot123 0868763267 pavel@fidt.vn
+./scripts/create_agent.sh dean "Duy" "Pham" pilot123 0868331111 dean@fidt.vn
 ```
 
 The script calls `POST /api/auth/signup` internally. The agent can log in immediately.
