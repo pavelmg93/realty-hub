@@ -101,10 +101,10 @@ cd web && npx tsc --noEmit
 
 ```bash
 # Connect
-docker exec -it re-nhatrang-app-postgres-1 psql -U re_nhatrang -d re_nhatrang
+docker exec -it realty-hub-app-postgres-1 psql -U re_nhatrang -d re_nhatrang
 
 # Run a migration
-docker exec -i re-nhatrang-app-postgres-1 psql -U re_nhatrang -d re_nhatrang \
+docker exec -i realty-hub-app-postgres-1 psql -U re_nhatrang -d re_nhatrang \
   < src/db/migrations/010_avatar_listing_i18n.sql
 
 # After fresh docker compose down -v && up -d, run in order:
@@ -114,9 +114,9 @@ docker exec -i re-nhatrang-app-postgres-1 psql -U re_nhatrang -d re_nhatrang \
 **Credentials:**
 - User: `re_nhatrang`
 - DB: `re_nhatrang`
-- Container: `re-nhatrang-app-postgres-1`
+- Container: `realty-hub-app-postgres-1`
 
-**Current migration level: 012**
+**Current migration level: 013**
 
 ---
 
