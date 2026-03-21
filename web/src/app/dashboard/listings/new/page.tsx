@@ -33,13 +33,13 @@ export default function NewListingPage() {
         body: JSON.stringify({ text, existingListings: [] }),
       });
       if (!res.ok) {
-        setParseError("Parse failed");
+        setParseError(t("parseFailed"));
         return;
       }
       const data = await res.json();
       setAiResult(data);
     } catch {
-      setParseError("Request failed");
+      setParseError(t("requestFailed"));
     } finally {
       setParsing(false);
     }
@@ -109,9 +109,9 @@ export default function NewListingPage() {
               {lang === "vi" ? "Kết quả phân tích" : "AI extracted"}
             </p>
             <div className="flex flex-wrap gap-2 text-sm">
-              {aiResult.fields.price_vnd != null && (
+              {(aiResult.fields.price_short != null || aiResult.fields.price_vnd != null) && (
                 <span className="px-2 py-1 rounded bg-[var(--orange)]/20 text-[var(--orange)]">
-                  {formatPrice(Number(aiResult.fields.price_vnd))}
+                  {String(aiResult.fields.price_short ?? formatPrice(Number(aiResult.fields.price_vnd)))}
                 </span>
               )}
               {aiResult.fields.area_m2 != null && (

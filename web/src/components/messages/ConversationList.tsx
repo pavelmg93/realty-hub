@@ -2,6 +2,7 @@
 
 import { Conversation } from "@/lib/types";
 import { PROPERTY_TYPES, formatPrice } from "@/lib/constants";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface Props {
   conversations: Conversation[];
@@ -14,10 +15,11 @@ export default function ConversationList({
   activeId,
   onSelect,
 }: Props) {
+  const { t } = useLanguage();
   if (conversations.length === 0) {
     return (
       <div className="text-center py-8 text-[var(--text-muted)] text-sm">
-        No conversations yet
+        {t("noConversationsYet")}
       </div>
     );
   }

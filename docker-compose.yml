@@ -129,6 +129,7 @@ services:
       GEMINI_API_KEY: ${ENV_GEMINI_API_KEY:-}
     volumes:
       - ./uploads:/app/uploads
+      - ./src:/src:ro
     depends_on:
       app-postgres:
         condition: service_healthy

@@ -79,7 +79,7 @@ export default function PhotoUploader(props: Props) {
 
         if (!uploadRes.ok) {
           const data = await uploadRes.json();
-          setError(data.error || "Upload failed");
+          setError(data.error || t("uploadFailed"));
           continue;
         }
 
@@ -110,7 +110,7 @@ export default function PhotoUploader(props: Props) {
           }
         }
       } catch {
-        setError("Upload failed");
+        setError(t("uploadFailed"));
       }
     }
 
@@ -137,7 +137,7 @@ export default function PhotoUploader(props: Props) {
           props.onPhotosChange(props.photos.filter((p) => p.id !== photo.id));
         }
       } catch {
-        setError("Delete failed");
+        setError(t("deleteFailed"));
       }
     }
   };
@@ -202,7 +202,7 @@ export default function PhotoUploader(props: Props) {
 
       {/* Photo grid */}
       {displayPhotos.length > 0 && (
-        <div className="grid grid-cols-3 sm:grid-cols-4 gap-2 mb-3">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 mb-3">
           {displayPhotos.map((photo) => (
             <div
               key={photo.key}

@@ -2,6 +2,7 @@
 
 import { useRef, useEffect } from "react";
 import { Message } from "@/lib/types";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface Props {
   messages: Message[];
@@ -9,6 +10,7 @@ interface Props {
 }
 
 export default function MessageThread({ messages, currentUserId }: Props) {
+  const { t } = useLanguage();
   const bottomRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -18,7 +20,7 @@ export default function MessageThread({ messages, currentUserId }: Props) {
   if (messages.length === 0) {
     return (
       <div className="flex-1 flex items-center justify-center text-[var(--text-muted)] text-sm">
-        No messages yet. Start the conversation!
+        {t("noMessagesThread")}
       </div>
     );
   }

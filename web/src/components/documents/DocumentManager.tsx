@@ -60,7 +60,7 @@ export default function DocumentManager(props: Props) {
 
         if (!uploadRes.ok) {
           const data = await uploadRes.json();
-          setError(data.error || "Upload failed");
+          setError(data.error || t("uploadFailed"));
           continue;
         }
 
@@ -98,7 +98,7 @@ export default function DocumentManager(props: Props) {
           }
         }
       } catch {
-        setError("Upload failed");
+        setError(t("uploadFailed"));
       }
     }
 
@@ -120,7 +120,7 @@ export default function DocumentManager(props: Props) {
           props.onDocumentsChange(props.documents.filter((d) => d.id !== doc.id));
         }
       } catch {
-        setError("Delete failed");
+        setError(t("deleteFailed"));
       }
     }
   };

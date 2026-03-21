@@ -325,14 +325,6 @@ export default function DatabaseView({ data, onChange }: Props) {
     }
   };
 
-  const handlePriceVndBlur = (e: React.FocusEvent<HTMLInputElement>) => {
-    const val = e.target.value;
-    const vnd = val ? parseFloat(val) : null;
-    if (vnd && vnd > 0) {
-      onChange({ ...data, price_vnd: vnd, price_raw: formatVndToRaw(vnd) });
-    }
-  };
-
   return (
     <div>
       <Section title={t("classification")}>
@@ -359,7 +351,7 @@ export default function DatabaseView({ data, onChange }: Props) {
       <Section title={t("priceAndArea")}>
         <div>
           <label className="block text-xs font-medium mb-1 text-[var(--text-secondary)]">
-            {t("priceRawText")}
+            {t("price")}
           </label>
           <input
             type="text"
@@ -367,18 +359,6 @@ export default function DatabaseView({ data, onChange }: Props) {
             onChange={(e) => set("price_raw", e.target.value || null)}
             onBlur={handlePriceRawBlur}
             placeholder={t("pricePlaceholder")}
-            className="w-full rounded-lg px-3 py-2 text-sm"
-          />
-        </div>
-        <div>
-          <label className="block text-xs font-medium mb-1 text-[var(--text-secondary)]">
-            {t("priceVnd")}
-          </label>
-          <input
-            type="number"
-            value={data.price_vnd ?? ""}
-            onChange={(e) => set("price_vnd", e.target.value ? parseFloat(e.target.value) : null)}
-            onBlur={handlePriceVndBlur}
             className="w-full rounded-lg px-3 py-2 text-sm"
           />
         </div>

@@ -6,6 +6,24 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Session 22 — 2026-03-21 — Parsing Pipeline + Price UX
+
+#### Added
+- **REA-32: Two-layer parse pipeline** — `POST /api/ai/parse-listing` now runs Python regex parser and Gemini AI in parallel. Python result takes priority for numeric fields (price, area, dimensions, access_road, legal_status, etc.); Gemini fills in address, property type, description. Python parser accessed via subprocess using `src/parsing/vietnamese_parser.py`.
+- **REA-32: Docker mount** — Added `./src:/src:ro` volume to web service in `docker-compose.yml` so Python parser code is available at `/src` inside the container.
+- **Migration 013** — Adds ~70 additional Nha Trang streets to `nha_trang_streets` table (central, north, south, outlying areas).
+
+#### Changed
+- **REA-34: Price UX** — Removed raw `price_vnd` number input from all listing forms (New + Edit). Only `price_raw` text field is shown (accepts formats: `6.2 tỷ`, `800tr`, `3.5 tỷ`, `800 triệu`). `price_vnd` is still stored in DB (auto-computed on blur). For existing listings, `price_raw` is pre-populated from `price_vnd` when null.
+- **REA-11: Address disambiguation** — Gemini system prompt updated with explicit rule: "đường rộng" / "đường rộng X mét" = road width descriptor, NOT a street name. Mock parser updated to skip road descriptor words after "đường". Known Nha Trang street list added to system prompt for disambiguation.
+- **REA-33: Street context for AI** — Full list of Nha Trang streets injected into Gemini system prompt to help distinguish street names from descriptive phrases.
+- **REA-15: i18n gap fixes** — Added `parseFailed`, `requestFailed`, `uploadFailed`, `deleteFailed`, `saveFailed`, `noMessagesThread`, `noConversationsYet` keys to both `en` and `vi`. Updated MessageThread, ConversationList, PhotoUploader, DocumentManager, ListingForm, and New Listing page to use `t()` for all user-visible error/empty-state strings.
+- **REA-16: Photo grid mobile** — PhotoUploader grid changed from `grid-cols-3 sm:grid-cols-4` to `grid-cols-2 sm:grid-cols-3 md:grid-cols-4` for better mobile experience.
+- New listing page AI result badge now shows `price_short` from parse response (e.g. "3.5 tỷ") instead of re-formatting `price_vnd`.
+- Price placeholder updated to show multiple format examples: "6.2 tỷ, 800tr, 3.5 tỷ".
+
+---
+
 ### Session 21 — 2026-03-21 — Bug Fixes + UI Polish for Pilot
 
 #### Fixed

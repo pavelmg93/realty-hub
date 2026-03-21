@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAuthFromCookies } from "@/lib/auth";
+import { spawn } from "child_process";
+import path from "path";
 
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY || "";
 
@@ -56,6 +58,16 @@ Giá:
 - Luôn điền address_raw: kết hợp số nhà + tên đường + phường + quận thành chuỗi đầy đủ
 - Ví dụ: "123 Nguyễn Thị Minh Khai, P. Lộc Thọ, Nha Trang"
 - Trích xuất ward (tên phường) và street (tên đường) riêng biệt
+
+QUAN TRỌNG — Không nhầm đặc điểm đường với tên đường:
+- "đường rộng" / "đường rộng X mét" = mô tả chiều rộng đường vào, KHÔNG phải tên đường → ghi vào road_width_m
+- "hẻm ô tô" / "hẻm xe hơi" = loại hẻm, KHÔNG phải tên đường → ghi vào access_road = "hem_oto"
+- "hẻm thông" / "hẻm cụt" = đặc điểm hẻm, KHÔNG phải tên đường → bỏ qua hoặc ghi vào description_draft
+- Chỉ trích xuất street khi có TÊN cụ thể: "Nguyễn Thị Minh Khai", "Trần Phú", "Lê Hồng Phong", v.v.
+- Nếu không có tên đường thực sự, để street = null
+
+Danh sách đường tại Nha Trang (tham khảo):
+Trần Phú, Phạm Văn Đồng, Lê Hồng Phong, Nguyễn Thiện Thuật, Yersin, Hùng Vương, Quang Trung, Thái Nguyên, Lê Thánh Tôn, Pasteur, Hai Bà Trưng, Bà Triệu, Trần Hưng Đạo, Lê Lợi, Phan Bội Châu, Phan Chu Trinh, Lý Tự Trọng, Ngô Sĩ Liên, Nguyễn Gia Thiều, Lê Thành Phương, Tô Vĩnh Diện, Yết Kiêu, Trần Văn Ơn, 2 Tháng 4, 23 Tháng 10, Hoàng Hoa Thám, Hoàng Văn Thụ, Nguyễn Trãi, Nguyễn Đình Chiểu, Nguyễn Chánh, Nguyễn Trung Trực, Nguyễn Thị Minh Khai, Võ Thị Sáu, Lý Thường Kiệt, Biệt Thự, Tháp Bà, Trần Quang Khải, Sinh Trung, Tôn Đản, Củ Chi, Đồng Nai, Hương Điền, Phong Châu, Bùi Thiện Ngộ, Trần Thị Tính, Lương Thế Vinh, Dã Tượng, Nguyễn Khanh, Trần Quý Cáp, Cửu Long, Bửu Đóa, Tản Đà, Nguyễn Khuyến, Lê Đại Hành, Nguyễn Bỉnh Khiêm, Phạm Ngọc Thạch, Nguyễn Xiển, Trần Nhân Tông, Đinh Tiên Hoàng, Nguyễn Huệ, Chu Văn An, Trần Quốc Toản, Hồng Bàng, Phạm Hùng, Ngô Quyền, Đặng Tất, Phước Long, Nguyễn Văn Cừ, Bạch Đằng, Cô Bắc, Đặng Văn Lý
 
 Pháp lý (legal_status):
 - "sổ đỏ" / "sổ đỏ chính chủ" → "so_do"
@@ -231,8 +243,13 @@ function parseWithMock(text: string): ParseResponse {
 
   const streetMatch = text.match(/(?:đường|duong)\s+([A-Za-zÀ-ỹ0-9\s]+?)(?:\s|,|\.|$)/i);
   if (streetMatch) {
-    fields.street = streetMatch[1].trim();
-    confidence.street = 0.7;
+    const candidate = streetMatch[1].trim();
+    // Skip road descriptors — these are NOT street names
+    const roadDescriptors = /^(rộng|hẹp|lớn|nhỏ|một chiều|hai chiều|thông|cụt)/i;
+    if (!roadDescriptors.test(candidate)) {
+      fields.street = candidate;
+      confidence.street = 0.7;
+    }
   }
 
   if (/nhà phố|nha pho/i.test(text)) {
@@ -320,6 +337,111 @@ function parseWithMock(text: string): ParseResponse {
   };
 }
 
+// ---------------------------------------------------------------------------
+// Python parser layer
+// ---------------------------------------------------------------------------
+
+/** Python property_type keys → DB enum values */
+const PYTHON_PROP_TYPE_MAP: Record<string, string> = {
+  nha: "nha_rieng",
+  dat: "dat",
+  can_ho: "can_ho",
+  phong_tro: "phong_tro",
+  biet_thu: "villa",
+  mat_bang: "mat_bang",
+  khach_san: "mat_bang", // closest match in enum
+};
+
+/** Run the Vietnamese regex parser as a subprocess. Returns null on any failure. */
+async function runPythonParser(text: string): Promise<Record<string, unknown> | null> {
+  return new Promise((resolve) => {
+    // In Docker: process.cwd() = /app, so parent dir = /  -> /src/parsing/...
+    // In dev:    process.cwd() = .../realty-hub/web/     -> .../realty-hub/src/parsing/...
+    const projectRoot = path.resolve(process.cwd(), "..");
+    const script = `
+import sys, json, dataclasses
+sys.path.insert(0, '${projectRoot}/src')
+from parsing.vietnamese_parser import parse_listing
+result = parse_listing(sys.stdin.read())
+d = dataclasses.asdict(result)
+if d.get('parse_errors'):
+    d['parse_errors'] = '; '.join(d['parse_errors'])
+else:
+    d['parse_errors'] = None
+print(json.dumps(d, ensure_ascii=False))
+`;
+    const proc = spawn("python3", ["-c", script], {
+      env: { ...process.env, PYTHONIOENCODING: "utf-8" },
+      timeout: 8000,
+    });
+    let stdout = "";
+    proc.stdout.on("data", (d: Buffer) => { stdout += d.toString(); });
+    proc.on("close", (code: number) => {
+      if (code === 0) {
+        try { resolve(JSON.parse(stdout.trim())); } catch { resolve(null); }
+      } else {
+        resolve(null);
+      }
+    });
+    proc.on("error", () => resolve(null));
+    proc.stdin.write(text);
+    proc.stdin.end();
+  });
+}
+
+/**
+ * Merge Python parser result into the Gemini parse response.
+ * Python fields take priority when non-null/non-empty.
+ * Gemini handles: address/ward/street/district (better contextual understanding),
+ *   property_type (when Python is ambiguous), description_draft, confidence.
+ */
+function mergeWithPython(
+  gemini: ParseResponse,
+  python: Record<string, unknown> | null,
+): ParseResponse {
+  if (!python) return gemini;
+
+  const merged = { ...gemini, fields: { ...gemini.fields } };
+  const f = merged.fields as Record<string, unknown>;
+
+  // Fields where Python regex is authoritative — override Gemini
+  const pythonPriority = [
+    "price_vnd", "price_raw", "area_m2",
+    "num_bedrooms", "num_bathrooms", "num_floors",
+    "frontage_m", "depth_m", "road_width_m",
+    "rental_income_vnd", "access_road", "furnished",
+    "direction", "legal_status", "structure_type",
+    "corner_lot", "has_elevator", "negotiable",
+    "num_frontages", "distance_to_beach_m",
+  ];
+
+  for (const key of pythonPriority) {
+    const val = python[key];
+    if (val !== null && val !== undefined && val !== "") {
+      f[key] = val;
+    }
+  }
+
+  // For property_type: use Python only when Gemini has no value, and map to DB enum
+  if (!f.property_type && python.property_type) {
+    const pyType = python.property_type as string;
+    f.property_type = PYTHON_PROP_TYPE_MAP[pyType] ?? null;
+  }
+
+  // For transaction_type: Python can fill when Gemini is null
+  if (!f.transaction_type && python.transaction_type) {
+    f.transaction_type = python.transaction_type;
+  }
+
+  // Recompute price_short after merge
+  const priceVnd = f.price_vnd as number | null;
+  if (typeof priceVnd === "number" && priceVnd > 0) {
+    f.price_short = priceVndToShort(priceVnd);
+  }
+
+  return merged;
+}
+
 export async function POST(request: NextRequest) {
   try {
     const auth = await getAuthFromCookies();
@@ -337,8 +459,13 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Try Gemini first, fall back to mock regex parser
-    const result = (await parseWithGemini(text)) || parseWithMock(text);
+    // Layer 1: Python regex parser (fast, accurate for numeric fields)
+    // Layer 2: Gemini AI (fills gaps, handles address/type disambiguation)
+    const [pythonResult, geminiResult] = await Promise.all([
+      runPythonParser(text),
+      parseWithGemini(text),
+    ]);
+    const result = mergeWithPython(geminiResult ?? parseWithMock(text), pythonResult);
 
     return NextResponse.json(result);
   } catch (error) {

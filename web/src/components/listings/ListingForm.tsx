@@ -65,7 +65,7 @@ function listingToInput(listing: Listing): ListingInput {
   return {
     property_type: listing.property_type,
     transaction_type: listing.transaction_type,
-    price_raw: listing.price_raw,
+    price_raw: listing.price_raw ?? vndToShortString(listing.price_vnd),
     price_vnd: listing.price_vnd,
     area_m2: listing.area_m2,
     address_raw: listing.address_raw,
@@ -110,6 +110,20 @@ function lookup(
 ): string | null {
   if (!key) return null;
   return map[key] ?? key;
+}
+
+/** Format price_vnd to short Vietnamese string for price_raw field pre-population. */
+function vndToShortString(vnd: number | null): string | null {
+  if (!vnd) return null;
+  if (vnd >= 1_000_000_000) {
+    const ty = vnd / 1_000_000_000;
+    return `${ty % 1 === 0 ? ty.toFixed(0) : ty.toFixed(1)} tỷ`;
+  }
+  if (vnd >= 1_000_000) {
+    const tr = vnd / 1_000_000;
+    return `${tr % 1 === 0 ? tr.toFixed(0) : tr.toFixed(1)} triệu`;
+  }
+  return null;
 }
 
 /** Generate a human-readable text summary from structured listing fields. */
@@ -259,7 +273,7 @@ export default function ListingForm({ existing, initialData }: Props) {
       router.push("/dashboard/listings");
       router.refresh();
     } catch {
-      setError("Save request failed");
+      setError(t("saveFailed"));
     } finally {
       setSaving(false);
     }
