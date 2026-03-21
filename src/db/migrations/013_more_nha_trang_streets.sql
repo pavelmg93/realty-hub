@@ -80,5 +80,12 @@ INSERT INTO nha_trang_streets (name, name_ascii) VALUES
     ('Nguyễn Văn Linh',        'Nguyen Van Linh'),
     ('Đào Duy Từ',              'Dao Duy Tu'),
     ('Hồ Xuân Hương',           'Ho Xuan Huong'),
-    ('Lưu Trọng Lư',           'Luu Trong Lu')
+    ('Lưu Trọng Lư',           'Luu Trong Lu'),
+    -- From additional research
+    ('Bạch Thái Bưởi',         'Bach Thai Buoi'),
+    ('Ngô Gia Tư',             'Ngo Gia Tu'),
+    ('Trần Nhật Duật',         'Tran Nhat Duat'),
+    ('Lê Quý Đôn',             'Le Quy Don'),
+    ('Phù Đổng Thiên Vương',   'Phu Dong Thien Vuong'),
+    ('Hoà Bình',               'Hoa Binh')
 ON CONFLICT DO NOTHING;
