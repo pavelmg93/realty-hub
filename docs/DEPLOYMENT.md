@@ -1,4 +1,4 @@
-# Deployment Guide — ProMemo on GCP VM
+# Deployment Guide — Realty Hub on GCP VM
 
 ## Quick Reference
 

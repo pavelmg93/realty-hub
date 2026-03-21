@@ -1,4 +1,4 @@
-# [cite_start]ProMemo: Internal Agent Platform Demo Roadmap [cite: 1]
+# [cite_start]Realty Hub: Internal Agent Platform Demo Roadmap [cite: 1]
 [cite_start]**From Working Prototype to Investor-Ready Demo (Version 2.0 · March 2026)** [cite: 1]
 [cite_start]**FIDT · WEALTH REALTY** [cite: 1]
 
@@ -188,7 +188,7 @@
 
 | Button | Demo Behavior | MVP Behavior |
 | :--- | :--- | :--- |
-| Share Private Link | [cite_start]Copies URL to clipboard: `promemo.fidt.vn/l/[id]?token=xxx`  Toast: 'Link copied' [cite: 72] | [cite_start]Send via Zalo / Gmail integration [cite: 72] |
+| Share Private Link | [cite_start]Copies URL to clipboard: `realtyhub.fidt.vn/l/[id]?token=xxx`  Toast: 'Link copied' [cite: 72] | [cite_start]Send via Zalo / Gmail integration [cite: 72] |
 | Create Post | Opens modal: AI drafts social post (Zalo / TikTok / LinkedIn / Facebook / BDS.vn tabs). [cite_start]User sees draft, taps 'Copy' only. [cite: 72] | [cite_start]Real posting via MCP / platform APIs [cite: 72] |
 | Edit | [cite_start]Toggles listing form into edit mode inline [cite: 72] | [cite_start]Same [cite: 72] |
 | Archive | [cite_start]Confirmation bottom sheet → archives listing → redirects to My Listings [cite: 72] | [cite_start]Same [cite: 72] |
@@ -265,12 +265,12 @@ Recommendation: call it 'Inquiries' in the nav (matches mockups). [cite_start]In
 | Compute / hosting | [cite_start]Railway.app free tier [cite: 129] | [cite_start]$0 [cite: 129] | 500 hrs/mo free. Enough for demo. [cite_start]1 GB RAM, sufficient for Next.js + Postgres. [cite: 129] |
 | PostgreSQL | [cite_start]Railway Postgres plugin [cite: 129] | [cite_start]$0 [cite: 129] | 100 MB free. [cite_start]Demo with 3 users and ~50 listings fits easily. [cite: 129] |
 | File storage (photos/docs) | [cite_start]Cloudflare R2 [cite: 129] | [cite_start]$0 [cite: 129] | 10 GB free storage, 1M free requests/mo. [cite_start]Zero egress fees. [cite: 129] |
-| CDN + SSL + DNS | [cite_start]Cloudflare free tier [cite: 129] | [cite_start]$0 [cite: 129] | [cite_start]Proxies Railway URL, adds SSL, custom subdomain: `promemo.fidt.vn` [cite: 129] |
+| CDN + SSL + DNS | [cite_start]Cloudflare free tier [cite: 129] | [cite_start]$0 [cite: 129] | [cite_start]Proxies Railway URL, adds SSL, custom subdomain: `realtyhub.fidt.vn` [cite: 129] |
 | AI (Gemini) | [cite_start]Google AI Studio API key [cite: 129] | [cite_start]$0 [cite: 129] | 1.5 Flash free tier: 15 RPM, 1M TPD. [cite_start]3 demo users = no problem. [cite: 129] |
 | Maps (Leaflet + OSM) | [cite_start]Already integrated [cite: 129] | [cite_start]$0 [cite: 129] | [cite_start]OpenStreetMap tiles: free for low traffic [cite: 129] |
 | Geocoding (Nominatim) | [cite_start]Already integrated [cite: 129] | [cite_start]$0 [cite: 129] | 1 req/sec limit. [cite_start]Fine for demo. [cite: 129] |
 | Speech-to-text | [cite_start]Web Speech API (browser) [cite: 129] | [cite_start]$0 [cite: 129] | [cite_start]Native Chrome API, no server needed [cite: 129] |
-| Domain | [cite_start]`promemo.fidt.vn` [cite: 129] | [cite_start]$0 [cite: 129] | [cite_start]Subdomain of existing fidt.vn domain [cite: 129] |
+| Domain | [cite_start]`realtyhub.fidt.vn` [cite: 129] | [cite_start]$0 [cite: 129] | [cite_start]Subdomain of existing fidt.vn domain [cite: 129] |
 | Monitoring | [cite_start]Railway built-in logs [cite: 129] | [cite_start]$0 [cite: 129] | [cite_start]Sufficient for demo phase [cite: 129] |
 
 [cite_start]**5.2 Deployment — Railway Setup** [cite: 132]
@@ -278,13 +278,13 @@ Recommendation: call it 'Inquiries' in the nav (matches mockups). [cite_start]In
 * [cite_start]Add Postgres plugin — Railway auto-sets `DATABASE_URL` env var[cite: 134].
 * [cite_start]Set env vars in Railway dashboard: `JWT_SECRET`, `GEMINI_API_KEY`, `CLOUDFLARE_R2_*` (bucket, account id, key id, secret)[cite: 135].
 * [cite_start]Dockerfile already exists — Railway detects and builds automatically[cite: 136].
-* [cite_start]Custom domain: add `promemo.fidt.vn` in Railway → point CNAME to Railway URL in Cloudflare DNS[cite: 137].
+* [cite_start]Custom domain: add `realtyhub.fidt.vn` in Railway → point CNAME to Railway URL in Cloudflare DNS[cite: 137].
 * [cite_start]Run database migrations on first deploy: add `railway run npm run db:migrate` to release command[cite: 138].
 * [cite_start]Seed 3 demo users: `railway run npm run db:seed:demo`[cite: 139].
 
 [cite_start]**5.3 Cloudflare R2 — Photo Storage Setup** [cite: 140]
 [cite_start]R2 replaces local filesystem for photos[cite: 141]. [cite_start]Near-zero config change since it's S3-compatible[cite: 141]:
-* [cite_start]Create R2 bucket: `promemo-media` in Cloudflare dashboard[cite: 142].
+* [cite_start]Create R2 bucket: `realtyhub-media` in Cloudflare dashboard[cite: 142].
 * [cite_start]Install `@aws-sdk/client-s3` (R2 is S3-compatible) — use presigned URLs for uploads[cite: 143].
 * [cite_start]Update photo upload API route: instead of writing to `/uploads/`, PUT to R2 via presigned URL[cite: 144].
 * [cite_start]Update photo display: serve from R2 public URL (or Cloudflare CDN-cached URL)[cite: 145].
@@ -302,7 +302,7 @@ Recommendation: call it 'Inquiries' in the nav (matches mockups). [cite_start]In
 * [cite_start][ ] `DATABASE_URL`, `JWT_SECRET`, `GEMINI_API_KEY` set in Railway env [cite: 154]
 * [cite_start][ ] R2 bucket created, `CLOUDFLARE_R2_*` vars set [cite: 154]
 * [cite_start][ ] Migrations run, 3 demo users seeded with `demo123` passwords [cite: 154]
-* [cite_start][ ] `promemo.fidt.vn` DNS configured in Cloudflare, SSL active [cite: 154]
+* [cite_start][ ] `realtyhub.fidt.vn` DNS configured in Cloudflare, SSL active [cite: 154]
 * [cite_start][ ] Demo listings created manually by each of the 3 users (5+ listings total) [cite: 154]
 * [cite_start][ ] Demo deals seeded in pipeline (3 deals in different stages) [cite: 154]
 * [cite_start][ ] End-to-end demo walkthrough tested on mobile Chrome (Android) [cite: 154]
@@ -329,7 +329,7 @@ Recommendation: call it 'Inquiries' in the nav (matches mockups). [cite_start]In
 | Refresh tokens / JWT rotation | [cite_start]Static JWT is insecure for production but acceptable for a 3-user demo. [cite: 158] | [cite_start]1 day [cite: 158] |
 | Full-text search with pgvector | Basic search sufficient for demo. [cite_start]Semantic search is a nice MVP upgrade. [cite: 158] | [cite_start]1 week [cite: 158] |
 | Scheduling (viewings, follow-ups) | [cite_start]Calendar integration (Google Cal via MCP) is a great MVP feature. [cite: 158] | [cite_start]1 week [cite: 158] |
-| Public listing pages (SEO) | `promemo.fidt.vn/listing/[id]` accessible without login. [cite_start]Great for sharing to clients. [cite: 158] | [cite_start]3 days [cite: 158] |
+| Public listing pages (SEO) | `realtyhub.fidt.vn/listing/[id]` accessible without login. [cite_start]Great for sharing to clients. [cite: 158] | [cite_start]3 days [cite: 158] |
 | Analytics / reporting dashboard | Deal conversion rates, listing performance. [cite_start]Useful post-demo. [cite: 158] | [cite_start]1 week [cite: 158] |
 
 ---
@@ -343,7 +343,7 @@ Recommendation: call it 'Inquiries' in the nav (matches mockups). [cite_start]In
 | Phase 2 | [cite_start]AI Listing Entry — Voice/text, field extraction, duplicates, geo, follow-up Q&A [cite: 160] | [cite_start]~1.5 weeks [cite: 160] | [cite_start]Centerpiece demo feature works end-to-end with Gemini free tier. [cite: 160] |
 | Phase 3 | [cite_start]CRM Full — Sellers, Buyers, Deals funnel with Kanban pipeline [cite: 160] | [cite_start]~1.5 weeks [cite: 160] | [cite_start]Agents can manage clients and see deals in pipeline stages. [cite: 160] |
 | Phase 4 | [cite_start]Listings Consolidation — Filter parity, grouped Inquiries, owner highlight [cite: 160] | [cite_start]~0.5 weeks [cite: 160] | [cite_start]Feed and My Listings feel like one coherent system. [cite: 160] |
-| Phase 5 | [cite_start]Demo Deployment — Railway + R2 + Cloudflare, 3 users, live URL [cite: 160] | [cite_start]~0.5 weeks [cite: 160] | [cite_start]`promemo.fidt.vn` is live, demo-ready, $0/month. [cite: 160] |
+| Phase 5 | [cite_start]Demo Deployment — Railway + R2 + Cloudflare, 3 users, live URL [cite: 160] | [cite_start]~0.5 weeks [cite: 160] | [cite_start]`realtyhub.fidt.vn` is live, demo-ready, $0/month. [cite: 160] |
 
 ---
 

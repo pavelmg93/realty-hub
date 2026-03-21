@@ -48,7 +48,7 @@ export default function HomePage() {
       {/* Branding section */}
       <div className="px-8 py-12 lg:w-2/5 lg:min-h-screen flex flex-col justify-center" style={{ backgroundColor: "var(--bg-base)" }}>
         <div className="max-w-sm mx-auto lg:mx-0">
-          <h1 className="text-3xl font-bold text-[var(--text-primary)] mb-2">ProMemo</h1>
+          <h1 className="text-3xl font-bold text-[var(--text-primary)] mb-2">Realty Hub</h1>
           <p className="text-[var(--text-muted)] text-sm leading-relaxed">
             Nha Trang Real Estate Agent Platform
           </p>

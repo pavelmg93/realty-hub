@@ -1,5 +1,5 @@
 -- Migration 010: Agent avatar URL + listing descriptions (VN/EN) for i18n
--- Run: docker exec -i re-nhatrang-app-postgres-1 psql -U re_nhatrang -d re_nhatrang < src/db/migrations/010_avatar_listing_i18n.sql
+-- Run: docker exec -i realty-hub-app-postgres-1 psql -U re_nhatrang -d re_nhatrang < src/db/migrations/010_avatar_listing_i18n.sql
 
 -- Agent avatar: store path under uploads/avatars/ (e.g. avatars/123.jpg)
 ALTER TABLE agents ADD COLUMN IF NOT EXISTS avatar_url VARCHAR(512);

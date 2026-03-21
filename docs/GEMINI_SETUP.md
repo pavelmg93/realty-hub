@@ -1,6 +1,6 @@
 # Gemini API Setup for AI Listing Entry
 
-ProMemo uses **Google AI Studio** (Gemini free tier) for AI-assisted listing parsing. No Vertex AI or billing required for demo.
+Realty Hub uses **Google AI Studio** (Gemini free tier) for AI-assisted listing parsing. No Vertex AI or billing required for demo.
 
 ## 1. Get an API key
 

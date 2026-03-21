@@ -1,4 +1,4 @@
--- Migration 004: ProMemo schema — new features, auth, listing management, messaging
+-- Migration 004: Realty Hub schema — new features, auth, listing management, messaging
 -- For dev environments, prefer: docker compose down -v && docker compose up -d
 -- For existing data, run this migration manually.
 

@@ -115,15 +115,15 @@ Mặc định:
 
 const GEMINI_TIMEOUT_MS = 30000;
 
-/** Convert price_vnd number to short Vietnamese string, e.g. 3500000000 → "3.5 tỷ" */
+/** Convert price_vnd number to short Vietnamese string, e.g. 3130000000 → "3.13 tỷ" */
 function priceVndToShort(vnd: number): string {
   if (vnd >= 1_000_000_000) {
     const ty = vnd / 1_000_000_000;
-    return `${ty % 1 === 0 ? ty.toFixed(0) : ty.toFixed(1).replace(/\.0$/, "")} tỷ`;
+    return `${parseFloat(ty.toFixed(2)).toString()} tỷ`;
   }
   if (vnd >= 1_000_000) {
     const trieu = vnd / 1_000_000;
-    return `${trieu % 1 === 0 ? trieu.toFixed(0) : trieu.toFixed(0)} triệu`;
+    return `${parseFloat(trieu.toFixed(2)).toString()} triệu`;
   }
   return `${vnd.toLocaleString("vi-VN")} đ`;
 }

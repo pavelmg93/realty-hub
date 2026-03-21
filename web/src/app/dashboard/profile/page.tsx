@@ -372,7 +372,7 @@ export default function ProfilePage() {
       </div>
 
       <p className="text-xs text-[var(--text-muted)] text-center mt-4">
-        ProMemo · Wealth Realty Internal
+        Realty Hub · Wealth Realty
       </p>
     </div>
   );

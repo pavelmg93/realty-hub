@@ -141,11 +141,11 @@ export function formatPriceShortest(vnd: number | null): string {
   if (!vnd) return "";
   if (vnd >= 1_000_000_000) {
     const ty = vnd / 1_000_000_000;
-    return `${ty % 1 === 0 ? ty.toFixed(0) : ty.toFixed(1)}ty`;
+    return `${parseFloat(ty.toFixed(2)).toString()}ty`;
   }
   if (vnd >= 1_000_000) {
     const tr = vnd / 1_000_000;
-    return `${tr % 1 === 0 ? tr.toFixed(0) : tr.toFixed(1)}tr`;
+    return `${parseFloat(tr.toFixed(2)).toString()}tr`;
   }
   return vnd.toString();
 }
@@ -164,6 +164,7 @@ export function generateTitleStandardized(data: {
   frontage_m?: number | null;
   depth_m?: number | null;
   price_vnd?: number | null;
+  price_short?: string | null;
   commission?: string | null;
 }): string {
   const parts: string[] = [];
@@ -174,11 +175,12 @@ export function generateTitleStandardized(data: {
   const dimParts: string[] = [];
   if (data.frontage_m) dimParts.push(data.frontage_m.toString());
   if (data.depth_m) dimParts.push(data.depth_m.toString());
-  if (dimParts.length > 0) parts.push(dimParts.join("x"));
+  if (dimParts.length > 0) parts.push(dimParts.join(" "));
 
   parts.push(data.commission || "hh1");
 
-  if (data.price_vnd) parts.push(formatPriceShortest(data.price_vnd));
+  const priceStr = data.price_short ?? (data.price_vnd ? formatPriceShortest(data.price_vnd) : null);
+  if (priceStr) parts.push(priceStr);
 
   return parts.join(" ");
 }

@@ -9,8 +9,8 @@
 
   "forwardedPorts": [8888, 3000, 8080, 5432, 5050, 6379],
   "portsAttributes": {
-    "8888": { "label": "ProMemo (via Docker)", "onAutoForward": "notify" },
-    "3000": { "label": "ProMemo (local dev)", "onAutoForward": "notify" },
+    "8888": { "label": "Realty Hub (via Docker)", "onAutoForward": "notify" },
+    "3000": { "label": "Realty Hub (local dev)", "onAutoForward": "notify" },
     "8080": { "label": "Kestra UI", "onAutoForward": "silent" },
     "5432": { "label": "PostgreSQL", "onAutoForward": "silent" },
     "5050": { "label": "pgAdmin", "onAutoForward": "silent" },

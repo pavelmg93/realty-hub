@@ -19,13 +19,13 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
   const [lang, setLangState] = useState<Lang>("en");
 
   useEffect(() => {
-    const stored = localStorage.getItem("promemo_lang") as Lang | null;
+    const stored = localStorage.getItem("realtyhub_lang") as Lang | null;
     if (stored === "en" || stored === "vi") setLangState(stored);
   }, []);
 
   const setLang = (l: Lang) => {
     setLangState(l);
-    localStorage.setItem("promemo_lang", l);
+    localStorage.setItem("realtyhub_lang", l);
     if (typeof document !== "undefined") {
       document.documentElement.lang = l === "vi" ? "vi" : "en";
     }

@@ -1,5 +1,5 @@
 -- Migration 009: Conversations without listing (general thread) + archive threads
--- Run: docker exec -i re-nhatrang-app-postgres-1 psql -U re_nhatrang -d re_nhatrang < src/db/migrations/009_conversations_optional_listing_archive.sql
+-- Run: docker exec -i realty-hub-app-postgres-1 psql -U re_nhatrang -d re_nhatrang < src/db/migrations/009_conversations_optional_listing_archive.sql
 
 -- Allow conversation without a listing (general agent-to-agent thread)
 ALTER TABLE conversations ALTER COLUMN listing_id DROP NOT NULL;

@@ -21,7 +21,7 @@ export async function GET(request: NextRequest) {
 
     const res = await fetch(url, {
       headers: {
-        "User-Agent": "ProMemo/1.0 (Real Estate Agent Platform)",
+        "User-Agent": "RealtyHub/1.0 (Real Estate Agent Platform)",
       },
     });
 

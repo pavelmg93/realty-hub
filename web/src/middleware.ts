@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 
 export function middleware(request: NextRequest) {
-  const token = request.cookies.get("promemo_token")?.value;
+  const token = request.cookies.get("realtyhub_token")?.value;
 
   if (!token) {
     return NextResponse.redirect(new URL("/", request.url));

@@ -5,7 +5,7 @@
 
 set -euo pipefail
 
-CONTAINER="re-nhatrang-app-postgres-1"
+CONTAINER="realty-hub-app-postgres-1"
 DB_USER="re_nhatrang"
 DB_NAME="re_nhatrang"
 BACKUP_DIR="$(cd "$(dirname "$0")/.." && pwd)/backups"

@@ -1,5 +1,5 @@
 -- Migration 008: CRM — Persons (Buyers/Sellers), Deals, Interactions
--- Run: docker exec -i re-nhatrang-app-postgres-1 psql -U re_nhatrang -d re_nhatrang < src/db/migrations/008_crm_schema.sql
+-- Run: docker exec -i realty-hub-app-postgres-1 psql -U re_nhatrang -d re_nhatrang < src/db/migrations/008_crm_schema.sql
 
 CREATE TABLE IF NOT EXISTS persons (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),

@@ -34,7 +34,7 @@ You should see:
 - `app-postgres` (port 5432) — application database with pgvector
 # - `kestra-postgres` (port 5433) — Kestra internal metadata -- NOT IN DEMO
 # - `kestra` (ports 8080, 8081) — workflow orchestration UI -- NOT IN DEMO
-- `web` (port 8888 → internal 3000) — ProMemo web app
+- `web` (port 8888 → internal 3000) — Realty Hub web app
 - `pgadmin` (port 5050) — database browser UI
 - `redis` (port 6379) — cache
 - `kestra-restore` — init container (runs once and exits)
@@ -184,7 +184,7 @@ Use the **Query Tool** (Tools > Query Tool) to run SQL queries.
 **Option B: psql via Docker**
 
 ```bash
-docker exec -it re-nhatrang-app-postgres-1 psql -U re_nhatrang -d re_nhatrang
+docker exec -it realty-hub-app-postgres-1 psql -U re_nhatrang -d re_nhatrang
 ```
 
 Useful queries:
@@ -245,9 +245,9 @@ WHERE pl.confidence < 0.4;
 | trieu / tr | x 1,000,000 | "350 trieu" = 350 million VND |
 | t | x 1,000,000,000 | "3.5t" = 3.5 billion VND |
 
-## ProMemo Web App
+## Realty Hub Web App
 
-ProMemo is the agent-facing web interface at **http://localhost:8888**.
+Realty Hub is the agent-facing web interface at **http://localhost:8888**.
 
 ### Getting Started
 
@@ -463,7 +463,7 @@ scripts/
   restore_kestra_db.sh            <-- Auto-restore (used by init container)
   transform_zalo_export.py        <-- Zalo text -> CSV transformer
   seed_sample_data.py             <-- Generate sample test data
-web/                               <-- ProMemo Next.js web app
+web/                               <-- Realty Hub Next.js web app
   src/
     app/                           <-- Pages (App Router)
       dashboard/                   <-- Auth-protected dashboard

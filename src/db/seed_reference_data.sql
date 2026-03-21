@@ -115,15 +115,3 @@ INSERT INTO nha_trang_streets (name, name_ascii) VALUES
     ('Lê Hồng Phong',     'Le Hong Phong')
 ON CONFLICT DO NOTHING;
 
--- ---------------------------------------------------------------------------
--- Seed agent: Dean/Duy (An Cư Cùng Dean)
--- ---------------------------------------------------------------------------
-
-INSERT INTO agents (name, phone, zalo_id, notes) VALUES
-    ('Dean (Duy)', '0868331111', '0868331111', 'An Cư Cùng Dean - Nha Trang agent')
-ON CONFLICT DO NOTHING;
-
--- Associate existing raw_listings with Dean agent
--- All current listings are from Dean's Zalo channel
-UPDATE raw_listings SET agent_id = (SELECT id FROM agents WHERE phone = '0868331111')
-WHERE agent_id IS NULL;

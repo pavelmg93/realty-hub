@@ -1,6 +1,6 @@
 # RUNBOOK — Realty Hub Production Operations
 
-**VM:** `promemo-demo-2` — `136.110.34.97` (GCP, `us-central1`)
+**VM:** `realty-hub-demo` — `136.110.34.97` (GCP, `us-central1`)
 **Domain:** `https://realtyhub.xeldon.com` (Cloudflare proxy → port 8888)
 **App port:** 8888 (mapped from container port 3000)
 
@@ -71,7 +71,7 @@ docker compose stop web
 
 # Restore into production postgres
 gunzip -c backups/<BACKUP_FILE>.sql.gz \
-  | docker exec -i re-nhatrang-app-postgres-1 psql -U re_nhatrang -d re_nhatrang
+  | docker exec -i realty-hub-app-postgres-1 psql -U re_nhatrang -d re_nhatrang
 
 # Restart web
 docker compose start web
@@ -128,18 +128,18 @@ docker compose logs web --tail=200
 
 ```bash
 # Connect to DB
-docker exec -it re-nhatrang-app-postgres-1 psql -U re_nhatrang -d re_nhatrang
+docker exec -it realty-hub-app-postgres-1 psql -U re_nhatrang -d re_nhatrang
 
 # Run a migration file
-docker exec -i re-nhatrang-app-postgres-1 psql -U re_nhatrang -d re_nhatrang \
+docker exec -i realty-hub-app-postgres-1 psql -U re_nhatrang -d re_nhatrang \
   < src/db/migrations/012_staging_photos_docs.sql
 
 # Check current migration state
-docker exec -it re-nhatrang-app-postgres-1 psql -U re_nhatrang -d re_nhatrang \
+docker exec -it realty-hub-app-postgres-1 psql -U re_nhatrang -d re_nhatrang \
   -c "\d parsed_listings"
 ```
 
-**Current migration level: 012**
+**Current migration level: 015**
 
 After fresh `docker compose down -v && up -d`, run in order:
 1. `src/db/seed_reference_data.sql`
@@ -172,7 +172,7 @@ curl -I http://localhost:8888
 curl -I https://realtyhub.xeldon.com
 
 # DB connection test
-docker exec re-nhatrang-app-postgres-1 psql -U re_nhatrang -d re_nhatrang \
+docker exec realty-hub-app-postgres-1 psql -U re_nhatrang -d re_nhatrang \
   -c "SELECT NOW();"
 ```
 

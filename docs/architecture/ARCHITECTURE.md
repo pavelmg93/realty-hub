@@ -115,12 +115,12 @@ RE Nha Trang is a pipeline-based system with four stages: **Ingestion**, **Parsi
 
 **Auth**: API key or JWT (TBD based on deployment model).
 
-### 6. ProMemo Web App (Frontend)
+### 6. Realty Hub Web App (Frontend)
 
 **Purpose**: Web interface for agents to manage listings, browse feeds, and communicate.
 
 **Tech**: Next.js 16 (App Router), React 19, TypeScript, Tailwind CSS v4.
-**Auth**: Login-only with bcrypt + JWT (httpOnly cookie "promemo_token").
+**Auth**: Login-only with bcrypt + JWT (httpOnly cookie "realtyhub_token").
   No public signup — accounts created via scripts/create_agent.sh.
 **Version**: Next.js 15 (App Router)
 **Database**: Raw pg Pool with SQL (no ORM, avoids migration conflicts).
@@ -327,7 +327,7 @@ Match
 |  +----------------------------+                                   |   |
 |  |           web              |                                   |   |
 |  |                            |                                   |   |
-|  |   Next.js 16 (ProMemo)     |                                   |   |
+|  |   Next.js 16 (Realty Hub)  |                                   |   |
 |  |   Port: 8888 (host)        |-----> (app-postgres) -------------|   |
 |  |                            |                                       |
 |  |   Agent listings, feed,    |                                       |

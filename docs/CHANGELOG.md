@@ -6,6 +6,23 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Session 23 — 2026-03-21 — Pilot Branding + Data Fixes
+
+#### Added
+- **REA-38+REA-35: Full rebrand ProMemo → Realty Hub** — Updated all display strings, cookie names (`realtyhub_token`), localStorage key (`realtyhub_lang`), User-Agent, docker-compose env var, docs, SQL comments, and devcontainer labels. Browser tab now shows "Realty Hub".
+- **FIDT logo favicon** — Created `web/public/fidt-logo.svg` (navy #032759 with "FIDT" text). Set as favicon in `layout.tsx` metadata.
+- **REA-36: Seed cleanup** — Removed `INSERT INTO agents` and `UPDATE raw_listings` blocks from `seed_reference_data.sql`. Seed is now reference-only (wards + streets).
+- **Migration 015** — SQL cleanup of stale `title_standardized` values: strips `m²` area suffix, strips `T` floors suffix, replaces `x` dimension separator with space, collapses double spaces.
+- **deploy-vm.sh row count assertions** — Update mode now captures pre-seed counts for agents, parsed_listings, conversations, listing_photos; prints `WARNING` if any count drops post-seed.
+
+#### Changed
+- **REA-40: Price precision** — `formatPriceShortest()` now uses up to 2dp with trailing zeros stripped (`parseFloat(n.toFixed(2)).toString()`). Fixes 3.13ty displaying as 3.1ty.
+- **REA-40: AI parse price precision** — `priceVndToShort()` in AI parse route: same fix — 3130000000 → "3.13 tỷ" correctly.
+- **REA-39: title_standardized formula** — `generateTitleStandardized()`: dimension separator changed from `x` to space; `price_short?: string | null` param added (uses stored short price string if available, falls back to `formatPriceShortest`).
+- **REA-19: Agent avatar upload** — Verified working in pilot environment; marked done in Linear.
+
+---
+
 ### Session 22 — 2026-03-21 — Parsing Pipeline + Price UX
 
 #### Added

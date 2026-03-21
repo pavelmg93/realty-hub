@@ -116,7 +116,7 @@ docker exec -i realty-hub-app-postgres-1 psql -U re_nhatrang -d re_nhatrang \
 - DB: `re_nhatrang`
 - Container: `realty-hub-app-postgres-1`
 
-**Current migration level: 013**
+**Current migration level: 015**
 
 ---
 
@@ -323,8 +323,8 @@ When I ask you to "log this test" or "create a test session," you must:
 
 Saved in `docs/chat_exports/`. Use `/export` (built-in, 0 tokens) to save a raw transcript to the project root. `scripts/claude-log.sh` (runs every 30 min via cron) moves it to `docs/chat_exports/{DATE}/` and appends to a daily markdown summary.
 
-**Current session number: 23**
-**Last completed session: 22 — 2026-03-21 — Parsing Pipeline + Price UX**
+**Current session number: 24**
+**Last completed session: 23 — 2026-03-21 — Pilot Branding + Data Fixes**
 **Deployment: Google Cloud VM — see `docs/DEPLOYMENT.md` for full guide**
 **Sprint: Pilot Launch (Mar 19–22) — see `docs/SCOPE.md`**
 **Linear: https://linear.app/realty-hub**

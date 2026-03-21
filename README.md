@@ -1,4 +1,4 @@
-# ProMemo — Wealth Realty Agent Platform
+# Realty Hub — Wealth Realty Agent Platform
 
 Internal real estate agent platform for [Wealth Realty / FIDT](https://fidt.vn/wealth-realty/).
 Agents share listings, message each other, and manage buyers, sellers, and deals.
@@ -57,7 +57,7 @@ open http://localhost:8888
 
 | Service | URL | Notes |
 |---|---|---|
-| ProMemo web app | http://localhost:8888 | Main application |
+| Realty Hub web app | http://localhost:8888 | Main application |
 | pgAdmin | http://localhost:5050 | Database browser |
 | PostgreSQL | port 5432 | App database |
 | Redis | port 6379 | Cache |
@@ -69,7 +69,7 @@ open http://localhost:8888
 ## Project Structure
 
 ```
-web/                    Next.js app (ProMemo)
+web/                    Next.js app (Realty Hub)
   src/
     app/                Pages and API routes (App Router)
       dashboard/        Auth-protected screens
@@ -108,10 +108,10 @@ Current migration level: **010**
 
 ```bash
 # Connect to database
-docker exec -it re-nhatrang-app-postgres-1 psql -U re_nhatrang -d re_nhatrang
+docker exec -it realty-hub-app-postgres-1 psql -U re_nhatrang -d re_nhatrang
 
 # After a fresh docker compose down -v && up -d:
-docker exec -i re-nhatrang-app-postgres-1 psql -U re_nhatrang -d re_nhatrang \
+docker exec -i realty-hub-app-postgres-1 psql -U re_nhatrang -d re_nhatrang \
   < src/db/seed_reference_data.sql
 # Then run migrations 002 through 010 in order
 ```

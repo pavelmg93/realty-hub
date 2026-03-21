@@ -5,77 +5,80 @@
 
 ---
 
-## 🔴 Current Session: 22 — Parsing Pipeline + Price UX
+## 🔴 Current Session: 23 — Pilot Branding + Data Fixes
 
 **Branch:** `main` (direct commits)
-**Linear:** REA-34, REA-32, REA-33, REA-11, REA-16, REA-15
-**Goal:** Fix the parsing pipeline (Python + AI), simplify price UX, continue polish.
+**Linear:** REA-38, REA-35, REA-36, REA-39, REA-40
+**Goal:** Final pre-pilot polish: rebrand to Realty Hub, fix stale data, preserve price precision.
 **⚠️ IMPORTANT:** Do NOT deploy to VM. All work is LOCAL only. Pavel deploys manually.
 
 ### Tasks (execute top-down)
 
-* [x] **[Hide full-digit price — short price only — REA-34]**
-    1. Hide `price_vnd` input from New Listing form, Edit Listing form, listing detail view, and Feed card.
-    2. Show only `price_short` field for input and display. Accept formats like: `6.2ty`, `3.5 tỷ`, `800tr`, `800 triệu`.
-    3. On save (backend): auto-compute `price_vnd` from `price_short`. Conversion: tỷ/ty = ×1,000,000,000; triệu/tr = ×1,000,000.
-    4. Keep `price_vnd` in DB (needed for sorting/filtering) — just never show it to agents.
-    5. Verify `generateTitleStandardized()` still works (already uses short price).
+* [x] **[Rename: ProMemo → Realty Hub across entire repo — REA-38 + REA-35]**
+    1. Run audit grep first to find all hits before changing anything:
+       `grep -ri "promemo\|re-nhatrang-app\|re_nhatrang_app" . --include="*.ts" --include="*.tsx" --include="*.md" --include="*.sh" --include="*.yml" --include="*.json" --include="*.sql" | grep -v node_modules | grep -v .next | grep -v .git`
+    2. Replace all hits: `ProMemo` → `Realty Hub` (display strings, comments, docs); `re-nhatrang-app` → `realty-hub` (container refs, script vars); stale container name `re-nhatrang-app-postgres-1` → `realty-hub-app-postgres-1`.
+    3. `CLAUDE.md`: fix any remaining stale container names or app name refs (REA-35 folded in here).
+    4. Browser tab: verify `web/src/app/layout.tsx` metadata has `title: "Realty Hub"`. Must say "Realty Hub" in browser tab.
+    5. Login page: add FIDT logo above the login form card. Check if `/public/fidt-logo.png` exists — if not, create a placeholder SVG with FIDT text in navy `#032759`.
+    6. Favicon: set FIDT logo as favicon. Add `icon` to metadata in `layout.tsx`. If no logo file exists, create a minimal SVG favicon with "F" in FIDT navy.
+    7. Run audit grep again — must return zero results.
 
-* [x] **[Revive Python parser + AI layering — REA-32]**
-    1. Check current state of `src/parsing/` — the Vietnamese regex parser. Read its extractors, test files, and understand what fields it handles.
-    2. Re-enable calling the Python parser from the parse API route. The Python parser ran via subprocess in earlier sessions — check `src/parsing/` for the entry point.
-    3. Implement two-layer parse pipeline: Python parser runs first → populates fields. Gemini AI runs second → fills gaps (address, ambiguous fields). Merge: Python fields take priority unless empty.
-    4. Ensure Python venv + dependencies work inside Docker (check if `src/` is mounted, Python is available in the web container or needs a sidecar).
-    5. Run existing parser tests: `cd src && python -m pytest tests/ -v` (may need venv setup).
+* [x] **[Seed cleanup: remove non-reference data — REA-36]**
+    1. Open `src/db/seed_reference_data.sql` and remove: the `INSERT INTO agents` block for Dean, the `UPDATE raw_listings SET agent_id` block, and any other non-reference INSERTs.
+    2. Seed should only contain: `nha_trang_wards`, `nha_trang_streets`, and other static lookup tables.
+    3. Add pre/post data count check to `scripts/deploy-vm.sh` (update mode only): before seed, capture counts of `agents`, `parsed_listings`, `conversations`, `listing_photos`; after seed + migrations, assert each count is ≥ pre-run count; if any count dropped, print: `>>> WARNING: Row count dropped in <table>! Pre: N Post: M` (do NOT abort — just warn).
 
-* [x] **[Complete Nha Trang street list — REA-33]**
-    1. Review current `src/db/seed_reference_data.sql` — count existing streets in `nha_trang_streets`.
-    2. Research and add missing Nha Trang street names. Use web search if needed. Target: all major đường and significant hẻm in all 27 phường/xã.
-    3. Create migration to INSERT new streets (ON CONFLICT DO NOTHING for idempotency).
-    4. Pass the street list as context to both the Gemini AI prompt and the Python parser so they can distinguish real street names from descriptive phrases like "đường rộng" (wide road).
-    5. Add common abbreviations: đường→Đ., phố→P., etc.
+* [x] **[Fix stale title_standardized values in DB — REA-39]**
+    1. Update `generateTitleStandardized()` in `web/src/lib/constants.ts`: dimension join uses `" "` not `"x"`, no `m²` suffix, no `T` suffix. Verify current code is correct.
+    2. Write migration `015_fix_title_standardized.sql`. Use SQL regex to strip suffixes and fix separator in place:
+       - Strip `m²` suffix: `regexp_replace(title_standardized, '(\d+(?:\.\d+)?)m²', '\1', 'g')`
+       - Strip `T` suffix from floors: `regexp_replace(title_standardized, '\b(\d+)T\b', '\1', 'g')`
+       - Replace `x` dimension separator with space: `regexp_replace(title_standardized, '(\d+(?:\.\d+)?)x(\d+(?:\.\d+)?)', '\1 \2', 'g')`
+    3. After migration, verify: `SELECT title_standardized FROM parsed_listings WHERE title_standardized ~ '\dm²|\dT |\dx\d'` — must return zero rows.
 
-* [x] **[AI parse: address disambiguation — REA-11 continued]**
-    1. Fix "đường rộng" being parsed as a street address. Add explicit instruction to Gemini prompt: "đường rộng means 'wide road' — it is a road characteristic, NOT a street name. Only extract addresses that match known Nha Trang streets or contain a specific house number."
-    2. Price bidirectional logic (if not already working from Session 21): `price_short` → `price_vnd` and vice versa.
-    3. Verify parse with 3+ real Vietnamese listing texts that contain "đường rộng", "hẻm ô tô", and actual street names.
-
-* [x] **[UI: Remaining mobile polish — REA-16]** Verify at 375px viewport:
-    1. All pages have consistent padding (no edge-to-edge text anywhere).
-    2. Touch targets minimum 44px on all interactive elements.
-    3. Photo grid: 1 col on mobile, 2 col on tablet.
-    4. New Listing form: fields don't overflow on mobile.
-
-* [x] **[i18n: Remaining gaps — REA-15]** Quick scan for any remaining hardcoded English strings that are visible to agents. Focus on error messages, toast notifications, empty states. Do NOT do exhaustive audit — just fix what's embarrassing.
+* [x] **[Price precision: preserve agent-entered decimal places — REA-40]**
+    1. Fix `formatPriceShortest()` in `web/src/lib/constants.ts`: replace `.toFixed(1)` with dynamic precision — up to 2dp, trailing zeros stripped. E.g. `parseFloat(n.toFixed(2)).toString()`.
+    2. Fix `parseRawPrice()` (or equivalent): ensure full precision of input is used for VND conversion — `3.13ty` → `3130000000`, not `3100000000`.
+    3. `generateTitleStandardized()`: price segment must use `price_short` (stored string) if available; fall back to `formatPriceShortest(price_vnd)` only when `price_short` is null. Add `price_short?: string | null` to the function's input type if not already present.
+    4. Verify these cases work end-to-end:
+       - `3.13ty` → stored `3130000000`, displayed `3.13ty`
+       - `39.1ty` → stored `39100000000`, displayed `39.1ty`
+       - `400.5tr` → stored `400500000`, displayed `400.5tr`
+       - `20ty` → stored `20000000000`, displayed `20ty`
 
 ### End of session
 
-* [ ] Create `docs/code_sessions/2026-03-21-session22-parsing-price-ux.md`
+* [ ] `npx tsc --noEmit` — must be clean
+* [ ] Re-run audit grep from task 1 — must return zero
+* [ ] Update `CLAUDE.md`: session counter → 24, last completed → "23 — 2026-03-21 — Pilot Branding + Data Fixes"
+* [ ] Write `docs/code_sessions/2026-03-21-session23-pilot-branding-data-fixes.md`
 * [ ] Update `docs/CHANGELOG.md`
-* [ ] Update `CLAUDE.md` footer: session 22 / last completed 21
-* [ ] `npx tsc --noEmit` clean → commit → push
+* [ ] Commit: `git commit -m "Session 23: Pilot branding + data fixes"`
+* [ ] `/export`
 
 ---
 
-## ✅ Completed (Session 21)
+## ✅ Completed (Session 22)
 
-* [x] Bug: "View Messages" not clickable in Feed — REA-30
-* [x] Remove followup questions from AI parse — REA-28
-* [x] Standardized title: consistency + formula + scaling — REA-29
-* [x] Bug: Zalo share text + "Copy văn bản" i18n — REA-31
-* [x] Listing detail margins — REA-16 (partial, continuing)
-* [x] Filter option translations — REA-15 (partial, continuing)
-* [x] Gemini parse improvements — REA-11 (partial, continuing)
-* [x] Loading states + toasts — REA-17
+* [x] Hide full-digit price — short price only — REA-34
+* [x] Revive Python parser + AI layering — REA-32
+* [x] Complete Nha Trang street list — REA-33
+* [x] AI parse address disambiguation — REA-11
+* [x] Remaining mobile polish — REA-16
+* [x] Remaining i18n gaps — REA-15
 
-## ✅ Completed (Session 20)
+## ✅ Completed (Sessions 20–21)
 
 * [x] Docker volume pinning + migration safety — REA-25
 * [x] Performance fix (prod Docker build) — REA-24
 * [x] CLAUDE.md branching fix — REA-23
 * [x] Multi-photo upload bug — REA-26
-* [x] create_agent.sh (first_name + last_name)
-* [x] schema_migrations + migrate.sh
+* [x] Bug: View Messages in Feed — REA-30
+* [x] Remove AI parse followup questions — REA-28
+* [x] Standardized title consistency + formula — REA-29
+* [x] Zalo share text + copy button i18n — REA-31
+* [x] Loading states + toasts — REA-17
 * [x] OPERATIONS.md — REA-27
 
 ---
@@ -85,7 +88,7 @@
 * [ ] Feed: full-text search polish — REA-13
 * [ ] Listing export: share card image gen — REA-14
 * [ ] Migrate photos to GCS — REA-18
-* [ ] Agent avatar upload — REA-19
+* [x] Agent avatar upload — REA-19 (verified working, marked done)
 * [ ] Notifications — REA-20
 * [ ] API rate limiting — REA-21
 * [ ] Gemini image/OCR parsing — REA-12

@@ -1,5 +1,5 @@
 #!/bin/bash
-# scripts/deploy-vm.sh — Deploy ProMemo to a GCP VM
+# scripts/deploy-vm.sh — Deploy Realty Hub to a GCP VM
 #
 # Usage:
 #   Fresh install:  ./scripts/deploy-vm.sh
@@ -11,7 +11,7 @@ set -e
 
 MODE="${1:-full}"
 
-echo "=== ProMemo VM Deployment (mode: $MODE) ==="
+echo "=== Realty Hub VM Deployment (mode: $MODE) ==="
 echo ""
 
 # ─── 1. Install Docker if not present ───
@@ -79,11 +79,32 @@ for i in $(seq 1 30); do
 done
 
 # ─── 6. Run seed data and all migrations ───
+
+# Capture pre-seed row counts (update mode only)
+if [ "$MODE" = "update" ]; then
+  PRE_AGENTS=$(docker compose exec -T app-postgres psql -U re_nhatrang -d re_nhatrang -t -c "SELECT COUNT(*) FROM agents;" 2>/dev/null | tr -d '[:space:]' || echo 0)
+  PRE_LISTINGS=$(docker compose exec -T app-postgres psql -U re_nhatrang -d re_nhatrang -t -c "SELECT COUNT(*) FROM parsed_listings;" 2>/dev/null | tr -d '[:space:]' || echo 0)
+  PRE_CONVERSATIONS=$(docker compose exec -T app-postgres psql -U re_nhatrang -d re_nhatrang -t -c "SELECT COUNT(*) FROM conversations;" 2>/dev/null | tr -d '[:space:]' || echo 0)
+  PRE_PHOTOS=$(docker compose exec -T app-postgres psql -U re_nhatrang -d re_nhatrang -t -c "SELECT COUNT(*) FROM listing_photos;" 2>/dev/null | tr -d '[:space:]' || echo 0)
+fi
+
 echo ">>> Running seed data..."
 docker compose exec -T app-postgres psql -U re_nhatrang -d re_nhatrang < src/db/seed_reference_data.sql 2>&1 | tail -1
 
 echo ">>> Running migrations (skips already-applied)..."
 ./scripts/migrate.sh
+
+# Assert row counts did not drop (update mode only)
+if [ "$MODE" = "update" ]; then
+  for TABLE in agents parsed_listings conversations listing_photos; do
+    PRE_VAR="PRE_$(echo $TABLE | tr '[:lower:]' '[:upper:]' | sed 's/PARSED_LISTINGS/LISTINGS/' | sed 's/LISTING_PHOTOS/PHOTOS/' | sed 's/CONVERSATIONS/CONVERSATIONS/')"
+    POST=$(docker compose exec -T app-postgres psql -U re_nhatrang -d re_nhatrang -t -c "SELECT COUNT(*) FROM $TABLE;" 2>/dev/null | tr -d '[:space:]' || echo 0)
+    PRE="${!PRE_VAR}"
+    if [ -n "$PRE" ] && [ -n "$POST" ] && [ "$POST" -lt "$PRE" ] 2>/dev/null; then
+      echo ">>> WARNING: Row count dropped in $TABLE! Pre: $PRE Post: $POST"
+    fi
+  done
+fi
 
 # ─── 7. Wait for Next.js to compile, then create demo accounts ───
 if [ "$MODE" != "update" ]; then

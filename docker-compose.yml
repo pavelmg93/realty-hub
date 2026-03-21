@@ -124,7 +124,7 @@ services:
     environment:
       DATABASE_URL: postgresql://${APP_DB_USER:-re_nhatrang}:${APP_DB_PASSWORD:-change_me_in_production}@app-postgres:5432/${APP_DB_NAME:-re_nhatrang}
       JWT_SECRET: ${JWT_SECRET:-dev-secret-change-me}
-      NEXT_PUBLIC_APP_NAME: ProMemo
+      NEXT_PUBLIC_APP_NAME: Realty Hub
       UPLOAD_DIR: /app/uploads
       GEMINI_API_KEY: ${ENV_GEMINI_API_KEY:-}
     volumes:

@@ -1,4 +1,4 @@
-# ProMemo PRD Spec
+# Realty Hub PRD Spec
 Alright, I am building an app for Real Estate Agents only, who work for this company fidt.vn, specifically their Wealth Realty department: https://fidt.vn/wealth-realty/
 
 Goal is to allow the agents in each city/market (Nha Trang, HCMC, Hanoi, etc.) to share their sales listings with following top level statuses: open, negotiating, pending closing, sold, not for sale.
@@ -36,11 +36,11 @@ Now, please use logo and colors of the website provided and produce all required
 
 ### Overview
 
-In addition to manual listing creation via the ProMemo web app, we support automated
+In addition to manual listing creation via the Realty Hub web app, we support automated
 ingestion of listings from Vietnamese real estate websites using Playwright-based scrapers.
 This serves two purposes:
 1. **Training data** for the Vietnamese regex parser (real-world listing text)
-2. **Populating ProMemo** with real listings for testing and demonstration
+2. **Populating Realty Hub** with real listings for testing and demonstration
 
 ### Architecture
 
