@@ -1,8 +1,3 @@
-
-<details>
-<summary><strong>Append — 06:22:07 (2026-03-21-061124-session-20-read-claudemd-and-docsscopemd-exec.txt)</strong> [1379 lines]</summary>
-
-````
  ▐▛███▜▌   Claude Code v2.1.79
 ▝▜█████▛▘  Sonnet 4.6 · Claude Pro
   ▘▘ ▝▝    ~/dev_projects/realty-hub
@@ -1253,7 +1248,7 @@
   Next step: Run ./scripts/migrate.sh on the VM after git pull to apply
   migration 014. Then deploy with ./scripts/deploy-vm.sh update.
 
-✻ Cooked for 15m 0s
+✻ Worked for 15m 0s
 
 ❯ thanks! forgot to tell you about new home for architecture.md. do add         
 architecture folder in commit. THose two files are for a full refactor and      
@@ -1381,17 +1376,6 @@ pavelmg93@realty-hub:~/realty-hub$
   needed on first deploy to make an empty directory writable; in update mode
   it's useless and now skipped.
 
-✻ Worked for 1m 3s
-````
-
-</details>
-
-
-<details>
-<summary><strong>Append — 08:19:19 (2026-03-21-081908-session-20-read-claudemd-and-docsscopemd-exec.txt)</strong> [130 lines]</summary>
-
-````
-✻ Worked for 15m 0s
 ✻ Baked for 1m 3s
 
 ❯ /export                                                                       
@@ -1521,7 +1505,3 @@ command /export here).Please recommit same.
   file:///home/pavel/.claude/usage-data/report.html
 
   Want to dig into any section or try one of the suggestions?
-````
-
-</details>
-
