@@ -6,6 +6,22 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Session 21 — 2026-03-21 — Bug Fixes + UI Polish for Pilot
+
+#### Fixed
+- **REA-30: "View Messages" not clickable in Feed** — `onViewMessages` in FeedPage now navigates to `/dashboard/messages` when no specific conversation ID exists (owner viewing their own listing).
+- **REA-28: Remove follow-up questions from AI parse** — Removed confusing interactive question UI from the New Listing form. Parse now silently populates fields. Removed `followUpAnswers` state and `handleFollowUpAnswer` handler. Mock parser no longer returns follow-up questions.
+- **REA-31: Zalo share text** — Share text now uses Vietnamese labels (`getFieldValueLabel` with `"vi"`) for property and transaction type — e.g., "Nhà phố" instead of "nha_pho". "Copy văn bản" button moved to `i18n.ts` as `copyText` key (en: "Copy text", vi: "Sao chép văn bản").
+- **REA-16: Listing detail margins** — Added `px-4 sm:px-6` to the outer `max-w-4xl mx-auto` container on the listing detail view.
+
+#### Changed
+- **REA-29: Standardized title** — `generateTitleStandardized()` now omits `m²` and `T` suffixes (format: `100 7 10x10 hh1 20ty`). Listing detail view header now shows two-line standardized title (address + specs) matching Feed/My Listings cards. ListingCard font scales by grid density: `text-sm` (3-wide), `text-base` (2-wide), `text-xl` (1-wide).
+- **REA-15: i18n filter options** — FeedFilters now renders all dropdown options (property type, transaction, status, legal, direction, structure, road access, furnished, building) in the active language using `FIELD_VALUE_LABELS` from `i18n.ts`. Removed English-only constants imports from FeedFilters.
+- **REA-11: Gemini parse improvements** — System prompt updated with explicit rules for `address_raw`, `legal_status`, `access_road`, `structure_type` extraction including Vietnamese abbreviations. Mock parser now extracts legal status, access road, structure type, and assembles `address_raw`. `follow_up_questions` set to empty `[]`.
+- **REA-17: UX verification** — Confirmed: sonner installed, no `alert()` calls, all three main pages (Feed, My Listings, Messages) have proper empty states with CTAs.
+
+---
+
 ### Session 20 — 2026-03-21 — Infra Hardening + Pilot Polish
 
 #### Added

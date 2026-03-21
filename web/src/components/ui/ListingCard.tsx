@@ -166,11 +166,11 @@ export function ListingCard({
       </Link>
 
       <div className="p-3">
-        {/* Two-line headline */}
-        <p className="text-xl font-bold text-[var(--text-primary)] truncate leading-tight">
+        {/* Two-line headline — font scales with grid density */}
+        <p className={`font-bold text-[var(--text-primary)] truncate leading-tight ${cols === 3 ? "text-sm" : cols === 2 ? "text-base" : "text-xl"}`}>
           {listing.address_raw || [listing.street, listing.ward].filter(Boolean).join(", ") || ""}
         </p>
-        <p className="text-xl font-bold text-[var(--text-primary)] truncate leading-tight">
+        <p className={`font-bold text-[var(--text-primary)] truncate leading-tight ${cols === 3 ? "text-sm" : cols === 2 ? "text-base" : "text-xl"}`}>
           {listing.title_standardized || buildSpecsLine(listing)}
         </p>
 

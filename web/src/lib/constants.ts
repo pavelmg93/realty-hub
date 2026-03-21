@@ -168,8 +168,8 @@ export function generateTitleStandardized(data: {
 }): string {
   const parts: string[] = [];
 
-  if (data.area_m2) parts.push(`${data.area_m2}m²`);
-  if (data.num_floors) parts.push(`${data.num_floors}T`);
+  if (data.area_m2) parts.push(`${data.area_m2}`);
+  if (data.num_floors) parts.push(`${data.num_floors}`);
 
   const dimParts: string[] = [];
   if (data.frontage_m) dimParts.push(data.frontage_m.toString());

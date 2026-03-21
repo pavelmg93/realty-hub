@@ -1,18 +1,10 @@
 "use client";
 
 import {
-  PROPERTY_TYPES,
-  TRANSACTION_TYPES,
   NHA_TRANG_WARDS,
-  LISTING_STATUSES,
-  LEGAL_STATUS_TYPES,
-  DIRECTION_TYPES,
-  STRUCTURE_TYPES,
-  ACCESS_ROAD_TYPES,
-  FURNISHED_TYPES,
-  BUILDING_TYPES,
 } from "@/lib/constants";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { FIELD_VALUE_LABELS } from "@/lib/i18n";
 
 export interface FeedFilterValues {
   property_type: string;
@@ -118,7 +110,24 @@ export default function FeedFilters({
   onReset,
   agents = [],
 }: Props) {
-  const { t } = useLanguage();
+  const { t, lang } = useLanguage();
+
+  // Build translated option maps from FIELD_VALUE_LABELS
+  const toOptions = (field: string): Record<string, string> =>
+    Object.fromEntries(
+      Object.entries(FIELD_VALUE_LABELS[field] || {}).map(([k, v]) => [k, v[lang]])
+    );
+
+  const propertyTypeOptions = toOptions("property_type");
+  const transactionTypeOptions = toOptions("transaction_type");
+  const statusOptions = toOptions("status");
+  const legalStatusOptions = toOptions("legal_status");
+  const directionOptions = toOptions("direction");
+  const structureTypeOptions = toOptions("structure_type");
+  const accessRoadOptions = toOptions("access_road");
+  const furnishedOptions = toOptions("furnished");
+  const buildingTypeOptions = toOptions("building_type");
+
   const set = (key: keyof FeedFilterValues, value: string) => {
     onChange({ ...filters, [key]: value });
   };
@@ -149,14 +158,14 @@ export default function FeedFilters({
         <FilterSelect
           label={t("property")}
           value={filters.property_type}
-          options={PROPERTY_TYPES}
+          options={propertyTypeOptions}
           onChange={(v) => set("property_type", v)}
           allLabel={t("all")}
         />
         <FilterSelect
           label={t("transaction")}
           value={filters.transaction_type}
-          options={TRANSACTION_TYPES}
+          options={transactionTypeOptions}
           onChange={(v) => set("transaction_type", v)}
           allLabel={t("all")}
         />
@@ -170,51 +179,49 @@ export default function FeedFilters({
         <FilterSelect
           label={t("status")}
           value={filters.status}
-          options={Object.fromEntries(
-            Object.entries(LISTING_STATUSES).map(([k, v]) => [k, v.label]),
-          )}
+          options={statusOptions}
           onChange={(v) => set("status", v)}
           allLabel={t("all")}
         />
         <FilterSelect
           label={t("legal")}
           value={filters.legal_status}
-          options={LEGAL_STATUS_TYPES}
+          options={legalStatusOptions}
           onChange={(v) => set("legal_status", v)}
           allLabel={t("all")}
         />
         <FilterSelect
           label={t("direction")}
           value={filters.direction}
-          options={DIRECTION_TYPES}
+          options={directionOptions}
           onChange={(v) => set("direction", v)}
           allLabel={t("all")}
         />
         <FilterSelect
           label={t("structure")}
           value={filters.structure_type}
-          options={STRUCTURE_TYPES}
+          options={structureTypeOptions}
           onChange={(v) => set("structure_type", v)}
           allLabel={t("all")}
         />
         <FilterSelect
           label={t("roadAccess")}
           value={filters.access_road}
-          options={ACCESS_ROAD_TYPES}
+          options={accessRoadOptions}
           onChange={(v) => set("access_road", v)}
           allLabel={t("all")}
         />
         <FilterSelect
           label={t("furnished")}
           value={filters.furnished}
-          options={FURNISHED_TYPES}
+          options={furnishedOptions}
           onChange={(v) => set("furnished", v)}
           allLabel={t("all")}
         />
         <FilterSelect
           label={t("building")}
           value={filters.building_type}
-          options={BUILDING_TYPES}
+          options={buildingTypeOptions}
           onChange={(v) => set("building_type", v)}
           allLabel={t("all")}
         />

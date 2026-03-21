@@ -323,8 +323,8 @@ When I ask you to "log this test" or "create a test session," you must:
 
 Saved in `docs/chat_exports/`. Use `/export` (built-in, 0 tokens) to save a raw transcript to the project root. `scripts/claude-log.sh` (runs every 30 min via cron) moves it to `docs/chat_exports/{DATE}/` and appends to a daily markdown summary.
 
-**Current session number: 20**
-**Last completed session: 19 — 2026-03-19 — Feature Sprint: Photos, FTS, Share Card, UX**
+**Current session number: 22**
+**Last completed session: 21 — 2026-03-21 — Bug Fixes + UI Polish for Pilot**
 **Deployment: Google Cloud VM — see `docs/DEPLOYMENT.md` for full guide**
 **Sprint: Pilot Launch (Mar 19–22) — see `docs/SCOPE.md`**
 **Linear: https://linear.app/realty-hub**

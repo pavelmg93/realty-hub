@@ -52,6 +52,30 @@ Giá:
 - "thương lượng" / "tl" → negotiable=true, price_vnd=null
 - Lưu chuỗi giá gốc vào price_raw
 
+Địa chỉ (address_raw):
+- Luôn điền address_raw: kết hợp số nhà + tên đường + phường + quận thành chuỗi đầy đủ
+- Ví dụ: "123 Nguyễn Thị Minh Khai, P. Lộc Thọ, Nha Trang"
+- Trích xuất ward (tên phường) và street (tên đường) riêng biệt
+
+Pháp lý (legal_status):
+- "sổ đỏ" / "sổ đỏ chính chủ" → "so_do"
+- "sổ hồng" / "pink book" → "so_hong"
+- "hợp đồng" / "hđmb" → "hop_dong"
+- "giấy tay" / "viết tay" → "giay_tay"
+- "hoàn công" → "hoan_cong" (nếu không có trong enum, ghi vào description_draft)
+
+Đường vào (access_road):
+- "mặt tiền" / "mặt đường" / "mặt phố" → "mat_duong"
+- "hẻm ô tô" / "hẻm xe hơi" → "hem_oto"
+- "hẻm xe máy" / "hẻm nhỏ" → "hem_xe_may"
+- "hẻm" (không rõ) → "hem_nho"
+
+Kết cấu (structure_type):
+- "đúc" / "nhà đúc" / "bê tông cốt thép" → "me_duc"
+- "gác lửng" → "gac_lung"
+- "trệt lầu" / "trệt + lầu" → "tret_lau"
+- "cấp 4" → "cap_4"
+
 Hướng (direction):
 - Đ / Đông → "dong"
 - T / Tây → "tay"
@@ -75,7 +99,7 @@ Mặc định:
 - transaction_type = "ban" nếu không có từ "cho thuê", "cho thuê", "thuê"
 - Chỉ điền field khi có đủ dữ liệu để tự tin
 - description_draft phải là mô tả sạch, không copy nguyên văn
-- Tạo 1-3 câu hỏi follow-up cho các field quan trọng còn thiếu`;
+- follow_up_questions: để mảng rỗng []`;
 
 const GEMINI_TIMEOUT_MS = 30000;
 
@@ -242,15 +266,55 @@ function parseWithMock(text: string): ParseResponse {
     confidence.num_bathrooms = 0.8;
   }
 
+  // Legal status
+  if (/sổ đỏ|so do/i.test(text)) {
+    fields.legal_status = "so_do";
+    confidence.legal_status = 0.85;
+  } else if (/sổ hồng|so hong/i.test(text)) {
+    fields.legal_status = "so_hong";
+    confidence.legal_status = 0.85;
+  } else if (/hợp đồng|hop dong/i.test(text)) {
+    fields.legal_status = "hop_dong";
+    confidence.legal_status = 0.8;
+  } else if (/giấy tay|giay tay/i.test(text)) {
+    fields.legal_status = "giay_tay";
+    confidence.legal_status = 0.8;
+  }
+
+  // Access road
+  if (/mặt tiền|mặt đường|mặt phố/i.test(text)) {
+    fields.access_road = "mat_duong";
+    confidence.access_road = 0.85;
+  } else if (/hẻm ô tô|hem oto/i.test(text)) {
+    fields.access_road = "hem_oto";
+    confidence.access_road = 0.8;
+  }
+
+  // Structure type
+  if (/đúc|be tong/i.test(text)) {
+    fields.structure_type = "me_duc";
+    confidence.structure_type = 0.75;
+  } else if (/cấp 4|cap 4/i.test(text)) {
+    fields.structure_type = "cap_4";
+    confidence.structure_type = 0.8;
+  }
+
+  // address_raw: best-effort assembly
+  if (fields.street || fields.ward) {
+    const parts: string[] = [];
+    if (fields.street) parts.push(`Đường ${fields.street}`);
+    if (fields.ward) parts.push(`P. ${fields.ward}`);
+    parts.push("Nha Trang");
+    fields.address_raw = parts.join(", ");
+    confidence.address_raw = 0.6;
+  }
+
   return {
     fields,
     confidence,
     duplicate_warning: { found: false, listing_id: null, similarity: 0 },
     description_draft: text.slice(0, 500),
-    follow_up_questions: [
-      { field: "legal_status", question_vi: "Sổ đỏ hay sổ hồng?", question_en: "Red book or pink book?" },
-      { field: "has_elevator", question_vi: "Có thang máy không?", question_en: "Does it have an elevator?" },
-    ],
+    follow_up_questions: [],
     geo_from_exif: null,
     ai_used: false,
   };

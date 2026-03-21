@@ -236,6 +236,8 @@ export default function FeedPage() {
                 onViewMessages={() => {
                   if (listing.existing_conversation_id)
                     router.push(`/dashboard/messages/${listing.existing_conversation_id}`);
+                  else
+                    router.push("/dashboard/messages");
                 }}
               />
             ))}

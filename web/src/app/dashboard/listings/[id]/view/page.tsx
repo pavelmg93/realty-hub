@@ -15,6 +15,7 @@ import {
   BUILDING_TYPES,
   DOCUMENT_CATEGORIES,
   formatPrice,
+  generateTitleStandardized,
 } from "@/lib/constants";
 import { StatusBadge } from "@/components/ui/StatusBadge";
 import { PriceDisplay } from "@/components/ui/PriceDisplay";
@@ -24,6 +25,7 @@ import PhotoUploader from "@/components/photos/PhotoUploader";
 import DocumentManager from "@/components/documents/DocumentManager";
 import { MessageCircle, Link2, Archive, Share2 } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { getFieldValueLabel } from "@/lib/i18n";
 
 function label(
   key: string | null | undefined,
@@ -39,7 +41,7 @@ export default function ListingViewPage() {
   const searchParams = useSearchParams();
   const fromParam = searchParams.get("from") ?? "listings";
   const { user } = useAuth();
-  const { t } = useLanguage();
+  const { t, lang } = useLanguage();
   const [listing, setListing] = useState<Listing | null>(null);
   const [photos, setPhotos] = useState<ListingPhoto[]>([]);
   const [documents, setDocuments] = useState<ListingDocument[]>([]);
@@ -149,8 +151,8 @@ export default function ListingViewPage() {
   const generateShareText = (format: "zalo" | "facebook"): string => {
     if (!listing) return "";
     const parts: string[] = [];
-    const propLabel = label(listing.property_type, PROPERTY_TYPES);
-    const txnLabel = label(listing.transaction_type, TRANSACTION_TYPES);
+    const propLabel = getFieldValueLabel("property_type", listing.property_type, "vi") || label(listing.property_type, PROPERTY_TYPES);
+    const txnLabel = getFieldValueLabel("transaction_type", listing.transaction_type, "vi") || label(listing.transaction_type, TRANSACTION_TYPES);
     const priceStr = listing.price_raw || (listing.price_vnd ? formatPrice(listing.price_vnd) : "");
     const area = listing.area_m2 ? `${listing.area_m2}m²` : "";
     const ward = listing.ward ? `P. ${listing.ward}` : "";
@@ -219,7 +221,7 @@ export default function ListingViewPage() {
   };
 
   return (
-    <div className="max-w-4xl mx-auto">
+    <div className="max-w-4xl mx-auto px-4 sm:px-6">
       {/* Top actions: Archive, Edit, Create post (Message + Share moved to bottom) */}
       <div className="flex flex-wrap items-center gap-2 mb-4 p-3 rounded-xl border border-[var(--border)]" style={{ backgroundColor: "var(--bg-surface)" }}>
         {isOwner && (
@@ -281,7 +283,7 @@ export default function ListingViewPage() {
             className="px-4 py-2 text-sm font-medium rounded-lg text-white transition-colors"
             style={{ backgroundColor: "var(--orange)" }}
           >
-            {shareTextCopied ? "✓ Đã sao chép!" : "📋 Copy văn bản"}
+            {shareTextCopied ? `✓ ${t("copied")}` : `📋 ${t("copyText")}`}
           </button>
         </div>
       )}
@@ -293,17 +295,12 @@ export default function ListingViewPage() {
             <StatusBadge status={listing.status as "for_sale"} />
             <span className="text-xs text-[var(--text-muted)]">#{listing.id}</span>
           </div>
-          <h1 className="text-2xl font-bold text-[var(--text-primary)]">
-            {label(listing.property_type, PROPERTY_TYPES)} -{" "}
-            {label(listing.transaction_type, TRANSACTION_TYPES)}
+          <h1 className="text-xl font-bold text-[var(--text-primary)] leading-tight">
+            {listing.address_raw || [listing.street, listing.ward].filter(Boolean).join(", ") || `${label(listing.property_type, PROPERTY_TYPES)} — ${label(listing.transaction_type, TRANSACTION_TYPES)}`}
           </h1>
-          {(listing.street || listing.ward) && (
-            <p className="text-[var(--text-secondary)] mt-1">
-              {[listing.address_raw || listing.street, listing.ward]
-                .filter(Boolean)
-                .join(", ")}
-            </p>
-          )}
+          <p className="text-xl font-bold text-[var(--text-primary)] leading-tight mt-0.5">
+            {listing.title_standardized || generateTitleStandardized(listing)}
+          </p>
         </div>
         <div className="flex gap-2">
           {adjacentIds.prev && (

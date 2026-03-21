@@ -18,7 +18,6 @@ export default function NewListingPage() {
   const { t, lang } = useLanguage();
   const [userText, setUserText] = useState("");
   const [aiResult, setAiResult] = useState<AIResult | null>(null);
-  const [followUpAnswers, setFollowUpAnswers] = useState<Record<string, unknown>>({});
   const [parsing, setParsing] = useState(false);
   const [parseError, setParseError] = useState<string | null>(null);
 
@@ -39,7 +38,6 @@ export default function NewListingPage() {
       }
       const data = await res.json();
       setAiResult(data);
-      setFollowUpAnswers({});
     } catch {
       setParseError("Request failed");
     } finally {
@@ -54,14 +52,9 @@ export default function NewListingPage() {
             ([_, v]) => v !== null && v !== undefined
           )
         ) as Record<string, unknown>,
-        ...followUpAnswers,
         description: aiResult.description_draft || undefined,
       }
     : undefined;
-
-  const handleFollowUpAnswer = (field: string, value: unknown) => {
-    setFollowUpAnswers((prev) => ({ ...prev, [field]: value }));
-  };
 
   return (
     <div className="max-w-3xl mx-auto p-4">
@@ -152,64 +145,6 @@ export default function NewListingPage() {
                   ? "Có thể trùng với BĐS đã có."
                   : "Possible duplicate listing."}
               </p>
-            )}
-            {aiResult.follow_up_questions?.length > 0 && (
-              <div className="mt-3 space-y-2">
-                <p className="text-xs font-medium text-[var(--text-muted)] uppercase tracking-wider">
-                  {lang === "vi" ? "Câu hỏi bổ sung (chọn hoặc điền form bên dưới)" : "Follow-up (choose or fill form below)"}
-                </p>
-                {aiResult.follow_up_questions.map((q) => (
-                  <div key={q.field} className="flex flex-wrap items-center gap-2">
-                    <span className="text-sm text-[var(--text-secondary)]">
-                      {lang === "vi" ? q.question_vi : q.question_en}
-                    </span>
-                    {q.field === "has_elevator" && (
-                      <>
-                        <button
-                          type="button"
-                          onClick={() => handleFollowUpAnswer("has_elevator", true)}
-                          className={`px-2 py-1 text-xs rounded border transition-colors ${
-                            followUpAnswers.has_elevator === true
-                              ? "bg-[var(--info)]/20 border-[var(--info)] text-[var(--info)]"
-                              : "border-[var(--border)] text-[var(--text-muted)] hover:bg-[var(--bg-hover)]"
-                          }`}
-                        >
-                          {lang === "vi" ? "Có" : "Yes"}
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => handleFollowUpAnswer("has_elevator", false)}
-                          className={`px-2 py-1 text-xs rounded border transition-colors ${
-                            followUpAnswers.has_elevator === false
-                              ? "bg-[var(--info)]/20 border-[var(--info)] text-[var(--info)]"
-                              : "border-[var(--border)] text-[var(--text-muted)] hover:bg-[var(--bg-hover)]"
-                          }`}
-                        >
-                          {lang === "vi" ? "Không" : "No"}
-                        </button>
-                      </>
-                    )}
-                    {q.field === "legal_status" && (
-                      <>
-                        {["so_do", "so_hong", "so_chung_nhan"].map((opt) => (
-                          <button
-                            key={opt}
-                            type="button"
-                            onClick={() => handleFollowUpAnswer("legal_status", opt)}
-                            className={`px-2 py-1 text-xs rounded border transition-colors ${
-                              followUpAnswers.legal_status === opt
-                                ? "bg-[var(--info)]/20 border-[var(--info)] text-[var(--info)]"
-                                : "border-[var(--border)] text-[var(--text-muted)] hover:bg-[var(--bg-hover)]"
-                            }`}
-                          >
-                            {opt === "so_do" ? (lang === "vi" ? "Sổ đỏ" : "Red book") : opt === "so_hong" ? (lang === "vi" ? "Sổ hồng" : "Pink book") : (lang === "vi" ? "Sổ chung nhận" : "Certificate")}
-                          </button>
-                        ))}
-                      </>
-                    )}
-                  </div>
-                ))}
-              </div>
             )}
           </div>
         )}

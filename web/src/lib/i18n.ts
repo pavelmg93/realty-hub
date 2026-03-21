@@ -230,6 +230,7 @@ export const translations = {
     addFirstListing: "Add your first listing",
     noMessagesYet: "No conversations yet",
     startMessaging: "Message an agent from the Feed",
+    copyText: "Copy text",
   },
   vi: {
     feed: "Bảng tin",
@@ -460,6 +461,7 @@ export const translations = {
     addFirstListing: "Thêm BĐS đầu tiên của bạn",
     noMessagesYet: "Chưa có cuộc trò chuyện nào",
     startMessaging: "Nhắn tin với môi giới từ Bảng tin",
+    copyText: "Sao chép văn bản",
   },
 } satisfies Record<Lang, Record<string, string>>;
 
