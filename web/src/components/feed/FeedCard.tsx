@@ -1,20 +1,10 @@
 "use client";
 
 import { Listing } from "@/lib/types";
-import { formatPrice, formatPriceShortest } from "@/lib/constants";
+import { generateTitleStandardized } from "@/lib/constants";
 import { StatusBadge } from "@/components/ui/StatusBadge";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { getPropertyTypeKey, getTransactionTypeKey, getFieldValueLabel } from "@/lib/i18n";
-
-function buildSpecsLine(l: Listing): string {
-  const parts: string[] = [];
-  if (l.area_m2) parts.push(`${l.area_m2}m²`);
-  if (l.num_floors) parts.push(`${l.num_floors}T`);
-  if (l.frontage_m && l.depth_m) parts.push(`${l.frontage_m}x${l.depth_m}`);
-  if (l.commission) parts.push(l.commission);
-  if (l.price_vnd) parts.push(formatPriceShortest(l.price_vnd));
-  return parts.join(" ");
-}
 
 interface Props {
   listing: Listing;
@@ -80,7 +70,7 @@ export default function FeedCard({ listing, currentUserId, onMessage, onClick }:
         {listing.address_raw || [listing.street, listing.ward].filter(Boolean).join(", ") || ""}
       </p>
       <p className="text-xl font-bold text-[var(--text-primary)] truncate leading-tight mb-2">
-        {listing.title_standardized || buildSpecsLine(listing)}
+        {listing.title_standardized || generateTitleStandardized(listing)}
       </p>
 
       {/* Feature tags */}

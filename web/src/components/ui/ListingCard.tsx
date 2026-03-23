@@ -5,20 +5,10 @@ import Link from "next/link";
 import { StatusBadge } from "./StatusBadge";
 import { AgentChip } from "./AgentChip";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { formatPriceShortest } from "@/lib/constants";
+import { generateTitleStandardized } from "@/lib/constants";
 import { MessageSquare, Heart } from "lucide-react";
 import { useState } from "react";
 import type { Listing } from "@/lib/types";
-
-function buildSpecsLine(l: Listing): string {
-  const parts: string[] = [];
-  if (l.area_m2) parts.push(`${l.area_m2}m²`);
-  if (l.num_floors) parts.push(`${l.num_floors}T`);
-  if (l.frontage_m && l.depth_m) parts.push(`${l.frontage_m}x${l.depth_m}`);
-  if (l.commission) parts.push(l.commission);
-  if (l.price_vnd) parts.push(formatPriceShortest(l.price_vnd));
-  return parts.join(" ");
-}
 
 interface ListingCardProps {
   listing: Listing & {
@@ -172,7 +162,7 @@ export function ListingCard({
           {listing.address_raw || [listing.street, listing.ward].filter(Boolean).join(", ") || ""}
         </p>
         <p className={`font-bold text-[var(--text-primary)] truncate leading-tight ${cols === 3 ? "text-sm" : cols === 2 ? "text-base" : "text-xl"}`}>
-          {listing.title_standardized || buildSpecsLine(listing)}
+          {listing.title_standardized || generateTitleStandardized(listing)}
         </p>
 
         <div className="flex items-center justify-between mt-3">

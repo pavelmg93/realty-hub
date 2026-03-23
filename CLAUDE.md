@@ -275,6 +275,17 @@ Daily workflow:
 - **SCOPE.md**: Session-level task contract for Claude Code (source of truth for daily work).
 - Linear issues are referenced in SCOPE.md by ID (e.g., REA-5). Claude Code does not need to read Linear directly.
 
+## ADR Reading Rules
+
+- ADRs in `docs/adrs/` are **historical decision records** — do not read them during normal execution unless SCOPE.md explicitly says "READ ADR-XXX FIRST".
+- When reading ADRs is needed, read newest-to-oldest (highest number first).
+- ADRs are **read-only during execution** — never modify them.
+
+## Script Permissions
+
+- All new `.sh` files must have their executable bit set in git: `git update-index --chmod=+x scripts/<name>.sh`
+- Never create a `.sh` file without immediately running the above command.
+
 ---
 
 ## Logging Workflows (Session & Testing)

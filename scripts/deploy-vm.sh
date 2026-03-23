@@ -11,6 +11,9 @@ set -e
 
 MODE="${1:-full}"
 
+# Ensure all scripts are executable
+chmod +x scripts/*.sh 2>/dev/null || true
+
 echo "=== Realty Hub VM Deployment (mode: $MODE) ==="
 echo ""
 

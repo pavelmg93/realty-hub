@@ -387,18 +387,23 @@ export default function ListingViewPage() {
         </div>
       )}
 
-      {/* Nav buttons (right-aligned) + address */}
-      <div className="flex items-start justify-between mb-3">
-        <div>
+      {/* Header: two-line title + nav buttons */}
+      <div className="flex items-start justify-between mb-5">
+        <div className="flex-1 min-w-0 mr-4">
           <div className="flex items-center gap-2 mb-1">
             <StatusBadge status={listing.status as "for_sale"} />
             <span className="text-xs text-[var(--text-muted)]">#{listing.id}</span>
           </div>
-          <p className="text-sm text-[var(--text-muted)]">
+          {/* Line 1: address */}
+          <p className="text-sm text-[var(--text-secondary)] truncate">
             {listing.address_raw || [listing.street, listing.ward].filter(Boolean).join(", ") || `${label(listing.property_type, PROPERTY_TYPES)} — ${label(listing.transaction_type, TRANSACTION_TYPES)}`}
           </p>
+          {/* Line 2: specs (title_standardized) */}
+          <p className="text-2xl sm:text-3xl font-bold text-[var(--text-primary)] leading-tight mt-1">
+            {listing.title_standardized || generateTitleStandardized(listing)}
+          </p>
         </div>
-        <div className="flex gap-2 shrink-0 ml-4">
+        <div className="flex gap-2 shrink-0">
           {adjacentIds.prev && (
             <button
               onClick={() => router.push(`/dashboard/listings/${adjacentIds.prev}/view?from=${fromParam}`)}
@@ -425,11 +430,6 @@ export default function ListingViewPage() {
           </button>
         </div>
       </div>
-
-      {/* Standardized title — LARGE */}
-      <h1 className="text-2xl sm:text-3xl font-bold text-[var(--text-primary)] leading-tight mb-5">
-        {listing.title_standardized || generateTitleStandardized(listing)}
-      </h1>
 
       {/* Photo carousel */}
       {photos.length > 0 && (

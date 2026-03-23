@@ -16,12 +16,13 @@ MIGRATIONS_DIR="src/db/migrations"
 
 echo ">>> Running migrations from $MIGRATIONS_DIR..."
 
-# Ensure schema_migrations table exists (bootstrap for first run)
+# Ensure schema_migrations table exists and has all expected columns (self-heal)
 docker compose exec -T app-postgres psql -U "$DB_USER" -d "$DB_NAME" <<'SQL'
 CREATE TABLE IF NOT EXISTS schema_migrations (
   version    TEXT PRIMARY KEY,
   applied_at TIMESTAMPTZ DEFAULT NOW()
 );
+ALTER TABLE schema_migrations ADD COLUMN IF NOT EXISTS description TEXT;
 SQL
 
 APPLIED=0

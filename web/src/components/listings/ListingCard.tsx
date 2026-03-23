@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { Listing } from "@/lib/types";
-import { formatPriceShortest } from "@/lib/constants";
+import { generateTitleStandardized } from "@/lib/constants";
 import { StatusBadge } from "@/components/ui/StatusBadge";
 import Link from "next/link";
 import Image from "next/image";
@@ -65,15 +65,9 @@ export default function ListingCard({
     }
   };
 
-  // Build two-line headline
+  // Build two-line headline (ADR-005: single source of truth)
   const line1 = listing.address_raw || [listing.street, listing.ward].filter(Boolean).join(", ") || "";
-  const line2Parts: string[] = [];
-  if (listing.area_m2) line2Parts.push(`${listing.area_m2}m²`);
-  if (listing.num_floors) line2Parts.push(`${listing.num_floors}T`);
-  if (listing.frontage_m && listing.depth_m) line2Parts.push(`${listing.frontage_m}x${listing.depth_m}`);
-  if (listing.commission) line2Parts.push(listing.commission);
-  if (listing.price_vnd) line2Parts.push(formatPriceShortest(listing.price_vnd));
-  const line2 = line2Parts.join(" ");
+  const line2 = listing.title_standardized || generateTitleStandardized(listing);
 
   return (
     <Link
