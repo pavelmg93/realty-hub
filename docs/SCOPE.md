@@ -5,12 +5,18 @@
 
 ---
 
-## 🔴 Current Session: 23 — Pilot Branding + Data Fixes
+## 🔴 Current Session: 24 — Post-Pilot / TBD
 
 **Branch:** `main` (direct commits)
-**Linear:** REA-38, REA-35, REA-36, REA-39, REA-40
+**Linear:** TBD
+**Goal:** TBD — awaiting next planning session.
+
+---
+
+## ✅ Completed (Session 23)
+
 **Goal:** Final pre-pilot polish: rebrand to Realty Hub, fix stale data, preserve price precision.
-**⚠️ IMPORTANT:** Do NOT deploy to VM. All work is LOCAL only. Pavel deploys manually.
+**Commit:** `3d2b188` — 2026-03-21
 
 ### Tasks (execute top-down)
 
@@ -49,13 +55,13 @@
 
 ### End of session
 
-* [ ] `npx tsc --noEmit` — must be clean
-* [ ] Re-run audit grep from task 1 — must return zero
-* [ ] Update `CLAUDE.md`: session counter → 24, last completed → "23 — 2026-03-21 — Pilot Branding + Data Fixes"
-* [ ] Write `docs/code_sessions/2026-03-21-session23-pilot-branding-data-fixes.md`
-* [ ] Update `docs/CHANGELOG.md`
-* [ ] Commit: `git commit -m "Session 23: Pilot branding + data fixes"`
-* [ ] `/export`
+* [x] `npx tsc --noEmit` — must be clean
+* [x] Re-run audit grep from task 1 — must return zero
+* [x] Update `CLAUDE.md`: session counter → 24, last completed → "23 — 2026-03-21 — Pilot Branding + Data Fixes"
+* [x] Write `docs/code_sessions/2026-03-21-session23-pilot-branding-data-fixes.md`
+* [x] Update `docs/CHANGELOG.md`
+* [x] Commit: `git commit -m "Session 23: Pilot branding + data fixes"` (3d2b188)
+* [x] `/export`
 
 ---
 
