@@ -116,7 +116,7 @@ docker exec -i realty-hub-app-postgres-1 psql -U re_nhatrang -d re_nhatrang \
 - DB: `re_nhatrang`
 - Container: `realty-hub-app-postgres-1`
 
-**Current migration level: 015**
+**Current migration level: 017**
 
 ---
 
@@ -187,6 +187,22 @@ playwright install chromium
 
 **Files:**
 - UTF-8 encoding, LF line endings
+
+---
+
+## Deployment
+
+`deploy-vm.sh update` handles everything: rebuild web container → run seed → run migrations → regenerate titles. **Never suggest running migrations manually.**
+
+End-of-session deploy:
+```bash
+# 1. Commit + push locally
+git push
+
+# 2. On VM
+ssh VM
+cd ~/realty-hub && git pull && ./scripts/deploy-vm.sh update
+```
 
 ---
 

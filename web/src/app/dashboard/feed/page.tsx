@@ -42,6 +42,7 @@ export default function FeedPage() {
   const [cols, setCols] = useState<GridCols>(2);
   const [agents, setAgents] = useState<{ id: number; first_name: string | null; username: string | null }[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
+  const [city, setCity] = useState("Nha Trang");
   const searchDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
@@ -62,6 +63,7 @@ export default function FeedPage() {
         params.set("order", filters.order);
         const query = q !== undefined ? q : searchQuery;
         if (query.trim()) params.set("q", query.trim());
+        if (city) params.set("city", city);
         for (const [key, value] of Object.entries(filters)) {
           if (value && key !== "sort" && key !== "order") {
             params.set(key, value);
@@ -77,7 +79,7 @@ export default function FeedPage() {
         setLoading(false);
       }
     },
-    [filters, viewMode, searchQuery]
+    [filters, viewMode, searchQuery, city]
   );
 
   useEffect(() => {
@@ -101,8 +103,26 @@ export default function FeedPage() {
   const handleResetFilters = () => setFilters({ ...DEFAULT_FILTERS });
   const currentUserId = user?.id ?? 0;
 
+  const CITIES = ["Nha Trang", "Hà Nội", "TP.HCM", "Đà Nẵng"];
+
   return (
     <div className="px-4 sm:px-6 py-4 max-w-3xl mx-auto">
+      {/* Header */}
+      <div className="flex items-center justify-between mb-4">
+        <h1 className="text-lg font-semibold text-[var(--text-primary)]">
+          {t("listingsFeed")}
+        </h1>
+        <select
+          value={city}
+          onChange={(e) => setCity(e.target.value)}
+          className="text-sm rounded-lg border border-[var(--border)] bg-[var(--bg-surface)] text-[var(--text-primary)] px-2 py-1.5 focus:outline-none focus:border-[var(--orange)]"
+        >
+          {CITIES.map((c) => (
+            <option key={c} value={c}>{c}</option>
+          ))}
+        </select>
+      </div>
+
       {/* Unified toolbar */}
       <div className="flex items-center gap-2 mb-3">
         {/* Search */}
@@ -209,7 +229,7 @@ export default function FeedPage() {
         <DynamicFeedMap
           listings={listings}
           onListingClick={(l) => router.push(`/dashboard/listings/${l.id}/view?from=feed`)}
-          height="calc(100vh - 200px)"
+          height="calc(100vh - 56px - 60px - 124px)"
         />
       ) : (
         <>

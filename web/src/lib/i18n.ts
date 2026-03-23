@@ -243,6 +243,8 @@ export const translations = {
     askAboutListing: "Ask the agent about this listing",
     typeFirstMessage: "Type your first message...",
     typeReply: "Type a reply...",
+    listingsFeed: "Listings Feed",
+    city: "City",
   },
   vi: {
     feed: "Bảng tin",
@@ -486,6 +488,8 @@ export const translations = {
     askAboutListing: "Hỏi môi giới về BĐS này",
     typeFirstMessage: "Nhập tin nhắn đầu tiên...",
     typeReply: "Nhập tin nhắn trả lời...",
+    listingsFeed: "Bảng tin BĐS",
+    city: "Thành phố",
   },
 } satisfies Record<Lang, Record<string, string>>;
 

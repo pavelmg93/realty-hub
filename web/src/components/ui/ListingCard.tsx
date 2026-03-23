@@ -6,7 +6,7 @@ import { StatusBadge } from "./StatusBadge";
 import { AgentChip } from "./AgentChip";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { formatPriceShortest } from "@/lib/constants";
-import { MessageSquare, Eye, Heart } from "lucide-react";
+import { MessageSquare, Heart } from "lucide-react";
 import { useState } from "react";
 import type { Listing } from "@/lib/types";
 
@@ -192,11 +192,11 @@ export function ListingCard({
                   borderColor: "rgba(59, 130, 246, 0.3)",
                 }}
               >
-                <Eye size={12} /> {t("viewMessages")}
+                <MessageSquare size={12} /> {t("viewMessages")}
               </button>
             ) : hasConversation ? (
               <Link
-                href={`/dashboard/messages/${listing.existing_conversation_id}`}
+                href={`/dashboard/listings/${listing.id}/view${viewSearch}#messages`}
                 onClick={(e) => e.stopPropagation()}
                 className="flex items-center gap-1 text-[11px] font-medium border rounded-md px-2 py-1 transition-colors hover:bg-[var(--info)]/10"
                 style={{

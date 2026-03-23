@@ -31,8 +31,11 @@ export async function GET(
         CASE WHEN c.agent_1_id = $1 THEN a2.phone ELSE a1.phone END AS other_agent_phone,
         CASE WHEN c.agent_1_id = $1 THEN a2.email ELSE a1.email END AS other_agent_email,
         CASE WHEN c.agent_1_id = $1 THEN a2.avatar_url ELSE a1.avatar_url END AS other_agent_avatar_url,
+        CASE WHEN c.agent_1_id = $1 THEN c.agent_2_id ELSE c.agent_1_id END AS other_agent_id,
         pl.property_type AS listing_property_type,
         pl.ward AS listing_ward,
+        pl.address_raw AS listing_address_raw,
+        pl.title_standardized AS listing_title_standardized,
         pl.price_vnd AS listing_price_vnd,
         pl.area_m2 AS listing_area_m2,
         (SELECT lp.file_path FROM listing_photos lp WHERE lp.listing_id = pl.id ORDER BY lp.display_order LIMIT 1) AS listing_primary_photo

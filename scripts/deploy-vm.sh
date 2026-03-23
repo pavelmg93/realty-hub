@@ -94,6 +94,9 @@ docker compose exec -T app-postgres psql -U re_nhatrang -d re_nhatrang < src/db/
 echo ">>> Running migrations (skips already-applied)..."
 ./scripts/migrate.sh
 
+echo ">>> Regenerating title_standardized for all listings..."
+./scripts/regenerate-titles.sh
+
 # Assert row counts did not drop (update mode only)
 if [ "$MODE" = "update" ]; then
   for TABLE in agents parsed_listings conversations listing_photos; do

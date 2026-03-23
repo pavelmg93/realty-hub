@@ -148,7 +148,7 @@ export default function FeedCard({ listing, currentUserId, onMessage, onClick }:
             <>
               {listing.existing_conversation_id ? (
                 <a
-                  href={`/dashboard/messages/${listing.existing_conversation_id}`}
+                  href={`/dashboard/listings/${listing.id}/view?from=feed#messages`}
                   onClick={(e) => e.stopPropagation()}
                   className="px-3 py-1.5 text-xs rounded-lg font-medium transition-colors border border-[var(--info)] text-[var(--info)] hover:bg-[var(--info)]/10"
                 >

@@ -53,6 +53,7 @@ export async function GET(request: NextRequest) {
       column: string;
       type: "eq" | "gte" | "lte" | "bool";
     }[] = [
+      { key: "city", column: "pl.city", type: "eq" },
       { key: "property_type", column: "pl.property_type", type: "eq" },
       { key: "transaction_type", column: "pl.transaction_type", type: "eq" },
       { key: "ward", column: "pl.ward", type: "eq" },

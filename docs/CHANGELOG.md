@@ -6,6 +6,25 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Session 25 — 2026-03-23 — Critical Bug Fixes + Listing Detail Cleanup
+
+#### Added
+- **REA-57: title_standardized nuclear fix** — `scripts/regenerate-titles.sh` regenerates all titles via SQL on every deploy. Called from `deploy-vm.sh update` after migrations. Formula: `<area> <floors> <frontage> <depth> <price> <commission>` — no suffixes, no ward, no address.
+- **Migration 017** — Adds `city VARCHAR(100) DEFAULT 'Nha Trang'` to `parsed_listings`, backfills all rows.
+- **REA-59: Feed header + city selector** — "Listings Feed" header added. City dropdown (Nha Trang/Hà Nội/TP.HCM/Đà Nẵng) filters feed via `?city=`. 2 new i18n keys: `listingsFeed`, `city`.
+- **REA-62: CLAUDE.md deployment section** — Documents `deploy-vm.sh update` as single deploy command. Never run migrations manually.
+
+#### Changed
+- **REA-60: Map height** — Map height changed to `calc(100vh - 56px - 60px - 124px)` (topbar + bottomnav + page chrome) in Feed and My Listings. No more bottom nav overlap.
+- **REA-61: Listing detail layout** — Removed price block (large VND + USD + m²/price). New order: title → photos → description → specs → legal → map → documents → agent → messages.
+- **REA-53: Feed message routing** — All "View Messages"/"Messages" buttons in Feed (`FeedCard`, `ListingCard`) route to `/dashboard/listings/[id]/view?from=feed#messages`. Old `/dashboard/messages/[convId]` paths removed from feed.
+- **REA-54: Conversation scroll** — `MessageThread` now owns its scroll container (`h-full overflow-y-auto`). Uses `scrollTop = scrollHeight` instead of `scrollIntoView` — scrolls to latest message, not property header.
+- **REA-55: Conversation header redesign** — Bar 1 (Agent): avatar + name + email + phone, entire bar clickable → agent profile. Bar 2 (Property): thumb + title + specs, clickable → listing detail. Archive button removed. Conversations API returns `other_agent_id`, `listing_address_raw`, `listing_title_standardized`.
+- **REA-58: Duplicate photos** — "Manage Photos" block removed from listing detail view page (view-only carousel remains). Photos management stays in edit page only.
+- **REA-56: Message icon consistency** — `Eye` icon replaced with `MessageSquare` for "View Messages" button in `ListingCard`.
+
+---
+
 ### Session 24 — 2026-03-23 — UX Polish + Messaging Redesign
 
 #### Added

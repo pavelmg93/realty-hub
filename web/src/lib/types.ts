@@ -64,6 +64,7 @@ export interface Listing {
   freestyle_text: string | null;
   title_standardized: string | null;
   commission: string | null;
+  city: string | null;
   // Joined fields (from feed)
   owner_username?: string;
   owner_first_name?: string;
@@ -140,6 +141,7 @@ export interface Conversation {
   updated_at: string;
   archived_at?: string | null;
   // Joined fields
+  other_agent_id?: number;
   other_agent_name?: string;
   other_agent_username?: string;
   other_agent_first_name?: string | null;
@@ -148,6 +150,8 @@ export interface Conversation {
   other_agent_avatar_url?: string | null;
   listing_property_type?: string;
   listing_ward?: string;
+  listing_address_raw?: string | null;
+  listing_title_standardized?: string | null;
   listing_price_vnd?: number;
   listing_area_m2?: number;
   listing_primary_photo?: string | null;

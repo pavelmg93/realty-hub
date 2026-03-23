@@ -11,10 +11,11 @@ interface Props {
 
 export default function MessageThread({ messages, currentUserId }: Props) {
   const { t } = useLanguage();
-  const bottomRef = useRef<HTMLDivElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+    const el = containerRef.current;
+    if (el) el.scrollTop = el.scrollHeight;
   }, [messages.length]);
 
   if (messages.length === 0) {
@@ -26,7 +27,7 @@ export default function MessageThread({ messages, currentUserId }: Props) {
   }
 
   return (
-    <div className="p-4 space-y-3">
+    <div ref={containerRef} className="h-full overflow-y-auto p-4 space-y-3">
       {messages.map((msg) => {
         const isMine = msg.sender_id === currentUserId;
         return (
@@ -62,7 +63,6 @@ export default function MessageThread({ messages, currentUserId }: Props) {
           </div>
         );
       })}
-      <div ref={bottomRef} />
     </div>
   );
 }

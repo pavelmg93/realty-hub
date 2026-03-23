@@ -190,7 +190,7 @@ export default function ListingsPage() {
         <DynamicFeedMap
           listings={listings}
           onListingClick={(l) => router.push(`/dashboard/listings/${l.id}/view?from=listings`)}
-          height="calc(100vh - 200px)"
+          height="calc(100vh - 56px - 60px - 124px)"
         />
       ) : (
         <div

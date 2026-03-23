@@ -17,10 +17,8 @@ import {
   generateTitleStandardized,
 } from "@/lib/constants";
 import { StatusBadge } from "@/components/ui/StatusBadge";
-import { PriceDisplay } from "@/components/ui/PriceDisplay";
 import { TranslateButton } from "@/components/ui/TranslateButton";
 import DynamicListingMap from "@/components/map/DynamicListingMap";
-import PhotoUploader from "@/components/photos/PhotoUploader";
 import DocumentManager from "@/components/documents/DocumentManager";
 import { Link2, Archive, Share2 } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -488,25 +486,24 @@ export default function ListingViewPage() {
         </div>
       )}
 
-      {/* Manage Photos — owner only */}
-      {isOwner && (
-        <div className="mt-2 mb-6 rounded-xl border border-[var(--border)] p-4" style={{ backgroundColor: "var(--bg-surface)" }}>
-          <h3 className="text-sm font-semibold text-[var(--text-primary)] mb-3 uppercase tracking-wide">Manage Photos</h3>
-          <PhotoUploader listingId={listing.id} photos={photos} onPhotosChange={setPhotos} readOnly={false} />
-        </div>
-      )}
 
-      {/* Price card */}
-      {listing.price_vnd && (
-        <div className="rounded-xl p-4 mb-6 border border-[var(--border)]" style={{ backgroundColor: "var(--bg-surface)" }}>
-          <PriceDisplay vnd={listing.price_vnd} size="lg" showUsd />
-          {listing.price_raw && listing.price_raw !== formatPrice(listing.price_vnd) && (
-            <p className="text-sm text-[var(--text-muted)] mt-1">{listing.price_raw}</p>
-          )}
-          {listing.price_per_m2 && (
-            <p className="text-sm text-[var(--text-muted)] mt-1">
-              {formatPrice(listing.price_per_m2)}/m²
-            </p>
+      {/* Description card */}
+      {listing.description && (
+        <div className="rounded-xl p-5 border border-[var(--border)] mb-6" style={{ backgroundColor: "var(--bg-surface)" }}>
+          <h3 className="text-sm font-semibold text-[var(--text-primary)] mb-3 uppercase tracking-wide">
+            {t("description")}
+          </h3>
+          <div className="mb-2">
+            <TranslateButton text={listing.description} onTranslated={setTranslatedDesc} />
+          </div>
+          <p className="text-sm text-[var(--text-secondary)] whitespace-pre-line">
+            {listing.description}
+          </p>
+          {translatedDesc && (
+            <div className="mt-3 pt-3 border-t border-[var(--border)]">
+              <p className="text-xs text-[var(--text-muted)] uppercase tracking-wide mb-1">{t("translated")}</p>
+              <p className="text-sm text-[var(--text-secondary)] whitespace-pre-line">{translatedDesc}</p>
+            </div>
           )}
         </div>
       )}
@@ -531,27 +528,6 @@ export default function ListingViewPage() {
           <Row label={t("elevator")} value={listing.has_elevator ? t("yes") : null} />
         </div>
       </div>
-
-      {/* Description card */}
-      {listing.description && (
-        <div className="rounded-xl p-5 border border-[var(--border)] mb-6" style={{ backgroundColor: "var(--bg-surface)" }}>
-          <h3 className="text-sm font-semibold text-[var(--text-primary)] mb-3 uppercase tracking-wide">
-            {t("description")}
-          </h3>
-          <div className="mb-2">
-            <TranslateButton text={listing.description} onTranslated={setTranslatedDesc} />
-          </div>
-          <p className="text-sm text-[var(--text-secondary)] whitespace-pre-line">
-            {listing.description}
-          </p>
-          {translatedDesc && (
-            <div className="mt-3 pt-3 border-t border-[var(--border)]">
-              <p className="text-xs text-[var(--text-muted)] uppercase tracking-wide mb-1">{t("translated")}</p>
-              <p className="text-sm text-[var(--text-secondary)] whitespace-pre-line">{translatedDesc}</p>
-            </div>
-          )}
-        </div>
-      )}
 
       {/* Legal & features card */}
       <div className="rounded-xl p-5 border border-[var(--border)] mb-6" style={{ backgroundColor: "var(--bg-surface)" }}>

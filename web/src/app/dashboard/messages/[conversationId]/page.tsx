@@ -6,7 +6,7 @@ import { useParams, useRouter } from "next/navigation";
 import { Message, Conversation } from "@/lib/types";
 import { useAuth } from "@/hooks/useAuth";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { PROPERTY_TYPES, formatPrice } from "@/lib/constants";
+import { formatPrice } from "@/lib/constants";
 import MessageThread from "@/components/messages/MessageThread";
 import MessageInput from "@/components/messages/MessageInput";
 
@@ -110,151 +110,80 @@ export default function ConversationPage() {
     t("agent");
   const otherAvatar = conversation.other_agent_avatar_url;
 
-  const handleArchive = async () => {
-    try {
-      const res = await fetch(`/api/conversations/${conversationId}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ archived: true }),
-      });
-      if (res.ok) router.push("/dashboard/messages");
-    } catch {
-      // ignore
-    }
-  };
-
-  const handleUnarchive = async () => {
-    try {
-      const res = await fetch(`/api/conversations/${conversationId}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ archived: false }),
-      });
-      if (res.ok) {
-        setConversation((c) => (c ? { ...c, archived_at: null } : null));
-      }
-    } catch {
-      // ignore
-    }
-  };
-
-  const listingSubtitle =
-    conversation?.listing_id != null
-      ? [
-          conversation?.listing_property_type
-            ? PROPERTY_TYPES[
-                conversation.listing_property_type as keyof typeof PROPERTY_TYPES
-              ] || conversation.listing_property_type
-            : null,
-          conversation?.listing_ward,
-          conversation?.listing_price_vnd
-            ? formatPrice(conversation.listing_price_vnd)
-            : null,
-          conversation?.listing_area_m2
-            ? `${conversation.listing_area_m2}m²`
-            : null,
-        ]
-          .filter(Boolean)
-          .join(" · ")
-      : null;
-
   return (
-    <div className="max-w-2xl mx-auto flex flex-col h-[calc(100vh-8rem)] lg:h-[calc(100vh-3rem)]">
-      {/* Sticky agent header */}
-      <div className="flex-none sticky top-0 z-10 flex items-center gap-3 py-3 px-1 border-b border-[var(--border)]" style={{ backgroundColor: "var(--bg-card)" }}>
+    <div className="max-w-2xl mx-auto flex flex-col h-[calc(100vh-56px-64px)]">
+      {/* Bar 1: Agent info — entire bar clickable → agent profile */}
+      <Link
+        href={conversation.other_agent_id ? `/dashboard/agents/${conversation.other_agent_id}` : "#"}
+        className="flex-none flex items-center gap-3 py-3 px-4 border-b border-[var(--border)] hover:bg-[var(--bg-hover)] transition-colors"
+        style={{ backgroundColor: "var(--bg-card)" }}
+      >
         {otherAvatar ? (
           <img
             src={`/api/files/${otherAvatar}`}
             alt=""
-            className="w-11 h-11 rounded-full object-cover border-2 shrink-0"
+            className="w-10 h-10 rounded-full object-cover border-2 shrink-0"
             style={{ borderColor: "var(--border)" }}
           />
         ) : (
           <div
-            className="w-11 h-11 rounded-full shrink-0 flex items-center justify-center font-semibold text-white text-sm"
+            className="w-10 h-10 rounded-full shrink-0 flex items-center justify-center font-semibold text-white text-sm"
             style={{ backgroundColor: "var(--orange)" }}
           >
             {otherName.slice(0, 2).toUpperCase()}
           </div>
         )}
-        <div className="flex-1 min-w-0">
-          <h2 className="font-semibold text-[var(--text-primary)] truncate">{otherName}</h2>
-          <p className="text-xs text-[var(--text-muted)] truncate">
-            {listingSubtitle ?? t("chat")}
-          </p>
+        <div className="flex-1 min-w-0 flex items-center gap-2 flex-wrap">
+          <span className="font-semibold text-[var(--text-primary)] text-sm">{otherName}</span>
+          {conversation.other_agent_email && (
+            <span className="text-xs text-[var(--text-muted)]">{conversation.other_agent_email}</span>
+          )}
+          {conversation.other_agent_phone && (
+            <span className="text-xs text-[var(--text-muted)]">{conversation.other_agent_phone}</span>
+          )}
         </div>
-        {conversation?.other_agent_phone && (
-          <a
-            href={`tel:${conversation.other_agent_phone}`}
-            className="p-2.5 rounded-full text-[var(--text-muted)] hover:text-[var(--orange)] transition-colors shrink-0"
-            title={t("phoneNumber")}
-          >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" /></svg>
-          </a>
-        )}
-        {conversation?.archived_at ? (
-          <button
-            type="button"
-            onClick={handleUnarchive}
-            className="p-2 text-[var(--text-muted)] hover:text-[var(--orange)] transition-colors rounded-lg text-sm shrink-0"
-            title={t("unarchive")}
-          >
-            {t("unarchive")}
-          </button>
-        ) : (
-          <button
-            type="button"
-            onClick={handleArchive}
-            className="p-2 text-[var(--text-muted)] hover:text-[var(--orange)] transition-colors rounded-lg text-sm shrink-0"
-            title={t("archive")}
-          >
-            {t("archive")}
-          </button>
-        )}
-      </div>
+      </Link>
 
-      {/* Sticky property bar when linked to listing */}
+      {/* Bar 2: Property info — clickable → listing detail */}
       {conversation?.listing_id != null && (
-        <div
-          className="flex-none sticky top-[52px] z-10 flex gap-3 items-center px-4 py-3 border-b border-[var(--border)]"
+        <Link
+          href={`/dashboard/listings/${conversation.listing_id}/view?from=messages`}
+          className="flex-none flex gap-3 items-center px-4 py-2.5 border-b border-[var(--border)] hover:bg-[var(--bg-hover)] transition-colors"
           style={{ backgroundColor: "var(--bg-surface)" }}
         >
           {conversation.listing_primary_photo ? (
             <img
               src={`/api/files/${conversation.listing_primary_photo}`}
               alt=""
-              className="w-16 h-12 rounded-lg object-cover shrink-0"
+              className="w-14 h-10 rounded-lg object-cover shrink-0"
             />
           ) : (
             <div
-              className="w-16 h-12 rounded-lg shrink-0 flex items-center justify-center text-[var(--text-muted)] text-xs"
+              className="w-14 h-10 rounded-lg shrink-0 flex items-center justify-center text-[var(--text-muted)] text-xs"
               style={{ backgroundColor: "var(--bg-elevated)" }}
             >
-              {t("noPhoto")}
+              —
             </div>
           )}
           <div className="flex-1 min-w-0">
-            <p className="text-sm font-semibold text-[var(--text-primary)] truncate">
-              {conversation.listing_ward || `#${conversation.listing_id}`}
+            <p className="text-sm font-medium text-[var(--text-primary)] truncate">
+              {conversation.listing_title_standardized ||
+                conversation.listing_address_raw ||
+                conversation.listing_ward ||
+                `#${conversation.listing_id}`}
             </p>
-            <p className="text-xs text-[var(--text-muted)]">
-              {conversation.listing_price_vnd != null && formatPrice(conversation.listing_price_vnd)}
-              {conversation.listing_area_m2 != null && ` · ${conversation.listing_area_m2}m²`}
-              {conversation.listing_property_type && ` · ${PROPERTY_TYPES[conversation.listing_property_type as keyof typeof PROPERTY_TYPES] || conversation.listing_property_type}`}
+            <p className="text-xs text-[var(--text-muted)] truncate">
+              {[
+                conversation.listing_area_m2 ? `${conversation.listing_area_m2}m²` : null,
+                conversation.listing_price_vnd != null ? formatPrice(conversation.listing_price_vnd) : null,
+              ].filter(Boolean).join(" · ")}
             </p>
           </div>
-          <Link
-            href={`/dashboard/listings/${conversation.listing_id}/view?from=messages`}
-            className="p-2 text-[var(--text-muted)] hover:text-[var(--orange)] transition-colors rounded-lg"
-            title={t("viewListing")}
-          >
-            <span className="text-lg">↗</span>
-          </Link>
-        </div>
+        </Link>
       )}
 
       {/* Scrollable messages area */}
-      <div className="flex-1 overflow-y-auto min-h-0">
+      <div className="flex-1 min-h-0 h-full">
         <MessageThread messages={messages} currentUserId={user?.id ?? 0} />
       </div>
 
