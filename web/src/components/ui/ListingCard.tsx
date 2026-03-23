@@ -6,7 +6,7 @@ import { StatusBadge } from "./StatusBadge";
 import { AgentChip } from "./AgentChip";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { generateTitleStandardized } from "@/lib/constants";
-import { MessageSquare, Heart } from "lucide-react";
+import { MessageSquare, Heart, MapPin, User, Phone } from "lucide-react";
 import { useState } from "react";
 import type { Listing } from "@/lib/types";
 
@@ -20,6 +20,26 @@ interface ListingCardProps {
   viewSearch?: string;
   onMessage?: () => void;
   onViewMessages?: () => void;
+}
+
+const STATUS_STRIP_COLORS: Record<string, string> = {
+  just_listed: "var(--info)",
+  for_sale: "var(--status-open)",
+  price_dropped: "var(--status-open)",
+  price_increased: "var(--status-open)",
+  deposit: "var(--status-pending)",
+  sold: "var(--status-sold)",
+  not_for_sale: "var(--status-nfs)",
+};
+
+function StatusBadgeStrip({ status }: { status: string }) {
+  const color = STATUS_STRIP_COLORS[status] ?? "var(--status-open)";
+  return (
+    <div
+      className="h-1.5 w-full shrink-0"
+      style={{ backgroundColor: color }}
+    />
+  );
 }
 
 function Building2Icon() {
@@ -92,6 +112,103 @@ export function ListingCard({
     }
   };
 
+  const line1 = listing.street || "";
+  const line2 = listing.title_standardized || generateTitleStandardized(listing);
+
+  // ── 1-wide: horizontal card (Stitch layout) ──
+  if (cols === 1) {
+    return (
+      <Link
+        href={`/dashboard/listings/${listing.id}/view${viewSearch}`}
+        className={`flex h-[180px] sm:h-[200px] rounded-xl overflow-hidden border transition-shadow hover:shadow-[var(--shadow-elevated)] ${isOwner ? "border-l-4" : ""}`}
+        style={{
+          backgroundColor: "var(--bg-surface)",
+          borderColor: "var(--border)",
+          ...(isOwner ? { borderLeftColor: "var(--orange)" } : {}),
+        }}
+      >
+        {/* Left: photo + status strip */}
+        <div className="w-1/3 relative h-full flex flex-col shrink-0">
+          <div className="flex-grow overflow-hidden bg-[var(--bg-elevated)]">
+            {photoUrl ? (
+              <Image
+                src={photoUrl}
+                alt={line1 || "listing"}
+                fill
+                className="object-cover"
+                sizes="33vw"
+              />
+            ) : (
+              <div className="w-full h-full flex items-center justify-center text-[var(--text-muted)]">
+                <Building2Icon />
+              </div>
+            )}
+          </div>
+          <StatusBadgeStrip status={listing.status} />
+        </div>
+
+        {/* Right: details */}
+        <div className="w-2/3 p-3 flex flex-col justify-between relative overflow-hidden">
+          <div className="min-w-0">
+            {/* Badge row */}
+            <div className="flex items-center gap-1.5 mb-1">
+              <StatusBadge status={(listing.status as "for_sale") || "for_sale"} />
+              <span className="text-xs text-[var(--text-muted)]">#{listing.id}</span>
+            </div>
+            {/* Title lines */}
+            <p className="text-sm font-bold text-[var(--text-primary)] truncate leading-tight">
+              {line1}
+            </p>
+            <p className="text-sm font-bold truncate leading-tight" style={{ color: "var(--orange)" }}>
+              {line2}
+            </p>
+            {/* Metadata */}
+            <div className="mt-1.5 space-y-0.5">
+              {listing.ward && (
+                <div className="flex items-center gap-1 text-xs text-[var(--text-secondary)]">
+                  <MapPin size={11} className="shrink-0" />
+                  <span className="truncate">{listing.ward}</span>
+                </div>
+              )}
+              {agent?.first_name && (
+                <div className="flex items-center gap-1 text-xs text-[var(--text-secondary)]">
+                  <User size={11} className="shrink-0" />
+                  <span className="truncate">{agent.first_name}</span>
+                </div>
+              )}
+              {agent?.phone && (
+                <div className="flex items-center gap-1 text-xs text-[var(--text-secondary)]">
+                  <Phone size={11} className="shrink-0" />
+                  <a
+                    href={`tel:${agent.phone}`}
+                    onClick={(e) => e.stopPropagation()}
+                    className="truncate hover:text-[var(--orange)] transition-colors"
+                  >
+                    {agent.phone}
+                  </a>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Heart — bottom right */}
+          <button
+            onClick={toggleFavorite}
+            disabled={isTogglingFavorite}
+            className="absolute bottom-3 right-3 p-1 rounded-full text-[var(--text-muted)] hover:text-red-500 transition-colors focus:outline-none"
+            aria-label={isFavorited ? "Remove from favorites" : "Add to favorites"}
+          >
+            <Heart
+              size={16}
+              className={`transition-colors ${isFavorited ? "fill-red-500 text-red-500" : ""}`}
+            />
+          </button>
+        </div>
+      </Link>
+    );
+  }
+
+  // ── 2-wide (or 3-wide): vertical card ──
   return (
     <div
       className={`relative rounded-lg overflow-hidden border border-[var(--border)] transition-all duration-200 ${
@@ -103,18 +220,14 @@ export function ListingCard({
       }}
     >
       <Link href={`/dashboard/listings/${listing.id}/view${viewSearch}`}>
-        <div
-          className={`relative w-full bg-[var(--bg-elevated)] ${
-            cols === 1 ? "h-48" : "h-36"
-          }`}
-        >
+        <div className="relative w-full h-36 bg-[var(--bg-elevated)]">
           {photoUrl ? (
             <Image
               src={photoUrl}
-              alt={listing.street ?? "listing"}
+              alt={line1 || "listing"}
               fill
               className="object-cover"
-              sizes={cols === 1 ? "100vw" : "50vw"}
+              sizes="50vw"
             />
           ) : (
             <div className="w-full h-full flex items-center justify-center text-[var(--text-muted)]">
@@ -122,11 +235,8 @@ export function ListingCard({
             </div>
           )}
           <div className="absolute top-2 left-2">
-            <StatusBadge
-              status={(listing.status as "for_sale") || "for_sale"}
-            />
+            <StatusBadge status={(listing.status as "for_sale") || "for_sale"} />
           </div>
-          
           <button
             onClick={toggleFavorite}
             disabled={isTogglingFavorite}
@@ -138,7 +248,6 @@ export function ListingCard({
               className={`transition-colors ${isFavorited ? "fill-red-500 text-red-500 border-none" : ""}`}
             />
           </button>
-          
           {isOwner && (
             <div
               className="absolute top-2 right-10 w-2 h-2 rounded-full shadow-[var(--shadow-orange)]"
@@ -157,30 +266,23 @@ export function ListingCard({
       </Link>
 
       <div className="p-3">
-        {/* Two-line headline — font scales with grid density */}
-        <p className={`font-bold text-[var(--text-primary)] truncate leading-tight ${cols === 3 ? "text-sm" : cols === 2 ? "text-base" : "text-xl"}`}>
-          {listing.address_raw || [listing.street, listing.ward].filter(Boolean).join(", ") || ""}
+        {/* Two-line headline */}
+        <p className={`font-bold text-[var(--text-primary)] truncate leading-tight ${cols === 3 ? "text-sm" : "text-base"}`}>
+          {line1}
         </p>
-        <p className={`font-bold text-[var(--text-primary)] truncate leading-tight ${cols === 3 ? "text-sm" : cols === 2 ? "text-base" : "text-xl"}`}>
-          {listing.title_standardized || generateTitleStandardized(listing)}
+        <p className={`font-bold text-[var(--text-primary)] truncate leading-tight ${cols === 3 ? "text-sm" : "text-base"}`}>
+          {line2}
         </p>
 
         <div className="flex items-center justify-between mt-3">
           {agent && <AgentChip agent={agent} />}
-
           <div className="ml-auto">
             {isOwner ? (
               <button
                 type="button"
-                onClick={(e) => {
-                  e.preventDefault();
-                  onViewMessages?.();
-                }}
+                onClick={(e) => { e.preventDefault(); onViewMessages?.(); }}
                 className="flex items-center gap-1 text-[11px] font-medium border rounded-md px-2 py-1 transition-colors hover:bg-[var(--info)]/10"
-                style={{
-                  color: "var(--info)",
-                  borderColor: "rgba(59, 130, 246, 0.3)",
-                }}
+                style={{ color: "var(--info)", borderColor: "rgba(59, 130, 246, 0.3)" }}
               >
                 <MessageSquare size={12} /> {t("viewMessages")}
               </button>
@@ -189,25 +291,16 @@ export function ListingCard({
                 href={`/dashboard/listings/${listing.id}/view${viewSearch}#messages`}
                 onClick={(e) => e.stopPropagation()}
                 className="flex items-center gap-1 text-[11px] font-medium border rounded-md px-2 py-1 transition-colors hover:bg-[var(--info)]/10"
-                style={{
-                  color: "var(--info)",
-                  borderColor: "rgba(59, 130, 246, 0.3)",
-                }}
+                style={{ color: "var(--info)", borderColor: "rgba(59, 130, 246, 0.3)" }}
               >
                 <MessageSquare size={12} /> {t("viewMessages")}
               </Link>
             ) : (
               <button
                 type="button"
-                onClick={(e) => {
-                  e.preventDefault();
-                  onMessage?.();
-                }}
+                onClick={(e) => { e.preventDefault(); onMessage?.(); }}
                 className="flex items-center gap-1 text-[11px] font-medium border rounded-md px-2 py-1 transition-colors hover:bg-[var(--info)]/10"
-                style={{
-                  color: "var(--info)",
-                  borderColor: "rgba(59, 130, 246, 0.3)",
-                }}
+                style={{ color: "var(--info)", borderColor: "rgba(59, 130, 246, 0.3)" }}
               >
                 <MessageSquare size={12} /> {t("message")}
               </button>

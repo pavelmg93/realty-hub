@@ -204,6 +204,7 @@ export default function ListingsPage() {
               listing={listing}
               isArchived={false}
               isOwner
+              cols={cols}
               onArchive={handleArchive}
               onReactivate={handleReactivate}
               onDelete={handleDelete}

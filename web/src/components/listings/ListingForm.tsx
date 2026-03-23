@@ -6,19 +6,27 @@ import { ListingInput } from "@/lib/validation";
 import { Listing, StagedPhoto, StagedDocument } from "@/lib/types";
 import PhotoUploader from "@/components/photos/PhotoUploader";
 import DocumentManager from "@/components/documents/DocumentManager";
-import {
-  PROPERTY_TYPES,
-  TRANSACTION_TYPES,
-  ACCESS_ROAD_TYPES,
-  FURNISHED_TYPES,
-  DIRECTION_TYPES,
-  LEGAL_STATUS_TYPES,
-  STRUCTURE_TYPES,
-  BUILDING_TYPES,
-  formatPrice,
-} from "@/lib/constants";
-import DatabaseView from "./DatabaseView";
+import { generateCommissionDisplay } from "@/lib/constants";
+import DatabaseView, { DatabaseExtras } from "./DatabaseView";
 import { useLanguage } from "@/contexts/LanguageContext";
+
+type AIResult = {
+  fields: Record<string, unknown>;
+  confidence: Record<string, number>;
+  duplicate_warning: { found: boolean; listing_id: number | null; similarity: number };
+  description_draft: string;
+  follow_up_questions: Array<{ field: string; question_vi: string; question_en: string }>;
+  geo_from_exif: { lat: number; lng: number } | null;
+};
+
+function parseCommission(commission: string | null): { pct: number | null; months: number | null } {
+  if (!commission) return { pct: 1, months: null };
+  const hh = commission.match(/^hh(\d+(?:\.\d+)?)$/i);
+  if (hh) return { pct: parseFloat(hh[1]), months: null };
+  const mm = commission.match(/^mm(\d+(?:\.\d+)?)$/i);
+  if (mm) return { pct: null, months: parseFloat(mm[1]) };
+  return { pct: 1, months: null };
+}
 
 const EMPTY_LISTING: ListingInput = {
   property_type: null,
@@ -28,6 +36,7 @@ const EMPTY_LISTING: ListingInput = {
   area_m2: null,
   address_raw: null,
   ward: null,
+  ward_new: null,
   street: null,
   district: null,
   num_bedrooms: null,
@@ -59,17 +68,22 @@ const EMPTY_LISTING: ListingInput = {
   building_type: null,
   latitude: null,
   longitude: null,
+  commission: "hh1",
+  commission_pct: 1,
+  commission_months: null,
 };
 
 function listingToInput(listing: Listing): ListingInput {
+  const { pct, months } = parseCommission(listing.commission);
   return {
     property_type: listing.property_type,
     transaction_type: listing.transaction_type,
-    price_raw: listing.price_raw ?? vndToShortString(listing.price_vnd),
+    price_raw: listing.price_raw ?? null,
     price_vnd: listing.price_vnd,
     area_m2: listing.area_m2,
     address_raw: listing.address_raw,
     ward: listing.ward,
+    ward_new: listing.ward_new ?? null,
     street: listing.street,
     district: listing.district,
     num_bedrooms: listing.num_bedrooms,
@@ -101,101 +115,33 @@ function listingToInput(listing: Listing): ListingInput {
     building_type: listing.building_type,
     latitude: listing.latitude,
     longitude: listing.longitude,
+    commission: listing.commission ?? "hh1",
+    commission_pct: listing.commission_pct ?? pct,
+    commission_months: listing.commission_months ?? months,
   };
-}
-
-function lookup(
-  key: string | null | undefined,
-  map: Record<string, string>,
-): string | null {
-  if (!key) return null;
-  return map[key] ?? key;
-}
-
-/** Format price_vnd to short Vietnamese string for price_raw field pre-population. */
-function vndToShortString(vnd: number | null): string | null {
-  if (!vnd) return null;
-  if (vnd >= 1_000_000_000) {
-    const ty = vnd / 1_000_000_000;
-    return `${ty % 1 === 0 ? ty.toFixed(0) : ty.toFixed(1)} tỷ`;
-  }
-  if (vnd >= 1_000_000) {
-    const tr = vnd / 1_000_000;
-    return `${tr % 1 === 0 ? tr.toFixed(0) : tr.toFixed(1)} triệu`;
-  }
-  return null;
-}
-
-/** Generate a human-readable text summary from structured listing fields. */
-function formDataToText(data: ListingInput): string {
-  const lines: string[] = [];
-
-  // Title line: transaction + property type + location
-  const parts: string[] = [];
-  if (data.transaction_type)
-    parts.push(lookup(data.transaction_type, TRANSACTION_TYPES) ?? "");
-  if (data.property_type)
-    parts.push(lookup(data.property_type, PROPERTY_TYPES) ?? "");
-  if (data.ward) parts.push(data.ward);
-  if (data.street) parts.push(data.street);
-  if (parts.length > 0) lines.push(parts.join(" - "));
-
-  // Price & Area
-  const priceArea: string[] = [];
-  if (data.price_vnd) priceArea.push(formatPrice(data.price_vnd));
-  else if (data.price_raw) priceArea.push(data.price_raw);
-  if (data.area_m2) priceArea.push(`${data.area_m2}m\u00B2`);
-  if (priceArea.length > 0) lines.push(priceArea.join(", "));
-
-  // Dimensions
-  const dims: string[] = [];
-  if (data.num_bedrooms) dims.push(`${data.num_bedrooms} bedrooms`);
-  if (data.num_bathrooms) dims.push(`${data.num_bathrooms} bathrooms`);
-  if (data.num_floors) dims.push(`${data.num_floors} floors`);
-  if (data.frontage_m) dims.push(`frontage ${data.frontage_m}m`);
-  if (data.depth_m) dims.push(`depth ${data.depth_m}m`);
-  if (data.total_construction_area)
-    dims.push(`construction ${data.total_construction_area}m\u00B2`);
-  if (dims.length > 0) lines.push(dims.join(", "));
-
-  // Features
-  const feats: string[] = [];
-  if (data.access_road)
-    feats.push(lookup(data.access_road, ACCESS_ROAD_TYPES) ?? "");
-  if (data.furnished)
-    feats.push(lookup(data.furnished, FURNISHED_TYPES) ?? "");
-  if (data.direction)
-    feats.push(`facing ${lookup(data.direction, DIRECTION_TYPES)}`);
-  if (data.structure_type)
-    feats.push(lookup(data.structure_type, STRUCTURE_TYPES) ?? "");
-  if (data.building_type)
-    feats.push(lookup(data.building_type, BUILDING_TYPES) ?? "");
-  if (data.legal_status)
-    feats.push(lookup(data.legal_status, LEGAL_STATUS_TYPES) ?? "");
-  if (data.corner_lot) feats.push("corner lot");
-  if (data.has_elevator) feats.push("elevator");
-  if (data.negotiable) feats.push("negotiable");
-  if (feats.length > 0) lines.push(feats.join(", "));
-
-  return lines.filter(Boolean).join("\n");
 }
 
 interface Props {
   existing?: Listing;
-  /** Prefill from AI parse or other source (e.g. Add Listing chat flow). */
   initialData?: Partial<ListingInput>;
 }
 
 export default function ListingForm({ existing, initialData }: Props) {
   const router = useRouter();
-  const { t } = useLanguage();
+  const { t, lang } = useLanguage();
+
   const [formData, setFormData] = useState<ListingInput>(
-    existing ? listingToInput(existing) : { ...EMPTY_LISTING, ...initialData },
+    existing ? listingToInput(existing) : { ...EMPTY_LISTING, ...initialData }
   );
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [stagedPhotos, setStagedPhotos] = useState<StagedPhoto[]>([]);
   const [stagedDocuments, setStagedDocuments] = useState<StagedDocument[]>([]);
+
+  // AI parse state
+  const [parsing, setParsing] = useState(false);
+  const [parseError, setParseError] = useState<string | null>(null);
+  const [aiResult, setAiResult] = useState<AIResult | null>(null);
 
   const initialDataKey = initialData ? JSON.stringify(initialData) : "";
   useEffect(() => {
@@ -204,17 +150,56 @@ export default function ListingForm({ existing, initialData }: Props) {
     }
   }, [existing, initialDataKey]);
 
+  const handleParseWithAI = async () => {
+    const text = formData.description?.trim();
+    if (!text) return;
+    setParsing(true);
+    setParseError(null);
+    try {
+      const res = await fetch("/api/ai/parse-listing", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ text, existingListings: [] }),
+      });
+      if (!res.ok) {
+        setParseError(t("parseFailed"));
+        return;
+      }
+      const data: AIResult = await res.json();
+      setAiResult(data);
+      // Merge AI fields into formData (keep description as-is)
+      const merged = { ...formData };
+      for (const [k, v] of Object.entries(data.fields)) {
+        if (v !== null && v !== undefined && k in EMPTY_LISTING) {
+          (merged as Record<string, unknown>)[k] = v;
+        }
+      }
+      const commStr = (data.fields.commission ?? null) as string | null;
+      if (commStr) {
+        const { pct, months } = parseCommission(commStr);
+        merged.commission = commStr;
+        merged.commission_pct = pct;
+        merged.commission_months = months;
+      }
+      setFormData(merged);
+    } catch {
+      setParseError(t("requestFailed"));
+    } finally {
+      setParsing(false);
+    }
+  };
+
   const handleSave = async () => {
     setSaving(true);
     setError(null);
     try {
-      const payload = {
+      // Ensure commission string is in sync before saving
+      const payload: ListingInput = {
         ...formData,
+        commission: generateCommissionDisplay(formData.commission_pct, formData.commission_months),
       };
 
-      const url = existing
-        ? `/api/listings/${existing.id}`
-        : "/api/listings";
+      const url = existing ? `/api/listings/${existing.id}` : "/api/listings";
       const method = existing ? "PUT" : "POST";
 
       const res = await fetch(url, {
@@ -237,7 +222,6 @@ export default function ListingForm({ existing, initialData }: Props) {
         return;
       }
 
-      // Register staged photos and documents with the newly created listing
       if (!existing && (stagedPhotos.length > 0 || stagedDocuments.length > 0)) {
         const newListingId = data.listing?.id;
         if (newListingId) {
@@ -284,44 +268,82 @@ export default function ListingForm({ existing, initialData }: Props) {
       {error && (
         <div
           className="mb-4 p-3 text-sm rounded-lg border"
-          style={{
-            backgroundColor: "rgba(239, 68, 68, 0.1)",
-            borderColor: "var(--error)",
-            color: "var(--error)",
-          }}
+          style={{ backgroundColor: "rgba(239, 68, 68, 0.1)", borderColor: "var(--error)", color: "var(--error)" }}
         >
           {error}
         </div>
       )}
 
+      {/* ── Step 1: Description + AI Parse ── */}
+      <div className="mb-5">
+        <label className="block text-xs font-semibold text-[var(--text-muted)] uppercase tracking-wider mb-2">
+          {lang === "vi" ? "Mô tả / Nguồn dữ liệu thô" : "Description / Raw Source Text"}
+        </label>
+        <textarea
+          value={formData.description ?? ""}
+          onChange={(e) => setFormData((prev) => ({ ...prev, description: e.target.value || null }))}
+          placeholder={lang === "vi"
+            ? "Dán nội dung BĐS ở đây rồi nhấn \"Phân tích bằng AI\"…"
+            : "Paste listing text here, then tap \"Parse with AI\"…"}
+          rows={5}
+          className="w-full rounded-xl p-3 text-sm resize-y border border-[var(--border)]"
+          style={{ backgroundColor: "var(--bg-input)", color: "var(--text-primary)" }}
+        />
+        <div className="flex items-center gap-3 mt-2">
+          <button
+            type="button"
+            onClick={handleParseWithAI}
+            disabled={parsing || !formData.description?.trim()}
+            className="px-4 py-2 text-white text-sm rounded-lg disabled:opacity-50 font-medium transition-colors"
+            style={{ backgroundColor: "var(--orange)" }}
+          >
+            {parsing
+              ? (lang === "vi" ? "Đang phân tích..." : "Analyzing...")
+              : (lang === "vi" ? "Phân tích bằng AI" : "Parse with AI")}
+          </button>
+          {parseError && <span className="text-sm text-[var(--error)]">{parseError}</span>}
+          {aiResult?.duplicate_warning?.found && (
+            <span className="text-sm text-amber-500">
+              {lang === "vi" ? "Có thể trùng BĐS đã có" : "Possible duplicate"}
+            </span>
+          )}
+        </div>
+      </div>
+
+      {/* ── Steps 2-10: Core form fields ── */}
       <DatabaseView data={formData} onChange={setFormData} />
 
-      {/* Photo upload — staging mode for new listings */}
-      {!existing && (
-        <div className="mt-6 pt-6 border-t border-[var(--border)]">
-          <h3 className="text-base font-semibold text-[var(--text-primary)] mb-3">
-            {t("photos")}
-          </h3>
+      {/* ── Step 11: Photo uploader ── */}
+      {!existing ? (
+        <div className="mt-5 pt-5 border-t border-[var(--border)]">
+          <p className="text-xs font-semibold text-[var(--text-muted)] uppercase tracking-wider mb-3">{t("photos")}</p>
           <PhotoUploader
             stagedPhotos={stagedPhotos}
             onStagedPhotosChange={setStagedPhotos}
           />
         </div>
-      )}
+      ) : null}
 
-      {/* Document upload — staging mode for new listings */}
-      {!existing && (
-        <div className="mt-6 pt-6 border-t border-[var(--border)]">
-          <h3 className="text-base font-semibold text-[var(--text-primary)] mb-3">
-            {t("documents")}
-          </h3>
+      {/* ── Step 12: Document uploader ── */}
+      {!existing ? (
+        <div className="mt-5 pt-5 border-t border-[var(--border)]">
+          <p className="text-xs font-semibold text-[var(--text-muted)] uppercase tracking-wider mb-3">{t("documents")}</p>
           <DocumentManager
             stagedDocuments={stagedDocuments}
             onStagedDocumentsChange={setStagedDocuments}
           />
         </div>
-      )}
+      ) : null}
 
+      {/* ── Step 13: Extras ── */}
+      <div className="mt-5 pt-5 border-t border-[var(--border)]">
+        <p className="text-xs font-semibold text-[var(--text-muted)] uppercase tracking-wider mb-3">
+          {lang === "vi" ? "Chi tiết thêm" : "Extra Details"}
+        </p>
+        <DatabaseExtras data={formData} onChange={setFormData} />
+      </div>
+
+      {/* ── Save / Cancel ── */}
       <div className="flex items-center gap-3 mt-8 pt-6 border-t border-[var(--border)]">
         <button
           type="button"
@@ -330,11 +352,7 @@ export default function ListingForm({ existing, initialData }: Props) {
           className="px-6 py-2.5 text-white text-sm rounded-lg disabled:opacity-50 font-medium transition-colors"
           style={{ backgroundColor: "var(--orange)" }}
         >
-          {saving
-            ? t("saving")
-            : existing
-              ? t("updateListing")
-              : t("addListing")}
+          {saving ? t("saving") : existing ? t("updateListing") : t("addListing")}
         </button>
         <button
           type="button"

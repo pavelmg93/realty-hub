@@ -31,11 +31,11 @@ Line 2: listing.title_standardized  ← e.g., "49 1 5.5 9 6.ty hh1"
 
 #### Quick fix (do first — 5 minutes)
 
-* [ ] **[Listing detail title sizing — REA-66]** Both title lines in listing detail page must use IDENTICAL CSS classes: `text-2xl sm:text-3xl font-bold text-[var(--text-primary)]`. Line 1 source: `listing.street || ""`. Line 2 source: `listing.title_standardized || generateTitleStandardized(listing)`. Remove any reference to `address_raw` in the title block.
+* [x] **[Listing detail title sizing — REA-66]** Both title lines in listing detail page must use IDENTICAL CSS classes: `text-2xl sm:text-3xl font-bold text-[var(--text-primary)]`. Line 1 source: `listing.street || ""`. Line 2 source: `listing.title_standardized || generateTitleStandardized(listing)`. Remove any reference to `address_raw` in the title block.
 
 #### Card redesign
 
-* [ ] **[1-wide horizontal card — REA-65]** Redesign 1-wide listing cards in Feed and My Listings. Read `stitch_property_details_view/stitch_my_inventory/code.html` and `screen.png` for reference layout. Keep our dark theme + CSS variables. Layout:
+* [x] **[1-wide horizontal card — REA-65]** Redesign 1-wide listing cards in Feed and My Listings. Read `stitch_property_details_view/stitch_my_inventory/code.html` and `screen.png` for reference layout. Keep our dark theme + CSS variables. Layout:
     ```
     ┌──────────────────────────────────────────┐
     │ ┌─────────┐ [StatusBadge] #id            │
@@ -61,7 +61,7 @@ Line 2: listing.title_standardized  ← e.g., "49 1 5.5 9 6.ty hh1"
 
 #### Form overhaul (biggest task)
 
-* [ ] **[Add/Edit Listing form — REA-67]** Complete form rebuild. Field order per wireframe:
+* [x] **[Add/Edit Listing form — REA-67]** Complete form rebuild. Field order per wireframe:
     1. Description Raw textarea → Paste + Parse w/ AI buttons
     2. Property Type | Transaction Type | Legal Status (dropdowns, one row)
     3. Price | Area m² | P/m² auto-calc (one row)

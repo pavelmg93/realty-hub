@@ -65,9 +65,9 @@ export default function FeedCard({ listing, currentUserId, onMessage, onClick }:
         </div>
       </div>
 
-      {/* Two-line headline */}
+      {/* Two-line headline (ADR-005) */}
       <p className="text-xl font-bold text-[var(--text-primary)] truncate leading-tight">
-        {listing.address_raw || [listing.street, listing.ward].filter(Boolean).join(", ") || ""}
+        {listing.street || ""}
       </p>
       <p className="text-xl font-bold text-[var(--text-primary)] truncate leading-tight mb-2">
         {listing.title_standardized || generateTitleStandardized(listing)}

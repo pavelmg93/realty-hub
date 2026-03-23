@@ -394,12 +394,12 @@ export default function ListingViewPage() {
             <StatusBadge status={listing.status as "for_sale"} />
             <span className="text-xs text-[var(--text-muted)]">#{listing.id}</span>
           </div>
-          {/* Line 1: address */}
-          <p className="text-sm text-[var(--text-secondary)] truncate">
-            {listing.address_raw || [listing.street, listing.ward].filter(Boolean).join(", ") || `${label(listing.property_type, PROPERTY_TYPES)} — ${label(listing.transaction_type, TRANSACTION_TYPES)}`}
+          {/* Line 1: street address */}
+          <p className="text-2xl sm:text-3xl font-bold text-[var(--text-primary)] leading-tight">
+            {listing.street || ""}
           </p>
           {/* Line 2: specs (title_standardized) */}
-          <p className="text-2xl sm:text-3xl font-bold text-[var(--text-primary)] leading-tight mt-1">
+          <p className="text-2xl sm:text-3xl font-bold text-[var(--text-primary)] leading-tight mt-0.5">
             {listing.title_standardized || generateTitleStandardized(listing)}
           </p>
         </div>

@@ -103,6 +103,9 @@ export const listingSchema = z.object({
   distance_to_beach_m: coerceNum,
   title_standardized: optStr,
   commission: optStr,
+  commission_pct: coerceNum,
+  commission_months: coerceInt,
+  ward_new: optStr,
 });
 
 export const messageSchema = z.object({

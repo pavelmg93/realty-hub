@@ -6,6 +6,19 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Session 26 — 2026-03-24 — Card Redesign, Form Overhaul, Title Fix
+
+#### Added
+- **REA-65: 1-wide horizontal card** — `ui/ListingCard` (cols===1) and `listings/ListingCard` (cols===1) now render Stitch-style horizontal card: photo w-1/3 with status color strip, right panel with StatusBadge + #id, street, title_standardized (orange), ward (MapPin), agent (User), phone (tel link), heart. `listings/page.tsx` now passes `cols` to card.
+- **REA-67: Commission fields** — `generateCommissionDisplay(pct, months)` in `constants.ts`. Migration 018 adds `commission_pct NUMERIC`, `commission_months SMALLINT`, `ward_new VARCHAR(100)` to `parsed_listings`. Address consolidation: copies `address_raw` → `street` where street is empty.
+- **Migration 018** — commission_pct, commission_months, ward_new columns + address consolidation backfill.
+
+#### Changed
+- **REA-66: Listing detail title fix** — Both title lines now use identical `text-2xl sm:text-3xl font-bold text-[var(--text-primary)]`. Line 1 source: `listing.street || ""` (removed `address_raw` reference). Line 2 unchanged.
+- **REA-67: Form rebuild** — New field order: Description + AI Parse (top) → Property/Tx/Legal → Price/Area/P/m² (auto-calc) → Commission radio → Street → Ward/New Ward → Map → Frontage/Depth → Beds/Baths → Floors/Total Area → Photos → Docs → Extras. `address_raw` hidden from UI, `street` is the visible address field.
+- **REA-67: AI parse moved into ListingForm** — Both Add and Edit pages share the same description textarea + Parse with AI button at top. `new/page.tsx` simplified.
+- **ADR-005 compliance** — All `address_raw` references removed from title/line1 in all cards and feed. `listing.street || ""` is the only line-1 source everywhere.
+
 ### Session 25 — 2026-03-23 — Critical Bug Fixes + Listing Detail Cleanup
 
 #### Added

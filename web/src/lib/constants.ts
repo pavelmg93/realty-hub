@@ -151,6 +151,19 @@ export function formatPriceShortest(vnd: number | null): string {
 }
 
 /**
+ * Convert commission pct or months to display string.
+ * pct=1 → "hh1", months=2 → "mm2", neither → "hh1"
+ */
+export function generateCommissionDisplay(
+  pct?: number | null,
+  months?: number | null,
+): string {
+  if (pct != null && pct > 0) return `hh${pct}`;
+  if (months != null && months > 0) return `mm${months}`;
+  return "hh1";
+}
+
+/**
  * Build title_standardized — specs line (no address).
  * Formula: "<area>m² <floors>T <frontage>x<depth> <price> <commission>"
  * Example: "100 7 10 10 20ty hh1"

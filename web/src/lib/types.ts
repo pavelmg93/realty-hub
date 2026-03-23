@@ -64,6 +64,9 @@ export interface Listing {
   freestyle_text: string | null;
   title_standardized: string | null;
   commission: string | null;
+  commission_pct: number | null;
+  commission_months: number | null;
+  ward_new: string | null;
   city: string | null;
   // Joined fields (from feed)
   owner_username?: string;

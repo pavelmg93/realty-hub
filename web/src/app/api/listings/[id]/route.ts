@@ -122,8 +122,9 @@ export async function PUT(
         latitude = $37, longitude = $38,
         road_width_m = $39, num_frontages = $40, distance_to_beach_m = $41,
         title_standardized = $42, commission = $43,
+        commission_pct = $44, commission_months = $45, ward_new = $46,
         updated_at = NOW()
-      WHERE id = $44
+      WHERE id = $47
       RETURNING *`,
       [
         data.property_type ?? null,
@@ -171,6 +172,9 @@ export async function PUT(
         data.distance_to_beach_m ?? null,
         generateTitleStandardized(data),
         data.commission ?? "hh1",
+        data.commission_pct ?? null,
+        data.commission_months ?? null,
+        data.ward_new ?? null,
         listingId,
       ],
     );

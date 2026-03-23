@@ -14,6 +14,7 @@ import {
   BUILDING_TYPES,
   LISTING_STATUSES,
   NHA_TRANG_WARDS,
+  generateCommissionDisplay,
 } from "@/lib/constants";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { getPropertyTypeKey, getTransactionTypeKey } from "@/lib/i18n";
@@ -27,26 +28,9 @@ function parseRawPrice(raw: string): number | null {
   const num = parseFloat(match[1]);
   if (isNaN(num)) return null;
   const unit = match[2];
-  if (unit === "ty" || unit === "tỷ" || unit === "ti") {
-    return num * 1_000_000_000;
-  }
-  if (unit === "trieu" || unit === "triệu" || unit === "tr") {
-    return num * 1_000_000;
-  }
+  if (unit === "ty" || unit === "tỷ" || unit === "ti") return num * 1_000_000_000;
+  if (unit === "trieu" || unit === "triệu" || unit === "tr") return num * 1_000_000;
   return num;
-}
-
-/** Format VND number to concise Vietnamese text like "3.5 ty", "500 trieu". */
-function formatVndToRaw(vnd: number): string {
-  if (vnd >= 1_000_000_000) {
-    const ty = vnd / 1_000_000_000;
-    return `${ty % 1 === 0 ? ty.toFixed(0) : ty.toFixed(1)} ty`;
-  }
-  if (vnd >= 1_000_000) {
-    const tr = vnd / 1_000_000;
-    return `${tr % 1 === 0 ? tr.toFixed(0) : tr.toFixed(1)} trieu`;
-  }
-  return vnd.toString();
 }
 
 interface Props {
@@ -67,19 +51,16 @@ function SelectField({
 }) {
   return (
     <div>
-      <label className="block text-xs font-medium mb-1 text-[var(--text-secondary)]">
-        {label}
-      </label>
+      <label className="block text-xs font-medium mb-1 text-[var(--text-secondary)]">{label}</label>
       <select
         value={value ?? ""}
         onChange={(e) => onChange(e.target.value || null)}
         className="w-full rounded-lg px-3 py-2 text-sm"
+        style={{ backgroundColor: "var(--bg-input)", color: "var(--text-primary)", borderColor: "var(--border)" }}
       >
         <option value="">—</option>
         {Object.entries(options).map(([k, v]) => (
-          <option key={k} value={k}>
-            {v}
-          </option>
+          <option key={k} value={k}>{v}</option>
         ))}
       </select>
     </div>
@@ -92,33 +73,29 @@ function NumberField({
   onChange,
   step,
   suffix,
+  placeholder,
 }: {
   label: string;
   value: number | null | undefined;
   onChange: (v: number | null) => void;
   step?: string;
   suffix?: string;
+  placeholder?: string;
 }) {
   return (
     <div>
-      <label className="block text-xs font-medium mb-1 text-[var(--text-secondary)]">
-        {label}
-      </label>
-      <div className="flex items-center gap-2">
+      <label className="block text-xs font-medium mb-1 text-[var(--text-secondary)]">{label}</label>
+      <div className="flex items-center gap-1">
         <input
           type="number"
           value={value ?? ""}
           step={step}
-          onChange={(e) =>
-            onChange(e.target.value ? parseFloat(e.target.value) : null)
-          }
+          placeholder={placeholder}
+          onChange={(e) => onChange(e.target.value ? parseFloat(e.target.value) : null)}
           className="w-full rounded-lg px-3 py-2 text-sm"
+          style={{ backgroundColor: "var(--bg-input)", color: "var(--text-primary)", borderColor: "var(--border)" }}
         />
-        {suffix && (
-          <span className="text-xs whitespace-nowrap text-[var(--text-muted)]">
-            {suffix}
-          </span>
-        )}
+        {suffix && <span className="text-xs whitespace-nowrap text-[var(--text-muted)]">{suffix}</span>}
       </div>
     </div>
   );
@@ -128,21 +105,23 @@ function TextField({
   label,
   value,
   onChange,
+  placeholder,
 }: {
   label: string;
   value: string | null | undefined;
   onChange: (v: string | null) => void;
+  placeholder?: string;
 }) {
   return (
     <div>
-      <label className="block text-xs font-medium mb-1 text-[var(--text-secondary)]">
-        {label}
-      </label>
+      <label className="block text-xs font-medium mb-1 text-[var(--text-secondary)]">{label}</label>
       <input
         type="text"
         value={value ?? ""}
+        placeholder={placeholder}
         onChange={(e) => onChange(e.target.value || null)}
         className="w-full rounded-lg px-3 py-2 text-sm"
+        style={{ backgroundColor: "var(--bg-input)", color: "var(--text-primary)", borderColor: "var(--border)" }}
       />
     </div>
   );
@@ -158,7 +137,7 @@ function CheckboxField({
   onChange: (v: boolean) => void;
 }) {
   return (
-    <label className="flex items-center gap-2 text-sm cursor-pointer text-[var(--text-secondary)]">
+    <label className="flex items-center gap-2 text-sm cursor-pointer text-[var(--text-secondary)] py-1">
       <input
         type="checkbox"
         checked={value ?? false}
@@ -170,55 +149,37 @@ function CheckboxField({
   );
 }
 
-function Section({
-  title,
-  children,
-}: {
-  title: string;
-  children: React.ReactNode;
-}) {
+function Row({ cols = 3, children }: { cols?: 2 | 3; children: React.ReactNode }) {
   return (
-    <div className="mb-6">
-      <h3 className="text-sm font-semibold text-[var(--text-primary)] mb-3 pb-2 border-b border-[var(--border)]">
-        {title}
-      </h3>
-      <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">{children}</div>
+    <div className={`grid gap-3 mb-4 ${cols === 2 ? "grid-cols-2" : "grid-cols-2 sm:grid-cols-3"}`}>
+      {children}
     </div>
   );
 }
 
-function LocationPicker({
-  data,
-  onChange,
-}: {
-  data: ListingInput;
-  onChange: (updates: Partial<ListingInput>) => void;
-}) {
+function SectionLabel({ children }: { children: React.ReactNode }) {
+  return (
+    <p className="text-xs font-semibold text-[var(--text-muted)] uppercase tracking-wider mb-2 mt-5">
+      {children}
+    </p>
+  );
+}
+
+function LocationPicker({ data, onChange }: { data: ListingInput; onChange: (u: Partial<ListingInput>) => void }) {
   const { t } = useLanguage();
   const [geocoding, setGeocoding] = useState(false);
-  const [results, setResults] = useState<
-    { latitude: number; longitude: number; display_name: string }[]
-  >([]);
+  const [results, setResults] = useState<{ latitude: number; longitude: number; display_name: string }[]>([]);
 
   const handleGeocode = async () => {
-    const q = [data.address_raw, data.street, data.ward]
-      .filter(Boolean)
-      .join(", ");
-    if (!q) return;
+    const q = [data.street, data.ward].filter(Boolean).join(", ") + ", Nha Trang";
+    if (!q.trim()) return;
     setGeocoding(true);
     try {
-      const res = await fetch(
-        `/api/geocode?q=${encodeURIComponent(q)}`,
-      );
+      const res = await fetch(`/api/geocode?q=${encodeURIComponent(q)}`);
       if (res.ok) {
         const { locations } = await res.json();
         setResults(locations);
-        if (locations.length === 1) {
-          onChange({
-            latitude: locations[0].latitude,
-            longitude: locations[0].longitude,
-          });
-        }
+        if (locations.length === 1) onChange({ latitude: locations[0].latitude, longitude: locations[0].longitude });
       }
     } finally {
       setGeocoding(false);
@@ -226,33 +187,26 @@ function LocationPicker({
   };
 
   return (
-    <div className="mb-6">
+    <div className="mb-4">
       <div className="flex items-center gap-2 mb-2">
-        <h3 className="text-sm font-semibold text-[var(--text-primary)] pb-2 border-b border-[var(--border)] flex-1">
-          {t("mapLocation")}
-        </h3>
+        <p className="text-xs font-semibold text-[var(--text-muted)] uppercase tracking-wider flex-1">{t("mapLocation")}</p>
         <button
           type="button"
           onClick={handleGeocode}
           disabled={geocoding}
-          className="px-3 py-2 text-xs font-medium rounded-lg border border-[var(--border)] text-[var(--text-secondary)] hover:bg-[var(--bg-hover)] transition-colors disabled:opacity-50"
+          className="px-3 py-1.5 text-xs font-medium rounded-lg border border-[var(--border)] text-[var(--text-secondary)] hover:bg-[var(--bg-hover)] transition-colors disabled:opacity-50"
           style={{ backgroundColor: "var(--bg-surface)" }}
         >
           {geocoding ? t("searching") : t("lookupAddress")}
         </button>
       </div>
-
       {results.length > 1 && (
-        <div className="mb-3 space-y-1">
-          <p className="text-xs text-[var(--text-muted)]">{t("selectResult")}</p>
+        <div className="mb-2 space-y-1">
           {results.map((r, i) => (
             <button
               key={i}
               type="button"
-              onClick={() => {
-                onChange({ latitude: r.latitude, longitude: r.longitude });
-                setResults([]);
-              }}
+              onClick={() => { onChange({ latitude: r.latitude, longitude: r.longitude }); setResults([]); }}
               className="block w-full text-left px-3 py-2 text-xs rounded-lg border border-[var(--border)] text-[var(--text-primary)] hover:bg-[var(--bg-hover)] transition-colors truncate"
               style={{ backgroundColor: "var(--bg-surface)" }}
             >
@@ -261,16 +215,11 @@ function LocationPicker({
           ))}
         </div>
       )}
-
-      <p className="text-xs text-[var(--text-muted)] mb-2">
-        {t("clickMapToSetLocation")}
-      </p>
+      <p className="text-xs text-[var(--text-muted)] mb-2">{t("clickMapToSetLocation")}</p>
       <DynamicListingMap
         latitude={data.latitude}
         longitude={data.longitude}
-        onLocationChange={(lat, lng) =>
-          onChange({ latitude: lat, longitude: lng })
-        }
+        onLocationChange={(lat, lng) => onChange({ latitude: lat, longitude: lng })}
         interactive={true}
         height="250px"
       />
@@ -290,50 +239,49 @@ const STATUS_LABEL_KEYS: Record<string, string> = {
 
 export default function DatabaseView({ data, onChange }: Props) {
   const { t } = useLanguage();
-  const set = (field: keyof ListingInput, value: unknown) => {
-    onChange({ ...data, [field]: value });
-  };
 
-  const setMultiple = (updates: Partial<ListingInput>) => {
-    onChange({ ...data, ...updates });
-  };
+  const set = (field: keyof ListingInput, value: unknown) => onChange({ ...data, [field]: value });
+  const setMultiple = (updates: Partial<ListingInput>) => onChange({ ...data, ...updates });
 
   const statusOptions = Object.fromEntries(
-    Object.entries(LISTING_STATUSES).map(([k, v]) => [
-      k,
-      (t as (key: string) => string)(STATUS_LABEL_KEYS[k] ?? "open"),
-    ])
+    Object.entries(LISTING_STATUSES).map(([k]) => [k, (t as (key: string) => string)(STATUS_LABEL_KEYS[k] ?? "open")])
   );
   const propertyTypeOptions = Object.fromEntries(
-    Object.entries(PROPERTY_TYPES).map(([k, v]) => [
-      k,
-      getPropertyTypeKey(k) ? t(getPropertyTypeKey(k)!) : v,
-    ])
+    Object.entries(PROPERTY_TYPES).map(([k, v]) => [k, getPropertyTypeKey(k) ? t(getPropertyTypeKey(k)!) : v])
   );
   const transactionTypeOptions = Object.fromEntries(
-    Object.entries(TRANSACTION_TYPES).map(([k, v]) => [
-      k,
-      getTransactionTypeKey(k) ? t(getTransactionTypeKey(k)!) : v,
-    ])
+    Object.entries(TRANSACTION_TYPES).map(([k, v]) => [k, getTransactionTypeKey(k) ? t(getTransactionTypeKey(k)!) : v])
   );
 
-  const handlePriceRawBlur = (e: React.FocusEvent<HTMLInputElement>) => {
-    const raw = e.target.value;
-    const vnd = parseRawPrice(raw);
+  const handlePriceBlur = (e: React.FocusEvent<HTMLInputElement>) => {
+    const vnd = parseRawPrice(e.target.value);
     if (vnd !== null) {
-      onChange({ ...data, price_raw: raw || null, price_vnd: vnd });
+      const ppm2 = (data.area_m2 && data.area_m2 > 0) ? Math.round(vnd / data.area_m2) : data.price_per_m2;
+      setMultiple({ price_raw: e.target.value || null, price_vnd: vnd, price_per_m2: ppm2 });
     }
+  };
+
+  const handleAreaChange = (v: number | null) => {
+    const ppm2 = (v && v > 0 && data.price_vnd) ? Math.round(data.price_vnd / v) : data.price_per_m2;
+    setMultiple({ area_m2: v, price_per_m2: ppm2 });
+  };
+
+  // Commission mode derived from data
+  const commMode: "pct" | "months" = (data.commission_months != null && (data.commission_pct == null)) ? "months" : "pct";
+  const commValue = commMode === "pct" ? (data.commission_pct ?? 1) : (data.commission_months ?? 1);
+
+  const handleCommissionChange = (mode: "pct" | "months", value: number) => {
+    const pct = mode === "pct" ? value : null;
+    const months = mode === "months" ? value : null;
+    const commission = generateCommissionDisplay(pct, months);
+    setMultiple({ commission_pct: pct, commission_months: months, commission });
   };
 
   return (
     <div>
-      <Section title={t("classification")}>
-        <SelectField
-          label={t("status")}
-          value={data.status}
-          options={statusOptions}
-          onChange={(v) => set("status", v ?? "for_sale")}
-        />
+      {/* ── Row 1: Classification ── */}
+      <SectionLabel>{t("classification")}</SectionLabel>
+      <Row cols={3}>
         <SelectField
           label={t("property")}
           value={data.property_type}
@@ -346,202 +294,247 @@ export default function DatabaseView({ data, onChange }: Props) {
           options={transactionTypeOptions}
           onChange={(v) => set("transaction_type", v)}
         />
-      </Section>
-
-      <Section title={t("priceAndArea")}>
-        <div>
-          <label className="block text-xs font-medium mb-1 text-[var(--text-secondary)]">
-            {t("price")}
-          </label>
-          <input
-            type="text"
-            value={data.price_raw ?? ""}
-            onChange={(e) => set("price_raw", e.target.value || null)}
-            onBlur={handlePriceRawBlur}
-            placeholder={t("pricePlaceholder")}
-            className="w-full rounded-lg px-3 py-2 text-sm"
-          />
-        </div>
-        <NumberField
-          label={t("area")}
-          value={data.area_m2}
-          onChange={(v) => set("area_m2", v)}
-          step="0.1"
-          suffix="m²"
-        />
-        <NumberField
-          label={t("pricePerM2")}
-          value={data.price_per_m2}
-          onChange={(v) => set("price_per_m2", v)}
-          suffix="VND"
-        />
-        <NumberField
-          label={t("rentalIncome")}
-          value={data.rental_income_vnd}
-          onChange={(v) => set("rental_income_vnd", v)}
-          suffix="VND/mo"
-        />
-        <CheckboxField
-          label={t("negotiable")}
-          value={data.negotiable}
-          onChange={(v) => set("negotiable", v)}
-        />
-      </Section>
-
-      <Section title={t("location")}>
-        <TextField
-          label={t("addressRaw")}
-          value={data.address_raw}
-          onChange={(v) => set("address_raw", v)}
-        />
-        <SelectField
-          label={t("ward")}
-          value={data.ward}
-          options={Object.fromEntries(NHA_TRANG_WARDS.map((w) => [w, w]))}
-          onChange={(v) => set("ward", v)}
-        />
-        <TextField
-          label={t("street")}
-          value={data.street}
-          onChange={(v) => set("street", v)}
-        />
-        <TextField
-          label={t("district")}
-          value={data.district}
-          onChange={(v) => set("district", v)}
-        />
-        <NumberField
-          label={t("latitude")}
-          value={data.latitude}
-          onChange={(v) => set("latitude", v)}
-          step="0.000001"
-        />
-        <NumberField
-          label={t("longitude")}
-          value={data.longitude}
-          onChange={(v) => set("longitude", v)}
-          step="0.000001"
-        />
-      </Section>
-
-      <LocationPicker data={data} onChange={setMultiple} />
-
-      <Section title={t("dimensions")}>
-        <NumberField
-          label={t("bedrooms")}
-          value={data.num_bedrooms}
-          onChange={(v) => set("num_bedrooms", v)}
-        />
-        <NumberField
-          label={t("bathrooms")}
-          value={data.num_bathrooms}
-          onChange={(v) => set("num_bathrooms", v)}
-        />
-        <NumberField
-          label={t("floors")}
-          value={data.num_floors}
-          onChange={(v) => set("num_floors", v)}
-        />
-        <NumberField
-          label={t("frontage")}
-          value={data.frontage_m}
-          onChange={(v) => set("frontage_m", v)}
-          step="0.1"
-          suffix="m"
-        />
-        <NumberField
-          label={t("depth")}
-          value={data.depth_m}
-          onChange={(v) => set("depth_m", v)}
-          step="0.1"
-          suffix="m"
-        />
-        <NumberField
-          label={t("totalConstruction")}
-          value={data.total_construction_area}
-          onChange={(v) => set("total_construction_area", v)}
-          step="0.1"
-          suffix="m²"
-        />
-        <CheckboxField
-          label={t("cornerLot")}
-          value={data.corner_lot}
-          onChange={(v) => set("corner_lot", v)}
-        />
-      </Section>
-
-      <Section title={t("structureAndFeatures")}>
-        <SelectField
-          label={t("structureType")}
-          value={data.structure_type}
-          options={STRUCTURE_TYPES}
-          onChange={(v) => set("structure_type", v)}
-        />
-        <SelectField
-          label={t("buildingType")}
-          value={data.building_type}
-          options={BUILDING_TYPES}
-          onChange={(v) => set("building_type", v)}
-        />
-        <SelectField
-          label={t("direction")}
-          value={data.direction}
-          options={DIRECTION_TYPES}
-          onChange={(v) => set("direction", v)}
-        />
         <SelectField
           label={t("legalStatus")}
           value={data.legal_status}
           options={LEGAL_STATUS_TYPES}
           onChange={(v) => set("legal_status", v)}
         />
-        <SelectField
-          label={t("accessRoad")}
-          value={data.access_road}
-          options={ACCESS_ROAD_TYPES}
-          onChange={(v) => set("access_road", v)}
-        />
-        <SelectField
-          label={t("furnished")}
-          value={data.furnished}
-          options={FURNISHED_TYPES}
-          onChange={(v) => set("furnished", v)}
-        />
-        <CheckboxField
-          label={t("hasElevator")}
-          value={data.has_elevator}
-          onChange={(v) => set("has_elevator", v)}
-        />
-      </Section>
+      </Row>
 
-      <Section title={t("extraDetails")}>
-        <TextField
-          label={t("fengShui")}
-          value={data.feng_shui}
-          onChange={(v) => set("feng_shui", v)}
+      {/* ── Row 2: Price / Area / P/m² ── */}
+      <SectionLabel>{t("priceAndArea")}</SectionLabel>
+      <Row cols={3}>
+        <div>
+          <label className="block text-xs font-medium mb-1 text-[var(--text-secondary)]">{t("price")}</label>
+          <input
+            type="text"
+            value={data.price_raw ?? ""}
+            onChange={(e) => set("price_raw", e.target.value || null)}
+            onBlur={handlePriceBlur}
+            placeholder={t("pricePlaceholder")}
+            className="w-full rounded-lg px-3 py-2 text-sm"
+            style={{ backgroundColor: "var(--bg-input)", color: "var(--text-primary)", borderColor: "var(--border)" }}
+          />
+        </div>
+        <NumberField
+          label={t("area")}
+          value={data.area_m2}
+          onChange={handleAreaChange}
+          step="0.1"
+          suffix="m²"
         />
-        <TextField
-          label={t("landCharacteristics")}
-          value={data.land_characteristics}
-          onChange={(v) => set("land_characteristics", v)}
-        />
-        <TextField
-          label={t("trafficConnectivity")}
-          value={data.traffic_connectivity}
-          onChange={(v) => set("traffic_connectivity", v)}
-        />
-      </Section>
+        <div>
+          <label className="block text-xs font-medium mb-1 text-[var(--text-secondary)]">{t("pricePerM2")}</label>
+          <input
+            type="text"
+            readOnly
+            value={data.price_per_m2 != null ? `${data.price_per_m2.toLocaleString("vi-VN")} ₫/m²` : "—"}
+            className="w-full rounded-lg px-3 py-2 text-sm cursor-not-allowed"
+            style={{ backgroundColor: "var(--bg-elevated)", color: "var(--text-muted)", borderColor: "var(--border)" }}
+          />
+        </div>
+      </Row>
 
-      <div className="mb-6">
-        <h3 className="text-sm font-semibold text-[var(--text-primary)] mb-3 pb-2 border-b border-[var(--border)]">
-          {t("description")}
-        </h3>
-        <textarea
-          value={data.description ?? ""}
-          onChange={(e) => set("description", e.target.value || null)}
-          rows={3}
-          className="w-full rounded-lg px-3 py-2 text-sm resize-y"
+      {/* ── Row 3: Commission ── */}
+      <SectionLabel>Hoa hồng (Commission)</SectionLabel>
+      <div className="flex items-center gap-3 mb-4">
+        <div className="flex items-center gap-2 text-sm">
+          <label className="flex items-center gap-1.5 cursor-pointer text-[var(--text-secondary)]">
+            <input
+              type="radio"
+              name="commission_mode"
+              checked={commMode === "pct"}
+              onChange={() => handleCommissionChange("pct", commValue)}
+              className="accent-[var(--orange)]"
+            />
+            %
+          </label>
+          <label className="flex items-center gap-1.5 cursor-pointer text-[var(--text-secondary)]">
+            <input
+              type="radio"
+              name="commission_mode"
+              checked={commMode === "months"}
+              onChange={() => handleCommissionChange("months", commValue)}
+              className="accent-[var(--orange)]"
+            />
+            Tháng
+          </label>
+        </div>
+        <input
+          type="number"
+          value={commValue}
+          min={0}
+          step={commMode === "pct" ? "0.5" : "1"}
+          onChange={(e) => handleCommissionChange(commMode, parseFloat(e.target.value) || 0)}
+          className="w-24 rounded-lg px-3 py-2 text-sm"
+          style={{ backgroundColor: "var(--bg-input)", color: "var(--text-primary)", borderColor: "var(--border)" }}
         />
+        <span className="text-sm font-bold" style={{ color: "var(--orange)" }}>
+          → {data.commission ?? "hh1"}
+        </span>
+      </div>
+
+      {/* ── Row 4: Street Address ── */}
+      <SectionLabel>Địa chỉ (Street)</SectionLabel>
+      <div className="mb-4">
+        <TextField
+          label="Số nhà + Đường (Street Address)"
+          value={data.street}
+          onChange={(v) => set("street", v)}
+          placeholder="VD: 16/3 Hùng Vương"
+        />
+      </div>
+
+      {/* ── Row 5: Ward ── */}
+      <SectionLabel>{t("ward")}</SectionLabel>
+      <Row cols={2}>
+        <SelectField
+          label="Phường (cũ)"
+          value={data.ward}
+          options={Object.fromEntries(NHA_TRANG_WARDS.map((w) => [w, w]))}
+          onChange={(v) => set("ward", v)}
+        />
+        <TextField
+          label="Phường (mới)"
+          value={data.ward_new}
+          onChange={(v) => set("ward_new", v)}
+          placeholder="Nhập tên phường mới"
+        />
+      </Row>
+
+      {/* ── Row 6: Status ── */}
+      <SectionLabel>{t("status")}</SectionLabel>
+      <div className="mb-4 w-1/2">
+        <SelectField
+          label={t("status")}
+          value={data.status}
+          options={statusOptions}
+          onChange={(v) => set("status", v ?? "for_sale")}
+        />
+      </div>
+
+      {/* ── Row 7: Map ── */}
+      <LocationPicker data={data} onChange={setMultiple} />
+
+      {/* ── Rows 8-10: Dimensions (2-col) ── */}
+      <SectionLabel>{t("dimensions")}</SectionLabel>
+      <Row cols={2}>
+        <NumberField label={t("frontage")} value={data.frontage_m} onChange={(v) => set("frontage_m", v)} step="0.1" suffix="m" />
+        <NumberField label={t("depth")} value={data.depth_m} onChange={(v) => set("depth_m", v)} step="0.1" suffix="m" />
+      </Row>
+      <Row cols={2}>
+        <NumberField label={t("bedrooms")} value={data.num_bedrooms} onChange={(v) => set("num_bedrooms", v)} />
+        <NumberField label={t("bathrooms")} value={data.num_bathrooms} onChange={(v) => set("num_bathrooms", v)} />
+      </Row>
+      <Row cols={2}>
+        <NumberField label={t("floors")} value={data.num_floors} onChange={(v) => set("num_floors", v)} />
+        <NumberField label={t("totalConstruction")} value={data.total_construction_area} onChange={(v) => set("total_construction_area", v)} step="0.1" suffix="m²" />
+      </Row>
+    </div>
+  );
+}
+
+/** Extras section rendered separately (after photos/docs in ListingForm) */
+export function DatabaseExtras({ data, onChange }: Props) {
+  const { t } = useLanguage();
+  const set = (field: keyof ListingInput, value: unknown) => onChange({ ...data, [field]: value });
+
+  return (
+    <div>
+      <div className="grid grid-cols-2 gap-3">
+        <div>
+          <label className="block text-xs font-medium mb-1 text-[var(--text-secondary)]">{t("accessRoad")}</label>
+          <select
+            value={data.access_road ?? ""}
+            onChange={(e) => set("access_road", e.target.value || null)}
+            className="w-full rounded-lg px-3 py-2 text-sm"
+            style={{ backgroundColor: "var(--bg-input)", color: "var(--text-primary)", borderColor: "var(--border)" }}
+          >
+            <option value="">—</option>
+            {Object.entries(ACCESS_ROAD_TYPES).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
+          </select>
+        </div>
+        <div>
+          <label className="block text-xs font-medium mb-1 text-[var(--text-secondary)]">{t("furnished")}</label>
+          <select
+            value={data.furnished ?? ""}
+            onChange={(e) => set("furnished", e.target.value || null)}
+            className="w-full rounded-lg px-3 py-2 text-sm"
+            style={{ backgroundColor: "var(--bg-input)", color: "var(--text-primary)", borderColor: "var(--border)" }}
+          >
+            <option value="">—</option>
+            {Object.entries(FURNISHED_TYPES).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
+          </select>
+        </div>
+        <div>
+          <label className="block text-xs font-medium mb-1 text-[var(--text-secondary)]">{t("direction")}</label>
+          <select
+            value={data.direction ?? ""}
+            onChange={(e) => set("direction", e.target.value || null)}
+            className="w-full rounded-lg px-3 py-2 text-sm"
+            style={{ backgroundColor: "var(--bg-input)", color: "var(--text-primary)", borderColor: "var(--border)" }}
+          >
+            <option value="">—</option>
+            {Object.entries(DIRECTION_TYPES).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
+          </select>
+        </div>
+        <div>
+          <label className="block text-xs font-medium mb-1 text-[var(--text-secondary)]">{t("structureType")}</label>
+          <select
+            value={data.structure_type ?? ""}
+            onChange={(e) => set("structure_type", e.target.value || null)}
+            className="w-full rounded-lg px-3 py-2 text-sm"
+            style={{ backgroundColor: "var(--bg-input)", color: "var(--text-primary)", borderColor: "var(--border)" }}
+          >
+            <option value="">—</option>
+            {Object.entries(STRUCTURE_TYPES).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
+          </select>
+        </div>
+        <div className="flex flex-col gap-2">
+          <label className="flex items-center gap-2 text-sm cursor-pointer text-[var(--text-secondary)]">
+            <input type="checkbox" checked={data.corner_lot ?? false} onChange={(e) => set("corner_lot", e.target.checked)} className="accent-[var(--orange)]" />
+            {t("cornerLot")}
+          </label>
+          <label className="flex items-center gap-2 text-sm cursor-pointer text-[var(--text-secondary)]">
+            <input type="checkbox" checked={data.has_elevator ?? false} onChange={(e) => set("has_elevator", e.target.checked)} className="accent-[var(--orange)]" />
+            {t("hasElevator")}
+          </label>
+          <label className="flex items-center gap-2 text-sm cursor-pointer text-[var(--text-secondary)]">
+            <input type="checkbox" checked={data.negotiable ?? false} onChange={(e) => set("negotiable", e.target.checked)} className="accent-[var(--orange)]" />
+            {t("negotiable")}
+          </label>
+        </div>
+        <div>
+          <label className="block text-xs font-medium mb-1 text-[var(--text-secondary)]">{t("rentalIncome")}</label>
+          <input
+            type="number"
+            value={data.rental_income_vnd ?? ""}
+            onChange={(e) => set("rental_income_vnd", e.target.value ? parseFloat(e.target.value) : null)}
+            className="w-full rounded-lg px-3 py-2 text-sm"
+            style={{ backgroundColor: "var(--bg-input)", color: "var(--text-primary)", borderColor: "var(--border)" }}
+          />
+        </div>
+        <div>
+          <label className="block text-xs font-medium mb-1 text-[var(--text-secondary)]">{t("trafficConnectivity")}</label>
+          <input
+            type="text"
+            value={data.traffic_connectivity ?? ""}
+            onChange={(e) => set("traffic_connectivity", e.target.value || null)}
+            className="w-full rounded-lg px-3 py-2 text-sm"
+            style={{ backgroundColor: "var(--bg-input)", color: "var(--text-primary)", borderColor: "var(--border)" }}
+          />
+        </div>
+        <div>
+          <label className="block text-xs font-medium mb-1 text-[var(--text-secondary)]">{t("fengShui")}</label>
+          <input
+            type="text"
+            value={data.feng_shui ?? ""}
+            onChange={(e) => set("feng_shui", e.target.value || null)}
+            className="w-full rounded-lg px-3 py-2 text-sm"
+            style={{ backgroundColor: "var(--bg-input)", color: "var(--text-primary)", borderColor: "var(--border)" }}
+          />
+        </div>
       </div>
     </div>
   );

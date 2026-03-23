@@ -158,7 +158,7 @@ export async function POST(request: NextRequest) {
         traffic_connectivity, building_type,
         latitude, longitude,
         road_width_m, num_frontages, distance_to_beach_m,
-        title_standardized, commission
+        title_standardized, commission, commission_pct, commission_months, ward_new
       ) VALUES (
         $1, $2,
         $3, $4, $5, $6,
@@ -173,7 +173,7 @@ export async function POST(request: NextRequest) {
         $37, $38,
         $39, $40,
         $41, $42, $43,
-        $44, $45
+        $44, $45, $46, $47, $48
       ) RETURNING *`,
       [
         auth.userId,
@@ -222,7 +222,10 @@ export async function POST(request: NextRequest) {
         data.num_frontages ?? null,
         data.distance_to_beach_m ?? null,
         generateTitleStandardized(data),
-        data.commission ?? "hh1"
+        data.commission ?? "hh1",
+        data.commission_pct ?? null,
+        data.commission_months ?? null,
+        data.ward_new ?? null,
       ],
     );
 
