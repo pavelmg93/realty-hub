@@ -47,13 +47,13 @@ export default function FeedMap({
       : undefined;
 
   return (
-    <div style={{ height }} className="rounded-lg overflow-hidden border border-[var(--border)]">
+    <div style={{ height, touchAction: "pan-y" }} className="rounded-lg overflow-hidden border border-[var(--border)]">
       <MapContainer
         center={NHA_TRANG_CENTER}
         zoom={13}
         bounds={bounds?.pad(0.1)}
         style={{ height: "100%", width: "100%" }}
-        scrollWheelZoom={true}
+        scrollWheelZoom={false}
       >
         <TileLayer
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'

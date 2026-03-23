@@ -14,34 +14,28 @@ import DynamicFeedMap from "@/components/map/DynamicFeedMap";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { Plus, Filter, Map, Search } from "lucide-react";
 
-type Tab = "all" | "active" | "under_contract" | "sold" | "archived";
 type ViewMode = "grid" | "map";
-type GridCols = 1 | 2 | 3;
+type GridCols = 1 | 2;
 
 export default function ListingsPage() {
   const { t } = useLanguage();
   const router = useRouter();
-  const [tab, setTab] = useState<Tab>("all");
   const [listings, setListings] = useState<Listing[]>([]);
   const [loading, setLoading] = useState(true);
   const [filters, setFilters] = useState<FeedFilterValues>({ ...DEFAULT_FILTERS });
   const [showFilters, setShowFilters] = useState(false);
   const [viewMode, setViewMode] = useState<ViewMode>("grid");
   const [cols, setCols] = useState<GridCols>(2);
+  const [searchQuery, setSearchQuery] = useState("");
 
-  const fetchListings = useCallback(async () => {
+  const fetchListings = useCallback(async (q?: string) => {
     setLoading(true);
     try {
       const params = new URLSearchParams();
-      params.set("archived", tab === "archived" ? "true" : "false");
-      
-      if (tab === "active") {
-        params.set("status", "just_listed,for_sale,price_dropped,price_increased");
-      } else if (tab === "under_contract") {
-        params.set("status", "deposit");
-      } else if (tab === "sold") {
-        params.set("status", "sold");
-      }
+      params.set("archived", "false");
+
+      const query = q !== undefined ? q : searchQuery;
+      if (query.trim()) params.set("q", query.trim());
 
       params.set("sort", filters.sort);
       params.set("order", filters.order);
@@ -58,11 +52,16 @@ export default function ListingsPage() {
     } finally {
       setLoading(false);
     }
-  }, [tab, filters]);
+  }, [filters, searchQuery]);
 
   useEffect(() => {
     fetchListings();
   }, [fetchListings]);
+
+  const handleSearchChange = (value: string) => {
+    setSearchQuery(value);
+    fetchListings(value);
+  };
 
   const handleApplyFilters = () => fetchListings();
   const handleResetFilters = () => setFilters({ ...DEFAULT_FILTERS });
@@ -105,100 +104,57 @@ export default function ListingsPage() {
         </Link>
       </div>
 
-      <div className="flex flex-wrap items-center gap-3 mb-4">
-        <div className="relative flex-1 min-w-[200px]">
-          <span className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
-            <Search size={18} />
+      {/* Unified toolbar */}
+      <div className="flex items-center gap-2 mb-3">
+        {/* Search */}
+        <div className="relative flex-1">
+          <span className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-[var(--text-muted)]">
+            <Search size={16} />
           </span>
           <input
             type="text"
-            className="w-full pl-10 pr-4 py-2 bg-white dark:bg-surface-dark border border-[var(--border)] rounded-lg text-sm focus:ring-2 focus:ring-[var(--orange)] focus:border-transparent outline-none shadow-sm"
-            placeholder={t("searchPlaceholder") || "Search address, city, or zip..."}
+            value={searchQuery}
+            onChange={(e) => handleSearchChange(e.target.value)}
+            className="w-full pl-9 pr-4 py-2 text-sm rounded-lg border border-[var(--border)] bg-[var(--bg-surface)] text-[var(--text-primary)] placeholder-[var(--text-muted)] focus:outline-none focus:border-[var(--orange)]"
+            placeholder={t("searchListings") || "Tìm kiếm địa chỉ, phường, mô tả..."}
           />
+          {searchQuery && (
+            <button
+              type="button"
+              onClick={() => handleSearchChange("")}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)] hover:text-[var(--text-primary)]"
+            >
+              &times;
+            </button>
+          )}
         </div>
 
+        {/* Filter */}
         <button
           type="button"
           onClick={() => setShowFilters((s) => !s)}
-          className={`inline-flex flex-none items-center gap-2 px-3 py-2 text-sm rounded-lg border border-[var(--border)] shadow-sm ${
+          className={`inline-flex flex-none items-center gap-1.5 px-3 py-2 text-sm rounded-lg border border-[var(--border)] transition-colors ${
             showFilters ? "text-white" : "text-[var(--text-secondary)]"
           }`}
           style={showFilters ? { backgroundColor: "var(--orange)" } : { backgroundColor: "var(--bg-surface)" }}
         >
-          <Filter size={16} /> {t("filters")}
+          <Filter size={16} /> {t("filter")}
         </button>
 
+        {/* Grid toggle */}
         {viewMode === "grid" && (
           <GridToggle value={cols} onChange={setCols} />
         )}
 
+        {/* Map toggle */}
         <button
           type="button"
           onClick={() => setViewMode((m) => (m === "grid" ? "map" : "grid"))}
-          className="inline-flex flex-none items-center gap-2 px-3 py-2 text-sm rounded-lg border border-[var(--border)] text-[var(--text-secondary)] shadow-sm hover:bg-[var(--bg-hover)] transition-colors"
+          className="inline-flex flex-none items-center gap-1.5 px-3 py-2 text-sm rounded-lg border border-[var(--border)] text-[var(--text-secondary)] hover:bg-[var(--bg-hover)] transition-colors"
           style={{ backgroundColor: "var(--bg-surface)" }}
         >
           <Map size={16} /> {viewMode === "map" ? t("grid") : t("map")}
         </button>
-      </div>
-
-      <div className="flex space-x-3 overflow-x-auto no-scrollbar pb-3 mb-2">
-        <button
-          onClick={() => setTab("all")}
-          className={`flex-none px-4 py-1.5 rounded-full text-sm font-medium transition-colors whitespace-nowrap ${
-            tab === "all"
-              ? "text-white shadow-md"
-              : "bg-white dark:bg-surface-dark border border-[var(--border)] text-[var(--text-secondary)] hover:border-[var(--orange)] hover:text-[var(--orange)]"
-          }`}
-          style={tab === "all" ? { backgroundColor: "var(--orange)" } : undefined}
-        >
-          {t("all")}
-        </button>
-        <button
-          onClick={() => setTab("active")}
-          className={`flex-none px-4 py-1.5 rounded-full text-sm font-medium transition-colors whitespace-nowrap ${
-            tab === "active"
-              ? "text-white shadow-md"
-              : "bg-white dark:bg-surface-dark border border-[var(--border)] text-[var(--text-secondary)] hover:border-[var(--orange)] hover:text-[var(--orange)]"
-          }`}
-          style={tab === "active" ? { backgroundColor: "var(--orange)" } : undefined}
-        >
-          {t("activeLabel") || "Active"}
-        </button>
-        <button
-          onClick={() => setTab("under_contract")}
-          className={`flex-none px-4 py-1.5 rounded-full text-sm font-medium transition-colors whitespace-nowrap ${
-            tab === "under_contract"
-              ? "text-white shadow-md"
-              : "bg-white dark:bg-surface-dark border border-[var(--border)] text-[var(--text-secondary)] hover:border-[var(--orange)] hover:text-[var(--orange)]"
-          }`}
-          style={tab === "under_contract" ? { backgroundColor: "var(--orange)" } : undefined}
-        >
-          {t("underContract") || "Under Contract"}
-        </button>
-        <button
-          onClick={() => setTab("sold")}
-          className={`flex-none px-4 py-1.5 rounded-full text-sm font-medium transition-colors whitespace-nowrap ${
-            tab === "sold"
-              ? "text-white shadow-md"
-              : "bg-white dark:bg-surface-dark border border-[var(--border)] text-[var(--text-secondary)] hover:border-[var(--orange)] hover:text-[var(--orange)]"
-          }`}
-          style={tab === "sold" ? { backgroundColor: "var(--orange)" } : undefined}
-        >
-          {t("sold") || "Sold"}
-        </button>
-        <button
-          onClick={() => setTab("archived")}
-          className={`flex-none px-4 py-1.5 rounded-full text-sm font-medium transition-colors whitespace-nowrap ${
-            tab === "archived"
-              ? "text-white shadow-md"
-              : "bg-white dark:bg-surface-dark border border-[var(--border)] text-[var(--text-secondary)] hover:border-[var(--orange)] hover:text-[var(--orange)]"
-          }`}
-          style={tab === "archived" ? { backgroundColor: "var(--orange)" } : undefined}
-        >
-          {t("archived")}
-        </button>
-
       </div>
 
       {showFilters && (
@@ -211,7 +167,7 @@ export default function ListingsPage() {
       )}
 
       {loading ? (
-        <div className={`grid gap-4 ${cols === 1 ? "grid-cols-1" : cols === 2 ? "grid-cols-2" : "grid-cols-3"}`}>
+        <div className={`grid gap-4 ${cols === 1 ? "grid-cols-1" : "grid-cols-2"}`}>
           {[...Array(4)].map((_, i) => (
             <div key={i} className="h-48 rounded-xl animate-pulse" style={{ backgroundColor: "var(--bg-elevated)" }} />
           ))}
@@ -219,36 +175,34 @@ export default function ListingsPage() {
       ) : listings.length === 0 ? (
         <div className="text-center py-16">
           <p className="text-[var(--text-muted)] mb-3">
-            {tab === "active" ? t("noActiveListings") : t("noArchivedListings")}
+            {t("noListings")}
           </p>
-          {tab === "active" && (
-            <button
-              type="button"
-              onClick={() => router.push("/dashboard/listings/new")}
-              className="px-4 py-2 text-sm font-medium rounded-lg text-white"
-              style={{ backgroundColor: "var(--orange)" }}
-            >
-              {t("addListing")}
-            </button>
-          )}
+          <button
+            type="button"
+            onClick={() => router.push("/dashboard/listings/new")}
+            className="px-4 py-2 text-sm font-medium rounded-lg text-white"
+            style={{ backgroundColor: "var(--orange)" }}
+          >
+            {t("addListing")}
+          </button>
         </div>
       ) : viewMode === "map" ? (
         <DynamicFeedMap
           listings={listings}
           onListingClick={(l) => router.push(`/dashboard/listings/${l.id}/view?from=listings`)}
-          height="calc(100vh - 260px)"
+          height="calc(100vh - 200px)"
         />
       ) : (
         <div
           className={`grid gap-4 ${
-            cols === 1 ? "grid-cols-1" : cols === 2 ? "grid-cols-2" : "grid-cols-3"
+            cols === 1 ? "grid-cols-1" : "grid-cols-2"
           }`}
         >
           {listings.map((listing) => (
             <ListingCard
               key={listing.id}
               listing={listing}
-              isArchived={tab === "archived"}
+              isArchived={false}
               isOwner
               onArchive={handleArchive}
               onReactivate={handleReactivate}

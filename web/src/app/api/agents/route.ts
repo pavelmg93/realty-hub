@@ -10,7 +10,7 @@ export async function GET() {
     }
 
     const result = await pool.query(
-      `SELECT id, first_name, last_name, username, phone, email, name
+      `SELECT id, first_name, last_name, username, phone, email, name, avatar_url
        FROM agents
        WHERE username IS NOT NULL
        ORDER BY first_name, username`

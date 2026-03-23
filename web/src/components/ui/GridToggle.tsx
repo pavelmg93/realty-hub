@@ -1,8 +1,8 @@
 "use client";
 
-import { LayoutGrid, Grid3X3, Square } from "lucide-react";
+import { Grid3X3, Square } from "lucide-react";
 
-type GridCols = 1 | 2 | 3;
+type GridCols = 1 | 2;
 
 export function GridToggle({
   value,
@@ -16,8 +16,8 @@ export function GridToggle({
       className="flex items-center rounded-md p-0.5 gap-0.5"
       style={{ backgroundColor: "var(--bg-elevated)" }}
     >
-      {([1, 2, 3] as GridCols[]).map((n) => {
-        const Icon = n === 1 ? Square : n === 2 ? Grid3X3 : LayoutGrid;
+      {([1, 2] as GridCols[]).map((n) => {
+        const Icon = n === 1 ? Square : Grid3X3;
         return (
           <button
             key={n}

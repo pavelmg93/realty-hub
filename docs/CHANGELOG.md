@@ -6,6 +6,27 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Session 24 — 2026-03-23 — UX Polish + Messaging Redesign
+
+#### Added
+- **REA-49: Embedded messages in listing detail** — Full `#messages` section at bottom of listing detail page. Non-owners: see single thread or "start conversation" prompt that creates + populates a new conversation inline. Owners: collapsible accordion of all inquiry threads with inline reply. Feed buttons now deep-link to `#messages`.
+- **REA-48: Sticky conversation headers** — Agent header and property bar in conversation thread are now `sticky top-0/top-[52px]`. Messages area is `flex-1 overflow-y-auto min-h-0`.
+- **Migration 016** — `regexp_replace` SQL to fix title_standardized format: swap commission+price positions in existing rows.
+- **5 new i18n keys** — `messagesAboutListing`, `noInquiriesYet`, `askAboutListing`, `typeFirstMessage`, `typeReply` (en + vi).
+- **My Listings search** — Search input added to My Listings toolbar; `/api/listings` GET now supports `q` ILIKE search.
+
+#### Changed
+- **REA-41: Avatar rendering** — All conversation/listing/agents APIs now return `avatar_url`. `AgentChip` renders `<img>` with initials fallback. `ListingCard` passes `owner_avatar_url` to chip.
+- **REA-42: Title format** — `generateTitleStandardized()` now puts price before commission (`100 7 10 10 20ty hh1`).
+- **REA-43: Title font size** — `title_standardized` in listing detail is `text-2xl sm:text-3xl font-bold`.
+- **REA-44: Listing detail linearized** — Removed tab system (Details/Photos/Documents/Map). Page is now a single scroll in correct order: title → carousel → price → specs → description → details → map → documents → agent info → messages.
+- **REA-45: Map mobile** — `FeedMap` sets `touchAction: pan-y` and `scrollWheelZoom: false`. Height normalized to `calc(100vh - 200px)`.
+- **REA-46: Filter chips removed** — All/Active/Under Contract/Sold/Archived tab chips removed from My Listings. Status filtering via FeedFilters panel only.
+- **REA-47: Unified toolbar** — Feed and My Listings both use identical single-row toolbar: search (flex-1) + filter btn + grid toggle (grid mode only) + map toggle. 3-column grid removed.
+- **REA-50: Mobile zoom disabled** — `export const viewport` with `maximumScale: 1, userScalable: false` added to `app/layout.tsx`.
+
+---
+
 ### Session 23 — 2026-03-21 — Pilot Branding + Data Fixes
 
 #### Added

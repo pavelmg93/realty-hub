@@ -152,8 +152,8 @@ export function formatPriceShortest(vnd: number | null): string {
 
 /**
  * Build title_standardized — specs line (no address).
- * Formula: "<area>m² <floors>T <frontage>x<depth> <commission> <price>"
- * Example: "100m² 7T 10x10 hh1 20ty"
+ * Formula: "<area>m² <floors>T <frontage>x<depth> <price> <commission>"
+ * Example: "100 7 10 10 20ty hh1"
  */
 export function generateTitleStandardized(data: {
   address_raw?: string | null;
@@ -177,10 +177,10 @@ export function generateTitleStandardized(data: {
   if (data.depth_m) dimParts.push(data.depth_m.toString());
   if (dimParts.length > 0) parts.push(dimParts.join(" "));
 
-  parts.push(data.commission || "hh1");
-
   const priceStr = data.price_short ?? (data.price_vnd ? formatPriceShortest(data.price_vnd) : null);
   if (priceStr) parts.push(priceStr);
+
+  parts.push(data.commission || "hh1");
 
   return parts.join(" ");
 }

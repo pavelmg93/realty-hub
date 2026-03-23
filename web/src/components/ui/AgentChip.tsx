@@ -8,6 +8,7 @@ interface AgentChipProps {
     first_name: string | null;
     username: string | null;
     phone?: string | null;
+    avatar_url?: string | null;
   };
   size?: "sm" | "md";
   showOnline?: boolean;
@@ -29,14 +30,22 @@ export function AgentChip({
       }`}
     >
       <div className="relative flex-shrink-0">
-        <div
-          className={`rounded-full flex items-center justify-center font-bold text-white ${
-            size === "sm" ? "w-6 h-6 text-[10px]" : "w-8 h-8 text-xs"
-          }`}
-          style={{ backgroundColor: "var(--orange)" }}
-        >
-          {initials}
-        </div>
+        {agent.avatar_url ? (
+          <img
+            src={`/api/files/${agent.avatar_url}`}
+            alt=""
+            className={`rounded-full object-cover ${size === "sm" ? "w-6 h-6" : "w-8 h-8"}`}
+          />
+        ) : (
+          <div
+            className={`rounded-full flex items-center justify-center font-bold text-white ${
+              size === "sm" ? "w-6 h-6 text-[10px]" : "w-8 h-8 text-xs"
+            }`}
+            style={{ backgroundColor: "var(--orange)" }}
+          >
+            {initials}
+          </div>
+        )}
         {showOnline && (
           <span
             className="absolute bottom-0 right-0 w-2 h-2 rounded-full border border-[var(--bg-surface)]"

@@ -69,6 +69,7 @@ export interface Listing {
   owner_first_name?: string;
   owner_phone?: string;
   owner_email?: string;
+  owner_avatar_url?: string | null;
   existing_conversation_id?: number | null;
   // Photos (joined)
   photo_count?: number;

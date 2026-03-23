@@ -65,6 +65,7 @@ export function ListingCard({
           first_name: listing.owner_first_name ?? null,
           username: listing.owner_username ?? null,
           phone: listing.owner_phone ?? null,
+          avatar_url: listing.owner_avatar_url ?? null,
         }
       : null;
   const hasConversation = !!listing.existing_conversation_id;

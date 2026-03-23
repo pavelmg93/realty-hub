@@ -13,25 +13,25 @@
 
 ### Tasks (execute top-down)
 
-* [ ] **[Bug: Avatar not displayed — REA-41]** Agent avatar uploads work but avatars don't render in feed cards, listing detail, or conversation threads. Update APIs to return `avatar_url`, update all UI components to render `<img>` with initials fallback.
+* [x] **[Bug: Avatar not displayed — REA-41]** Agent avatar uploads work but avatars don't render in feed cards, listing detail, or conversation threads. Update APIs to return `avatar_url`, update all UI components to render `<img>` with initials fallback.
 
-* [ ] **[Title: swap commission/price order — REA-42]** In `generateTitleStandardized()`, move commission after price. New format: `<area> <floors> <frontage> <depth> <price> <commission>`. Write migration to fix existing DB rows.
+* [x] **[Title: swap commission/price order — REA-42]** In `generateTitleStandardized()`, move commission after price. New format: `<area> <floors> <frontage> <depth> <price> <commission>`. Write migration to fix existing DB rows.
 
-* [ ] **[Title: scale larger in listing detail — REA-43]** Increase standardized title font size in listing detail view. Should be prominent across content width (`text-2xl sm:text-3xl` or larger). Note: title appears ABOVE the photo carousel in listing detail.
+* [x] **[Title: scale larger in listing detail — REA-43]** Increase standardized title font size in listing detail view. Should be prominent across content width (`text-2xl sm:text-3xl` or larger). Note: title appears ABOVE the photo carousel in listing detail.
 
-* [ ] **[Listing detail: deduplicate info — REA-44]** Audit listing detail page for redundant sections (duplicate price/USD conversion block). Correct layout order: Standardized title (large) → Photo carousel → Specs → Description → Details → Map → Agent info → Messages. Remove all duplicate data.
+* [x] **[Listing detail: deduplicate info — REA-44]** Audit listing detail page for redundant sections (duplicate price/USD conversion block). Correct layout order: Standardized title (large) → Photo carousel → Specs → Description → Details → Map → Agent info → Messages. Remove all duplicate data.
 
-* [ ] **[Map: fix height + mobile scroll trap — REA-45]** Constrain map view height so bottom nav is always visible. Add non-map touch zone so mobile users can scroll past the map. Formula: `h-[calc(100vh-topbar-bottomnav)]`.
+* [x] **[Map: fix height + mobile scroll trap — REA-45]** Constrain map view height so bottom nav is always visible. Add non-map touch zone so mobile users can scroll past the map. Formula: `h-[calc(100vh-topbar-bottomnav)]`.
 
-* [ ] **[My Listings: remove filter chips — REA-46]** Remove standalone status filter buttons (Active/All/Archived chips). Move status filtering into the filter panel.
+* [x] **[My Listings: remove filter chips — REA-46]** Remove standalone status filter buttons (Active/All/Archived chips). Move status filtering into the filter panel.
 
-* [ ] **[Unify toolbar: Feed + My Listings — REA-47]** Make search, filters, grid toggle, and map toggle identical between Feed and My Listings. Single row on all viewports. Remove 3-wide grid option — only 1-wide and 2-wide.
+* [x] **[Unify toolbar: Feed + My Listings — REA-47]** Make search, filters, grid toggle, and map toggle identical between Feed and My Listings. Single row on all viewports. Remove 3-wide grid option — only 1-wide and 2-wide.
 
-* [ ] **[Conversation thread: sticky headers — REA-48]** Restructure `/dashboard/messages/[conversationId]`: agent header (sticky) → property bar (sticky) → messages viewport (scroll to latest) → input (fixed bottom). See ADR-004.
+* [x] **[Conversation thread: sticky headers — REA-48]** Restructure `/dashboard/messages/[conversationId]`: agent header (sticky) → property bar (sticky) → messages viewport (scroll to latest) → input (fixed bottom). See ADR-004.
 
-* [ ] **[Listing detail: embed messages — REA-49]** Add message section at bottom of listing detail. Case A (not owner): single thread with listing owner, or "start conversation" input. Case B (owner): collapsible accordion of ALL inquiry threads. Feed "View Messages" and "Message Agent" buttons → `/dashboard/listings/[id]/view#messages` (auto-scroll). `/dashboard/messages` inbox remains unchanged. See ADR-004.
+* [x] **[Listing detail: embed messages — REA-49]** Add message section at bottom of listing detail. Case A (not owner): single thread with listing owner, or "start conversation" input. Case B (owner): collapsible accordion of ALL inquiry threads. Feed "View Messages" and "Message Agent" buttons → `/dashboard/listings/[id]/view#messages` (auto-scroll). `/dashboard/messages` inbox remains unchanged. See ADR-004.
 
-* [ ] **[Mobile: disable zoom — REA-50]** Set viewport meta to `maximum-scale=1, user-scalable=no`. Fix any horizontal overflow.
+* [x] **[Mobile: disable zoom — REA-50]** Set viewport meta to `maximum-scale=1, user-scalable=no`. Fix any horizontal overflow.
 
 ---
 

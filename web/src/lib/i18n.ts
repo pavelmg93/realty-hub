@@ -238,6 +238,11 @@ export const translations = {
     saveFailed: "Save failed",
     noMessagesThread: "No messages yet. Start the conversation!",
     noConversationsYet: "No conversations yet",
+    messagesAboutListing: "Messages about this listing",
+    noInquiriesYet: "No inquiries yet",
+    askAboutListing: "Ask the agent about this listing",
+    typeFirstMessage: "Type your first message...",
+    typeReply: "Type a reply...",
   },
   vi: {
     feed: "Bảng tin",
@@ -476,6 +481,11 @@ export const translations = {
     saveFailed: "Lưu thất bại",
     noMessagesThread: "Chưa có tin nhắn. Hãy bắt đầu cuộc trò chuyện!",
     noConversationsYet: "Chưa có hội thoại nào",
+    messagesAboutListing: "Tin nhắn về BĐS này",
+    noInquiriesYet: "Chưa có tin nhắn nào",
+    askAboutListing: "Hỏi môi giới về BĐS này",
+    typeFirstMessage: "Nhập tin nhắn đầu tiên...",
+    typeReply: "Nhập tin nhắn trả lời...",
   },
 } satisfies Record<Lang, Record<string, string>>;
 

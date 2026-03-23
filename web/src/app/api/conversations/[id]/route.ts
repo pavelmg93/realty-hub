@@ -30,6 +30,7 @@ export async function GET(
         CASE WHEN c.agent_1_id = $1 THEN a2.first_name ELSE a1.first_name END AS other_agent_first_name,
         CASE WHEN c.agent_1_id = $1 THEN a2.phone ELSE a1.phone END AS other_agent_phone,
         CASE WHEN c.agent_1_id = $1 THEN a2.email ELSE a1.email END AS other_agent_email,
+        CASE WHEN c.agent_1_id = $1 THEN a2.avatar_url ELSE a1.avatar_url END AS other_agent_avatar_url,
         pl.property_type AS listing_property_type,
         pl.ward AS listing_ward,
         pl.price_vnd AS listing_price_vnd,

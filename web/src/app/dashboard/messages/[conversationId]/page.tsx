@@ -160,8 +160,8 @@ export default function ConversationPage() {
 
   return (
     <div className="max-w-2xl mx-auto flex flex-col h-[calc(100vh-8rem)] lg:h-[calc(100vh-3rem)]">
-      {/* Agent block at top (Stitch: small profile image, name, subtitle, call, more) — Back is in TopBar top-left */}
-      <div className="flex items-center gap-3 py-3 px-1 border-b border-[var(--border)]">
+      {/* Sticky agent header */}
+      <div className="flex-none sticky top-0 z-10 flex items-center gap-3 py-3 px-1 border-b border-[var(--border)]" style={{ backgroundColor: "var(--bg-card)" }}>
         {otherAvatar ? (
           <img
             src={`/api/files/${otherAvatar}`}
@@ -213,10 +213,10 @@ export default function ConversationPage() {
         )}
       </div>
 
-      {/* Property bar when linked to listing (Stitch: thumbnail, title, price, link) */}
+      {/* Sticky property bar when linked to listing */}
       {conversation?.listing_id != null && (
         <div
-          className="flex-none flex gap-3 items-center px-4 py-3 border-b border-[var(--border)]"
+          className="flex-none sticky top-[52px] z-10 flex gap-3 items-center px-4 py-3 border-b border-[var(--border)]"
           style={{ backgroundColor: "var(--bg-surface)" }}
         >
           {conversation.listing_primary_photo ? (
@@ -253,8 +253,15 @@ export default function ConversationPage() {
         </div>
       )}
 
-      <MessageThread messages={messages} currentUserId={user?.id ?? 0} />
-      <MessageInput onSend={handleSend} />
+      {/* Scrollable messages area */}
+      <div className="flex-1 overflow-y-auto min-h-0">
+        <MessageThread messages={messages} currentUserId={user?.id ?? 0} />
+      </div>
+
+      {/* Fixed input */}
+      <div className="flex-none">
+        <MessageInput onSend={handleSend} />
+      </div>
     </div>
   );
 }

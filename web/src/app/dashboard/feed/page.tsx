@@ -12,6 +12,7 @@ import FeedFilters, {
 } from "@/components/feed/FeedFilters";
 import DynamicFeedMap from "@/components/map/DynamicFeedMap";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { Filter, Map } from "lucide-react";
 
 interface Pagination {
   page: number;
@@ -21,7 +22,7 @@ interface Pagination {
 }
 
 type ViewMode = "grid" | "map";
-type GridCols = 1 | 2 | 3;
+type GridCols = 1 | 2;
 
 export default function FeedPage() {
   const { user } = useAuth();
@@ -93,10 +94,7 @@ export default function FeedPage() {
   };
 
   const handleMessage = (listing: Listing) => {
-    if (!listing.agent_id) return;
-    router.push(
-      `/dashboard/messages/new?listing_id=${listing.id}&agent_id=${listing.agent_id}`
-    );
+    router.push(`/dashboard/listings/${listing.id}/view?from=feed#messages`);
   };
 
   const handleApplyFilters = () => fetchFeed(1);
@@ -105,73 +103,71 @@ export default function FeedPage() {
 
   return (
     <div className="px-4 sm:px-6 py-4 max-w-3xl mx-auto">
-      {/* Search bar */}
-      <div className="relative mb-3">
-        <svg
-          className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-muted)] pointer-events-none"
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
-        >
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-        </svg>
-        <input
-          type="text"
-          value={searchQuery}
-          onChange={(e) => handleSearchChange(e.target.value)}
-          placeholder={t("searchListings") || "Tìm kiếm địa chỉ, phường, mô tả..."}
-          className="w-full pl-9 pr-4 py-2 text-sm rounded-lg border border-[var(--border)] bg-[var(--bg-surface)] text-[var(--text-primary)] placeholder-[var(--text-muted)] focus:outline-none focus:border-[var(--orange)]"
-        />
-        {searchQuery && (
-          <button
-            type="button"
-            onClick={() => handleSearchChange("")}
-            className="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)] hover:text-[var(--text-primary)]"
-          >
-            &times;
-          </button>
-        )}
-      </div>
-
-      <div className="flex items-center justify-between gap-4 mb-3">
-        <GridToggle value={cols} onChange={setCols} />
-        <div className="flex items-center gap-2">
-          <span className="text-xs font-medium text-[var(--text-muted)]">
-            {t("mapView")}
-          </span>
-          <button
-            type="button"
-            onClick={() => setViewMode(viewMode === "grid" ? "map" : "grid")}
-            className={`w-11 h-6 rounded-full relative transition-colors focus:outline-none focus:ring-2 focus:ring-[var(--orange)] ${
-              viewMode === "map" ? "bg-[var(--orange)]" : "bg-[var(--bg-elevated)]"
-            }`}
-          >
-            <span
-              className="absolute top-1 w-4 h-4 bg-white rounded-full shadow transition-transform"
-              style={{ left: viewMode === "map" ? "22px" : "4px" }}
-            />
-          </button>
-        </div>
-      </div>
+      {/* Unified toolbar */}
       <div className="flex items-center gap-2 mb-3">
+        {/* Search */}
+        <div className="relative flex-1">
+          <svg
+            className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-muted)] pointer-events-none"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+          </svg>
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={(e) => handleSearchChange(e.target.value)}
+            placeholder={t("searchListings") || "Tìm kiếm địa chỉ, phường, mô tả..."}
+            className="w-full pl-9 pr-4 py-2 text-sm rounded-lg border border-[var(--border)] bg-[var(--bg-surface)] text-[var(--text-primary)] placeholder-[var(--text-muted)] focus:outline-none focus:border-[var(--orange)]"
+          />
+          {searchQuery && (
+            <button
+              type="button"
+              onClick={() => handleSearchChange("")}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)] hover:text-[var(--text-primary)]"
+            >
+              &times;
+            </button>
+          )}
+        </div>
+
+        {/* Filter */}
         <button
           type="button"
           onClick={() => setShowFilters(!showFilters)}
-          className={`px-3 py-1.5 text-sm rounded-lg transition-colors ${
-            showFilters
-              ? "bg-[var(--orange)] text-white"
-              : "bg-[var(--bg-elevated)] text-[var(--text-secondary)] hover:text-white"
+          className={`inline-flex flex-none items-center gap-1.5 px-3 py-2 text-sm rounded-lg border border-[var(--border)] transition-colors ${
+            showFilters ? "text-white" : "text-[var(--text-secondary)]"
           }`}
+          style={showFilters ? { backgroundColor: "var(--orange)" } : { backgroundColor: "var(--bg-surface)" }}
         >
-          {t("filter")}
+          <Filter size={16} /> {t("filter")}
         </button>
-        {!loading && (
-          <span className="text-sm text-[var(--text-muted)]">
-            {pagination.total} {t("listings")}
-            {searchQuery && <span className="ml-1 text-[var(--orange)]">"{searchQuery}"</span>}
-          </span>
+
+        {/* Grid toggle */}
+        {viewMode === "grid" && (
+          <GridToggle value={cols} onChange={setCols} />
         )}
+
+        {/* Map toggle */}
+        <button
+          type="button"
+          onClick={() => setViewMode(viewMode === "grid" ? "map" : "grid")}
+          className="inline-flex flex-none items-center gap-1.5 px-3 py-2 text-sm rounded-lg border border-[var(--border)] text-[var(--text-secondary)] hover:bg-[var(--bg-hover)] transition-colors"
+          style={{ backgroundColor: "var(--bg-surface)" }}
+        >
+          <Map size={16} /> {viewMode === "map" ? t("grid") : t("map")}
+        </button>
       </div>
+
+      {/* Listing count */}
+      {!loading && (
+        <div className="mb-3 text-sm text-[var(--text-muted)]">
+          {pagination.total} {t("listings")}
+          {searchQuery && <span className="ml-1 text-[var(--orange)]">"{searchQuery}"</span>}
+        </div>
+      )}
 
       {showFilters && (
         <FeedFilters
@@ -213,13 +209,13 @@ export default function FeedPage() {
         <DynamicFeedMap
           listings={listings}
           onListingClick={(l) => router.push(`/dashboard/listings/${l.id}/view?from=feed`)}
-          height="calc(100vh - 220px)"
+          height="calc(100vh - 200px)"
         />
       ) : (
         <>
           <div
             className={`grid gap-3 ${
-              cols === 1 ? "grid-cols-1" : cols === 2 ? "grid-cols-2" : "grid-cols-3"
+              cols === 1 ? "grid-cols-1" : "grid-cols-2"
             }`}
           >
             {listings.map((listing) => (
@@ -234,10 +230,7 @@ export default function FeedPage() {
                 viewSearch="?from=feed"
                 onMessage={() => handleMessage(listing)}
                 onViewMessages={() => {
-                  if (listing.existing_conversation_id)
-                    router.push(`/dashboard/messages/${listing.existing_conversation_id}`);
-                  else
-                    router.push("/dashboard/messages");
+                  router.push(`/dashboard/listings/${listing.id}/view?from=feed#messages`);
                 }}
               />
             ))}

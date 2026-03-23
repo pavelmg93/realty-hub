@@ -19,14 +19,14 @@ export default function MessageThread({ messages, currentUserId }: Props) {
 
   if (messages.length === 0) {
     return (
-      <div className="flex-1 flex items-center justify-center text-[var(--text-muted)] text-sm">
+      <div className="flex items-center justify-center min-h-[200px] text-[var(--text-muted)] text-sm">
         {t("noMessagesThread")}
       </div>
     );
   }
 
   return (
-    <div className="flex-1 overflow-y-auto p-4 space-y-3">
+    <div className="p-4 space-y-3">
       {messages.map((msg) => {
         const isMine = msg.sender_id === currentUserId;
         return (

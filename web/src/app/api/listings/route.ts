@@ -47,9 +47,17 @@ export async function GET(request: NextRequest) {
     const safeSort = allowedSort.includes(sort) ? sort : "created_at";
     const safeOrder = allowedOrder.includes(order) ? order : "desc";
 
+    const q = searchParams.get("q")?.trim() || "";
+
     const conditions: string[] = ["agent_id = $1"];
     const params: (string | number | boolean)[] = [auth.userId];
     let paramIndex = 2;
+
+    if (q) {
+      conditions.push(`(address_raw ILIKE $${paramIndex} OR street ILIKE $${paramIndex} OR ward ILIKE $${paramIndex} OR description ILIKE $${paramIndex})`);
+      params.push(`%${q}%`);
+      paramIndex++;
+    }
 
     if (archived === "true") {
       conditions.push("archived_at IS NOT NULL");

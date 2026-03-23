@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
-import { Listing, ListingPhoto, ListingDocument } from "@/lib/types";
+import { Listing, ListingPhoto, ListingDocument, Message } from "@/lib/types";
 import { useAuth } from "@/hooks/useAuth";
 import {
   PROPERTY_TYPES,
@@ -13,7 +13,6 @@ import {
   LEGAL_STATUS_TYPES,
   STRUCTURE_TYPES,
   BUILDING_TYPES,
-  DOCUMENT_CATEGORIES,
   formatPrice,
   generateTitleStandardized,
 } from "@/lib/constants";
@@ -23,9 +22,23 @@ import { TranslateButton } from "@/components/ui/TranslateButton";
 import DynamicListingMap from "@/components/map/DynamicListingMap";
 import PhotoUploader from "@/components/photos/PhotoUploader";
 import DocumentManager from "@/components/documents/DocumentManager";
-import { MessageCircle, Link2, Archive, Share2 } from "lucide-react";
+import { Link2, Archive, Share2 } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { getFieldValueLabel } from "@/lib/i18n";
+
+type ConversationWithMessages = {
+  id: number;
+  other_agent_name: string | null;
+  other_agent_first_name: string | null;
+  other_agent_username: string | null;
+  other_agent_phone: string | null;
+  other_agent_avatar_url: string | null;
+  listing_id: number | null;
+  last_message_preview: string | null;
+  unread_count: number;
+  messages?: Message[];
+  messagesLoading?: boolean;
+};
 
 function label(
   key: string | null | undefined,
@@ -41,20 +54,24 @@ export default function ListingViewPage() {
   const searchParams = useSearchParams();
   const fromParam = searchParams.get("from") ?? "listings";
   const { user } = useAuth();
-  const { t, lang } = useLanguage();
+  const { t } = useLanguage();
   const [listing, setListing] = useState<Listing | null>(null);
   const [photos, setPhotos] = useState<ListingPhoto[]>([]);
   const [documents, setDocuments] = useState<ListingDocument[]>([]);
   const [adjacentIds, setAdjacentIds] = useState<{ prev: number | null; next: number | null }>({ prev: null, next: null });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<"details" | "photos" | "documents" | "map">("details");
   const [activePhotoIdx, setActivePhotoIdx] = useState(0);
   const [translatedDesc, setTranslatedDesc] = useState<string | null>(null);
   const [shareCopied, setShareCopied] = useState(false);
   const [showShareCard, setShowShareCard] = useState(false);
   const [shareFormat, setShareFormat] = useState<"zalo" | "facebook">("zalo");
   const [shareTextCopied, setShareTextCopied] = useState(false);
+  const [conversations, setConversations] = useState<ConversationWithMessages[]>([]);
+  const [messagesLoading, setMessagesLoading] = useState(false);
+  const [expandedConvId, setExpandedConvId] = useState<number | null>(null);
+  const [newMessage, setNewMessage] = useState("");
+  const [sendingMessage, setSendingMessage] = useState(false);
 
   useEffect(() => {
     setActivePhotoIdx(0);
@@ -102,6 +119,33 @@ export default function ListingViewPage() {
     fetchData();
   }, [id]);
 
+  // Fetch conversations after listing loads
+  useEffect(() => {
+    if (!listing || !user) return;
+    setMessagesLoading(true);
+    fetch(`/api/conversations?listing_id=${listing.id}`)
+      .then(r => r.ok ? r.json() : { conversations: [] })
+      .then(d => {
+        setConversations(d.conversations || []);
+        // Auto-expand first conversation (most recent)
+        if (d.conversations?.length > 0) {
+          setExpandedConvId(d.conversations[0].id);
+        }
+      })
+      .catch(() => setConversations([]))
+      .finally(() => setMessagesLoading(false));
+  }, [listing, user]);
+
+  // Handle URL hash — scroll to messages section
+  useEffect(() => {
+    if (!listing) return;
+    if (typeof window !== 'undefined' && window.location.hash === '#messages') {
+      setTimeout(() => {
+        document.getElementById('messages')?.scrollIntoView({ behavior: 'smooth' });
+      }, 500);
+    }
+  }, [listing]);
+
   if (loading) {
     return (
       <div className="text-center py-12 text-[var(--text-muted)]">{t("loading")}</div>
@@ -125,19 +169,8 @@ export default function ListingViewPage() {
 
   const isOwner = listing.agent_id === user?.id;
 
-  const hasConversation = !!listing.existing_conversation_id;
-  const conversationId = listing.existing_conversation_id ?? null;
-
   const handleMessageAgent = () => {
-    if (!listing.agent_id) return;
-    if (conversationId) {
-      router.push(`/dashboard/messages/${conversationId}`);
-      return;
-    }
-    // No existing thread: open new-message page; thread is created only when user sends first message
-    router.push(
-      `/dashboard/messages/new?listing_id=${listing.id}&agent_id=${listing.agent_id}`
-    );
+    document.getElementById('messages')?.scrollIntoView({ behavior: 'smooth' });
   };
 
   const handleShareLink = () => {
@@ -220,37 +253,105 @@ export default function ListingViewPage() {
     if (res.ok) router.push("/dashboard/listings");
   };
 
+  const fetchConversationMessages = async (convId: number) => {
+    setConversations(prev => prev.map(c =>
+      c.id === convId ? { ...c, messagesLoading: true } : c
+    ));
+    try {
+      const res = await fetch(`/api/conversations/${convId}/messages`);
+      if (res.ok) {
+        const data = await res.json();
+        setConversations(prev => prev.map(c =>
+          c.id === convId ? { ...c, messages: data.messages, messagesLoading: false } : c
+        ));
+      }
+    } catch {
+      setConversations(prev => prev.map(c =>
+        c.id === convId ? { ...c, messagesLoading: false } : c
+      ));
+    }
+  };
+
+  const handleSendMessage = async (convId: number, body: string) => {
+    if (!body.trim()) return;
+    setSendingMessage(true);
+    try {
+      const res = await fetch(`/api/conversations/${convId}/messages`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ body: body.trim(), listing_id: listing?.id }),
+      });
+      if (res.ok) {
+        await fetchConversationMessages(convId);
+      }
+    } finally {
+      setSendingMessage(false);
+    }
+  };
+
+  const handleStartConversation = async (body: string) => {
+    if (!body.trim() || !listing?.agent_id) return;
+    setSendingMessage(true);
+    try {
+      const convRes = await fetch('/api/conversations', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          other_agent_id: listing.agent_id,
+          listing_id: listing.id
+        }),
+      });
+      if (convRes.ok) {
+        const { conversation } = await convRes.json();
+        // Send first message
+        await fetch(`/api/conversations/${conversation.id}/messages`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ body: body.trim(), listing_id: listing.id }),
+        });
+        // Reload conversations
+        const convsRes = await fetch(`/api/conversations?listing_id=${listing.id}`);
+        if (convsRes.ok) {
+          const d = await convsRes.json();
+          setConversations(d.conversations || []);
+          if (d.conversations?.length > 0) setExpandedConvId(d.conversations[0].id);
+        }
+      }
+    } finally {
+      setSendingMessage(false);
+      setNewMessage("");
+    }
+  };
+
   return (
     <div className="max-w-4xl mx-auto px-4 sm:px-6">
-      {/* Top actions: Archive, Edit, Create post (Message + Share moved to bottom) */}
-      <div className="flex flex-wrap items-center gap-2 mb-4 p-3 rounded-xl border border-[var(--border)]" style={{ backgroundColor: "var(--bg-surface)" }}>
-        {isOwner && (
-          <>
-            <button
-              type="button"
-              onClick={() => router.push(`/dashboard/listings/${listing.id}/edit`)}
-              className="inline-flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-lg text-white"
-              style={{ backgroundColor: "var(--orange)" }}
-            >
-              {t("edit")}
-            </button>
-            <button
-              type="button"
-              onClick={handleArchive}
-              className="inline-flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-lg border border-[var(--border)] text-[var(--text-primary)] hover:bg-[var(--bg-hover)]"
-            >
-              <Archive size={16} /> {t("archive")}
-            </button>
-            <button
-              type="button"
-              onClick={() => setShowShareCard((v) => !v)}
-              className={`inline-flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-lg border transition-colors ${showShareCard ? "border-[var(--orange)] text-[var(--orange)]" : "border-[var(--border)] text-[var(--text-primary)] hover:bg-[var(--bg-hover)]"}`}
-            >
-              <Share2 size={16} /> {t("createPost")}
-            </button>
-          </>
-        )}
-      </div>
+      {/* Top actions bar — owner only */}
+      {isOwner && (
+        <div className="flex flex-wrap items-center gap-2 mb-4 p-3 rounded-xl border border-[var(--border)]" style={{ backgroundColor: "var(--bg-surface)" }}>
+          <button
+            type="button"
+            onClick={() => router.push(`/dashboard/listings/${listing.id}/edit`)}
+            className="inline-flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-lg text-white"
+            style={{ backgroundColor: "var(--orange)" }}
+          >
+            {t("edit")}
+          </button>
+          <button
+            type="button"
+            onClick={handleArchive}
+            className="inline-flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-lg border border-[var(--border)] text-[var(--text-primary)] hover:bg-[var(--bg-hover)]"
+          >
+            <Archive size={16} /> {t("archive")}
+          </button>
+          <button
+            type="button"
+            onClick={() => setShowShareCard((v) => !v)}
+            className={`inline-flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-lg border transition-colors ${showShareCard ? "border-[var(--orange)] text-[var(--orange)]" : "border-[var(--border)] text-[var(--text-primary)] hover:bg-[var(--bg-hover)]"}`}
+          >
+            <Share2 size={16} /> {t("createPost")}
+          </button>
+        </div>
+      )}
 
       {/* Share card panel */}
       {showShareCard && (
@@ -288,21 +389,18 @@ export default function ListingViewPage() {
         </div>
       )}
 
-      {/* Header */}
-      <div className="flex items-start justify-between mb-6">
+      {/* Nav buttons (right-aligned) + address */}
+      <div className="flex items-start justify-between mb-3">
         <div>
-          <div className="flex items-center gap-2 mb-2">
+          <div className="flex items-center gap-2 mb-1">
             <StatusBadge status={listing.status as "for_sale"} />
             <span className="text-xs text-[var(--text-muted)]">#{listing.id}</span>
           </div>
-          <h1 className="text-xl font-bold text-[var(--text-primary)] leading-tight">
+          <p className="text-sm text-[var(--text-muted)]">
             {listing.address_raw || [listing.street, listing.ward].filter(Boolean).join(", ") || `${label(listing.property_type, PROPERTY_TYPES)} — ${label(listing.transaction_type, TRANSACTION_TYPES)}`}
-          </h1>
-          <p className="text-xl font-bold text-[var(--text-primary)] leading-tight mt-0.5">
-            {listing.title_standardized || generateTitleStandardized(listing)}
           </p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex gap-2 shrink-0 ml-4">
           {adjacentIds.prev && (
             <button
               onClick={() => router.push(`/dashboard/listings/${adjacentIds.prev}/view?from=${fromParam}`)}
@@ -329,6 +427,11 @@ export default function ListingViewPage() {
           </button>
         </div>
       </div>
+
+      {/* Standardized title — LARGE */}
+      <h1 className="text-2xl sm:text-3xl font-bold text-[var(--text-primary)] leading-tight mb-5">
+        {listing.title_standardized || generateTitleStandardized(listing)}
+      </h1>
 
       {/* Photo carousel */}
       {photos.length > 0 && (
@@ -385,7 +488,15 @@ export default function ListingViewPage() {
         </div>
       )}
 
-      {/* Price banner */}
+      {/* Manage Photos — owner only */}
+      {isOwner && (
+        <div className="mt-2 mb-6 rounded-xl border border-[var(--border)] p-4" style={{ backgroundColor: "var(--bg-surface)" }}>
+          <h3 className="text-sm font-semibold text-[var(--text-primary)] mb-3 uppercase tracking-wide">Manage Photos</h3>
+          <PhotoUploader listingId={listing.id} photos={photos} onPhotosChange={setPhotos} readOnly={false} />
+        </div>
+      )}
+
+      {/* Price card */}
       {listing.price_vnd && (
         <div className="rounded-xl p-4 mb-6 border border-[var(--border)]" style={{ backgroundColor: "var(--bg-surface)" }}>
           <PriceDisplay vnd={listing.price_vnd} size="lg" showUsd />
@@ -400,123 +511,89 @@ export default function ListingViewPage() {
         </div>
       )}
 
-      {/* Tabs */}
-      <div className="flex border-b border-[var(--border)] mb-6">
-        {(
-          [
-            { key: "details", label: t("details") },
-            { key: "photos", label: `${t("photos")} (${photos.length})` },
-            { key: "documents", label: `${t("documents")} (${documents.length})` },
-            { key: "map", label: t("map") },
-          ] as const
-        ).map((tab) => (
-          <button
-            key={tab.key}
-            onClick={() => setActiveTab(tab.key)}
-            className={`px-4 py-2.5 text-sm font-medium transition-colors border-b-2 -mb-px ${
-              activeTab === tab.key
-                ? "border-[var(--orange)] text-[var(--orange)]"
-                : "border-transparent text-[var(--text-muted)] hover:text-[var(--text-secondary)]"
-            }`}
-          >
-            {tab.label}
-          </button>
-        ))}
+      {/* Key specs card */}
+      <div className="rounded-xl p-5 border border-[var(--border)] mb-6" style={{ backgroundColor: "var(--bg-surface)" }}>
+        <h3 className="text-sm font-semibold text-[var(--text-primary)] mb-4 uppercase tracking-wide">
+          {t("property")}
+        </h3>
+        <div className="space-y-3">
+          <Row label={t("area")} value={listing.area_m2 ? `${listing.area_m2}m²` : null} />
+          <Row label={t("bedrooms")} value={listing.num_bedrooms?.toString()} />
+          <Row label={t("bathrooms")} value={listing.num_bathrooms?.toString()} />
+          <Row label={t("floors")} value={listing.num_floors?.toString()} />
+          <Row label={t("frontage")} value={listing.frontage_m ? `${listing.frontage_m}m` : null} />
+          <Row label={t("depth")} value={listing.depth_m ? `${listing.depth_m}m` : null} />
+          <Row label={t("construction")} value={listing.total_construction_area ? `${listing.total_construction_area}m²` : null} />
+          <Row label={t("direction")} value={label(listing.direction, DIRECTION_TYPES)} />
+          <Row label={t("structure")} value={label(listing.structure_type, STRUCTURE_TYPES)} />
+          <Row label={t("building")} value={label(listing.building_type, BUILDING_TYPES)} />
+          <Row label={t("cornerLot")} value={listing.corner_lot ? t("yes") : null} />
+          <Row label={t("elevator")} value={listing.has_elevator ? t("yes") : null} />
+        </div>
       </div>
 
-      {/* Tab content */}
-      {activeTab === "details" && (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {/* Property specs */}
-          <div className="rounded-xl p-5 border border-[var(--border)]" style={{ backgroundColor: "var(--bg-surface)" }}>
-            <h3 className="text-sm font-semibold text-[var(--text-primary)] mb-4 uppercase tracking-wide">
-              {t("property")}
-            </h3>
-            <div className="space-y-3">
-              <Row label={t("area")} value={listing.area_m2 ? `${listing.area_m2}m²` : null} />
-              <Row label={t("bedrooms")} value={listing.num_bedrooms?.toString()} />
-              <Row label={t("bathrooms")} value={listing.num_bathrooms?.toString()} />
-              <Row label={t("floors")} value={listing.num_floors?.toString()} />
-              <Row label={t("frontage")} value={listing.frontage_m ? `${listing.frontage_m}m` : null} />
-              <Row label={t("depth")} value={listing.depth_m ? `${listing.depth_m}m` : null} />
-              <Row label={t("construction")} value={listing.total_construction_area ? `${listing.total_construction_area}m²` : null} />
-              <Row label={t("direction")} value={label(listing.direction, DIRECTION_TYPES)} />
-              <Row label={t("structure")} value={label(listing.structure_type, STRUCTURE_TYPES)} />
-              <Row label={t("building")} value={label(listing.building_type, BUILDING_TYPES)} />
-              <Row label={t("cornerLot")} value={listing.corner_lot ? t("yes") : null} />
-              <Row label={t("elevator")} value={listing.has_elevator ? t("yes") : null} />
-            </div>
+      {/* Description card */}
+      {listing.description && (
+        <div className="rounded-xl p-5 border border-[var(--border)] mb-6" style={{ backgroundColor: "var(--bg-surface)" }}>
+          <h3 className="text-sm font-semibold text-[var(--text-primary)] mb-3 uppercase tracking-wide">
+            {t("description")}
+          </h3>
+          <div className="mb-2">
+            <TranslateButton text={listing.description} onTranslated={setTranslatedDesc} />
           </div>
-
-          {/* Legal & features */}
-          <div className="rounded-xl p-5 border border-[var(--border)]" style={{ backgroundColor: "var(--bg-surface)" }}>
-            <h3 className="text-sm font-semibold text-[var(--text-primary)] mb-4 uppercase tracking-wide">
-              {t("details")}
-            </h3>
-            <div className="space-y-3">
-              <Row label={t("legalStatus")} value={label(listing.legal_status, LEGAL_STATUS_TYPES)} />
-              <Row label={t("accessRoad")} value={label(listing.access_road, ACCESS_ROAD_TYPES)} />
-              <Row label={t("furnished")} value={label(listing.furnished, FURNISHED_TYPES)} />
-              <Row label={t("negotiable")} value={listing.negotiable ? t("yes") : null} />
-              <Row label={t("rentalIncome")} value={listing.rental_income_vnd ? formatPrice(listing.rental_income_vnd) + "/month" : null} />
-              <Row label={t("land")} value={listing.land_characteristics} />
-              <Row label={t("traffic")} value={listing.traffic_connectivity} />
-              <Row label={t("fengShui")} value={listing.feng_shui} />
-            </div>
-          </div>
-
-          {/* Description */}
-          {listing.description && (
-            <div className="md:col-span-2 rounded-xl p-5 border border-[var(--border)]" style={{ backgroundColor: "var(--bg-surface)" }}>
-              <h3 className="text-sm font-semibold text-[var(--text-primary)] mb-3 uppercase tracking-wide">
-                {t("description")}
-              </h3>
-              <div className="mb-2">
-                <TranslateButton text={listing.description} onTranslated={setTranslatedDesc} />
-              </div>
-              <p className="text-sm text-[var(--text-secondary)] whitespace-pre-line">
-                {listing.description}
-              </p>
-              {translatedDesc && (
-                <div className="mt-3 pt-3 border-t border-[var(--border)]">
-                  <p className="text-xs text-[var(--text-muted)] uppercase tracking-wide mb-1">{t("translated")}</p>
-                  <p className="text-sm text-[var(--text-secondary)] whitespace-pre-line">{translatedDesc}</p>
-                </div>
-              )}
+          <p className="text-sm text-[var(--text-secondary)] whitespace-pre-line">
+            {listing.description}
+          </p>
+          {translatedDesc && (
+            <div className="mt-3 pt-3 border-t border-[var(--border)]">
+              <p className="text-xs text-[var(--text-muted)] uppercase tracking-wide mb-1">{t("translated")}</p>
+              <p className="text-sm text-[var(--text-secondary)] whitespace-pre-line">{translatedDesc}</p>
             </div>
           )}
         </div>
       )}
 
-      {activeTab === "photos" && (
-        <PhotoUploader
-          listingId={listing.id}
-          photos={photos}
-          onPhotosChange={setPhotos}
-          readOnly={!isOwner}
-        />
+      {/* Legal & features card */}
+      <div className="rounded-xl p-5 border border-[var(--border)] mb-6" style={{ backgroundColor: "var(--bg-surface)" }}>
+        <h3 className="text-sm font-semibold text-[var(--text-primary)] mb-4 uppercase tracking-wide">
+          {t("legalAndFeatures")}
+        </h3>
+        <div className="space-y-3">
+          <Row label={t("legalStatus")} value={label(listing.legal_status, LEGAL_STATUS_TYPES)} />
+          <Row label={t("accessRoad")} value={label(listing.access_road, ACCESS_ROAD_TYPES)} />
+          <Row label={t("furnished")} value={label(listing.furnished, FURNISHED_TYPES)} />
+          <Row label={t("negotiable")} value={listing.negotiable ? t("yes") : null} />
+          <Row label={t("rentalIncome")} value={listing.rental_income_vnd ? formatPrice(listing.rental_income_vnd) + "/month" : null} />
+          <Row label={t("land")} value={listing.land_characteristics} />
+          <Row label={t("traffic")} value={listing.traffic_connectivity} />
+          <Row label={t("fengShui")} value={listing.feng_shui} />
+        </div>
+      </div>
+
+      {/* Map — inline, always visible if lat/lng exist */}
+      {listing.latitude && listing.longitude && (
+        <div className="mb-6">
+          <DynamicListingMap
+            latitude={listing.latitude}
+            longitude={listing.longitude}
+            height="300px"
+            popupContent={`${label(listing.property_type, PROPERTY_TYPES)} - ${formatPrice(listing.price_vnd)}`}
+          />
+        </div>
       )}
 
-      {activeTab === "documents" && (
+      {/* Documents section */}
+      <div className="mb-6">
         <DocumentManager
           listingId={listing.id}
           documents={documents}
           onDocumentsChange={setDocuments}
           readOnly={!isOwner}
         />
-      )}
+      </div>
 
-      {activeTab === "map" && (
-        <DynamicListingMap
-          latitude={listing.latitude}
-          longitude={listing.longitude}
-          height="400px"
-          popupContent={`${label(listing.property_type, PROPERTY_TYPES)} - ${formatPrice(listing.price_vnd)}`}
-        />
-      )}
-
-      {/* Bottom: Share private link + Contact / Message */}
-      <div className="mt-8 pt-6 border-t border-[var(--border)] rounded-xl p-5" style={{ backgroundColor: "var(--bg-surface)" }}>
+      {/* Agent info / contact section */}
+      <div className="mb-6 rounded-xl p-5 border border-[var(--border)]" style={{ backgroundColor: "var(--bg-surface)" }}>
         <div className="flex flex-wrap items-center gap-3">
           <button
             type="button"
@@ -531,11 +608,11 @@ export default function ListingViewPage() {
               onClick={handleMessageAgent}
               className="inline-flex items-center gap-2 px-4 py-2.5 text-sm font-medium rounded-lg border border-[var(--info)]/40 text-[var(--info)] bg-transparent hover:bg-[var(--info)]/10 transition-colors"
             >
-              <MessageCircle size={18} /> {hasConversation ? t("viewMessages") : t("messageAgent")}
+              {t("messageAgent")}
             </button>
           )}
         </div>
-        {!isOwner && listing.agent_id && (
+        {listing.agent_id && (
           <p className="text-sm text-[var(--text-secondary)] mt-3">
             {listing.owner_first_name || listing.owner_username || "—"}
             {listing.owner_phone && <span className="ml-3 text-[var(--text-muted)]">{listing.owner_phone}</span>}
@@ -543,7 +620,164 @@ export default function ListingViewPage() {
           </p>
         )}
       </div>
+
+      {/* Messages section */}
+      <div id="messages" className="mt-8 rounded-xl border border-[var(--border)] overflow-hidden" style={{ backgroundColor: "var(--bg-surface)" }}>
+        <div className="px-5 py-4 border-b border-[var(--border)]">
+          <h3 className="text-sm font-semibold text-[var(--text-primary)] uppercase tracking-wide">
+            {t("messagesAboutListing")}
+          </h3>
+        </div>
+
+        {messagesLoading ? (
+          <div className="p-4 text-sm text-[var(--text-muted)] text-center">{t("loading")}</div>
+        ) : isOwner ? (
+          // CASE B: Owner sees all conversations as accordion
+          conversations.length === 0 ? (
+            <div className="p-4 text-sm text-[var(--text-muted)] text-center">{t("noInquiriesYet")}</div>
+          ) : (
+            <div>
+              {conversations.map((conv) => {
+                const isExpanded = expandedConvId === conv.id;
+                const name = conv.other_agent_first_name || conv.other_agent_name || conv.other_agent_username || t("agent");
+                return (
+                  <div key={conv.id} className="border-b border-[var(--border)] last:border-b-0">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const newId = isExpanded ? null : conv.id;
+                        setExpandedConvId(newId);
+                        if (newId && !conv.messages) fetchConversationMessages(newId);
+                      }}
+                      className="w-full flex items-center gap-3 px-5 py-3 hover:bg-[var(--bg-hover)] transition-colors text-left"
+                    >
+                      {conv.other_agent_avatar_url ? (
+                        <img src={`/api/files/${conv.other_agent_avatar_url}`} alt="" className="w-8 h-8 rounded-full object-cover shrink-0" />
+                      ) : (
+                        <div className="w-8 h-8 rounded-full flex items-center justify-center font-bold text-white text-xs shrink-0" style={{ backgroundColor: "var(--orange)" }}>
+                          {name.slice(0, 2).toUpperCase()}
+                        </div>
+                      )}
+                      <div className="flex-1 min-w-0">
+                        <span className="text-sm font-medium text-[var(--text-primary)]">{name}</span>
+                        {conv.last_message_preview && (
+                          <p className="text-xs text-[var(--text-muted)] truncate">{conv.last_message_preview}</p>
+                        )}
+                      </div>
+                      {conv.unread_count > 0 && (
+                        <span className="text-xs font-bold text-white px-1.5 py-0.5 rounded-full" style={{ backgroundColor: "var(--orange)" }}>
+                          {conv.unread_count}
+                        </span>
+                      )}
+                      <span className="text-[var(--text-muted)]">{isExpanded ? '▼' : '▶'}</span>
+                    </button>
+                    {isExpanded && (
+                      <div className="px-5 pb-4">
+                        {conv.messagesLoading ? (
+                          <div className="py-3 text-sm text-center text-[var(--text-muted)]">{t("loading")}</div>
+                        ) : (
+                          <>
+                            <div className="max-h-60 overflow-y-auto space-y-2 py-2">
+                              {(conv.messages || []).length === 0 ? (
+                                <p className="text-xs text-[var(--text-muted)] text-center py-2">{t("noMessagesThread")}</p>
+                              ) : (conv.messages || []).map((msg) => (
+                                <div key={msg.id} className={`flex ${msg.sender_id === user?.id ? 'justify-end' : 'justify-start'}`}>
+                                  <div className={`max-w-[80%] rounded-lg px-3 py-1.5 text-sm ${msg.sender_id === user?.id ? 'text-white' : 'bg-[var(--bg-elevated)] text-[var(--text-primary)]'}`}
+                                    style={msg.sender_id === user?.id ? { backgroundColor: "var(--orange)" } : {}}>
+                                    {msg.body}
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                            <InlineMessageInput
+                              onSend={(body) => handleSendMessage(conv.id, body)}
+                              sending={sendingMessage}
+                              placeholder={t("typeReply")}
+                            />
+                          </>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          )
+        ) : (
+          // CASE A: Non-owner sees single thread or "start conversation"
+          conversations.length === 0 ? (
+            <div className="p-5">
+              <p className="text-sm text-[var(--text-muted)] mb-3">{t("askAboutListing")}</p>
+              <InlineMessageInput
+                onSend={handleStartConversation}
+                sending={sendingMessage}
+                placeholder={t("typeFirstMessage")}
+              />
+            </div>
+          ) : (
+            <div className="p-5">
+              <div className="max-h-60 overflow-y-auto space-y-2 mb-3">
+                {(conversations[0].messages || []).length === 0 && !conversations[0].messagesLoading ? (
+                  // Load messages for first conversation
+                  (() => { if (!conversations[0].messages && !conversations[0].messagesLoading) fetchConversationMessages(conversations[0].id); return null; })()
+                ) : null}
+                {conversations[0].messagesLoading ? (
+                  <div className="text-sm text-center text-[var(--text-muted)] py-2">{t("loading")}</div>
+                ) : (conversations[0].messages || []).map((msg) => (
+                  <div key={msg.id} className={`flex ${msg.sender_id === user?.id ? 'justify-end' : 'justify-start'}`}>
+                    <div className={`max-w-[80%] rounded-lg px-3 py-1.5 text-sm ${msg.sender_id === user?.id ? 'text-white' : 'bg-[var(--bg-elevated)] text-[var(--text-primary)]'}`}
+                      style={msg.sender_id === user?.id ? { backgroundColor: "var(--orange)" } : {}}>
+                      {msg.body}
+                    </div>
+                  </div>
+                ))}
+              </div>
+              <InlineMessageInput
+                onSend={(body) => handleSendMessage(conversations[0].id, body)}
+                sending={sendingMessage}
+                placeholder={t("typeReply")}
+              />
+            </div>
+          )
+        )}
+      </div>
     </div>
+  );
+}
+
+function InlineMessageInput({ onSend, sending, placeholder }: { onSend: (body: string) => void | Promise<void>; sending?: boolean; placeholder?: string }) {
+  const [text, setText] = useState("");
+  const { t } = useLanguage();
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const body = text.trim();
+    if (!body || sending) return;
+    await onSend(body);
+    setText("");
+  };
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); handleSubmit(e as unknown as React.FormEvent); }
+  };
+  return (
+    <form onSubmit={handleSubmit} className="flex gap-2 mt-2">
+      <textarea
+        value={text}
+        onChange={(e) => setText(e.target.value)}
+        onKeyDown={handleKeyDown}
+        placeholder={placeholder || t("typeMessage")}
+        rows={1}
+        disabled={sending}
+        className="flex-1 border border-[var(--border)] rounded-lg px-3 py-2 text-sm resize-none focus:outline-none focus:border-[var(--orange)] text-[var(--text-primary)] bg-[var(--bg-input)] placeholder:text-[var(--text-muted)]"
+      />
+      <button
+        type="submit"
+        disabled={!text.trim() || sending}
+        className="px-4 py-2 text-white text-sm rounded-lg disabled:opacity-50 font-medium"
+        style={{ backgroundColor: "var(--orange)" }}
+      >
+        {t("send")}
+      </button>
+    </form>
   );
 }
 
