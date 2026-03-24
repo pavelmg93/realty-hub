@@ -6,6 +6,13 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Session 30b — 2026-03-24 — REA-87 Root Cause Fix (Conversations API)
+
+#### Fixed
+- **REA-87 (P0 — 3rd attempt): Embedded messages not loading** — Identified true root cause: conversations API filtered strictly by `listing_id`, missing conversations created without `listing_id` set (e.g., started from Messages tab before listing_id tracking). Fix: added `other_agent_id` OR-logic parameter to `GET /api/conversations`; listing detail non-owner case now passes `?listing_id=X&other_agent_id=B` to surface all conversations between the two agents regardless of how listing_id was set.
+
+---
+
 ### Session 30 — 2026-03-24 — Messages Fix + Status System + Polish
 
 #### Fixed

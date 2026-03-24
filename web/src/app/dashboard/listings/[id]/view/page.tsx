@@ -152,7 +152,13 @@ export default function ListingViewPage() {
   useEffect(() => {
     if (!listing || !user) return;
     setMessagesLoading(true);
-    fetch(`/api/conversations?listing_id=${listing.id}`, { credentials: 'include' })
+    const isOwnerLocal = listing.agent_id === user.id;
+    // Non-owner: also match conversations with the listing owner regardless of listing_id
+    // (covers conversations created before listing_id was tracked)
+    const convParams = isOwnerLocal
+      ? `listing_id=${listing.id}`
+      : `listing_id=${listing.id}&other_agent_id=${listing.agent_id}`;
+    fetch(`/api/conversations?${convParams}`, { credentials: 'include' })
       .then(r => r.ok ? r.json() : { conversations: [] })
       .then(async (d) => {
         const convs: ConversationWithMessages[] = d.conversations || [];
@@ -343,8 +349,8 @@ export default function ListingViewPage() {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ body: body.trim(), listing_id: listing.id }),
         });
-        // Reload conversations
-        const convsRes = await fetch(`/api/conversations?listing_id=${listing.id}`, { credentials: 'include' });
+        // Reload conversations (use same OR-based query as initial load)
+        const convsRes = await fetch(`/api/conversations?listing_id=${listing.id}&other_agent_id=${listing.agent_id}`, { credentials: 'include' });
         if (convsRes.ok) {
           const d = await convsRes.json();
           const convs: ConversationWithMessages[] = d.conversations || [];

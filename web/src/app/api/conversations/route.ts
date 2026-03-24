@@ -15,12 +15,25 @@ export async function GET(request: NextRequest) {
 
     const params: (string | number)[] = [auth.userId];
     let whereClause = "WHERE (c.agent_1_id = $1 OR c.agent_2_id = $1)";
+    const otherAgentIdStr = searchParams.get("other_agent_id");
+    const otherAgentId = otherAgentIdStr ? parseInt(otherAgentIdStr, 10) : NaN;
     if (listingId) {
       const lid = parseInt(listingId, 10);
       if (!isNaN(lid)) {
         params.push(lid);
-        whereClause += ` AND c.listing_id = $${params.length}`;
+        const listingParam = params.length;
+        if (!isNaN(otherAgentId)) {
+          params.push(otherAgentId);
+          const otherParam = params.length;
+          // OR: match by listing_id OR by other participant being the specified agent
+          whereClause += ` AND (c.listing_id = $${listingParam} OR c.agent_1_id = $${otherParam} OR c.agent_2_id = $${otherParam})`;
+        } else {
+          whereClause += ` AND c.listing_id = $${listingParam}`;
+        }
       }
+    } else if (!isNaN(otherAgentId)) {
+      params.push(otherAgentId);
+      whereClause += ` AND (c.agent_1_id = $${params.length} OR c.agent_2_id = $${params.length})`;
     }
 
     let rows: Record<string, unknown>[];
