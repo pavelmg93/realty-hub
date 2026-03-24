@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -227,6 +227,14 @@ function DealsBoard({
 }
 
 export default function CRMPage() {
+  return (
+    <Suspense>
+      <CRMPageInner />
+    </Suspense>
+  );
+}
+
+function CRMPageInner() {
   const { t } = useLanguage();
   const { user } = useAuth();
   const router = useRouter();

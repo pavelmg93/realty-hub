@@ -1,11 +1,19 @@
 "use client";
 
-import { useState } from "react";
+import { useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { useLanguage } from "@/contexts/LanguageContext";
 
 export default function NewMessagePage() {
+  return (
+    <Suspense>
+      <NewMessagePageInner />
+    </Suspense>
+  );
+}
+
+function NewMessagePageInner() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { t } = useLanguage();

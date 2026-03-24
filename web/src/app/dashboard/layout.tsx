@@ -2,11 +2,23 @@
 
 import { useAuth } from "@/hooks/useAuth";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
 import { TopBar } from "@/components/ui/TopBar";
 import { BottomNav } from "@/components/ui/BottomNav";
 
 export default function DashboardLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  return (
+    <Suspense>
+      <DashboardLayoutInner>{children}</DashboardLayoutInner>
+    </Suspense>
+  );
+}
+
+function DashboardLayoutInner({
   children,
 }: {
   children: React.ReactNode;
@@ -80,7 +92,6 @@ function getTopBarNav(pathname: string | null, fromParam?: string | null): {
   if (segments[0] === "messages" && segments[1]) return { back: true, backHref: "/dashboard/messages" };
   if (segments[0] === "listings") {
     if (segments[1] && segments[2] === "view") {
-      // Respect ?from= param: navigate back to feed or listings
       const backDest = fromParam === "feed" ? "/dashboard/feed" : "/dashboard/listings";
       return { back: true, backHref: backDest };
     }

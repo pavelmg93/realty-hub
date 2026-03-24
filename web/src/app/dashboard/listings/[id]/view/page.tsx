@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { Listing, ListingPhoto, ListingDocument, Message } from "@/lib/types";
 import { useAuth } from "@/hooks/useAuth";
@@ -78,6 +78,14 @@ function label(
 }
 
 export default function ListingViewPage() {
+  return (
+    <Suspense>
+      <ListingViewPageInner />
+    </Suspense>
+  );
+}
+
+function ListingViewPageInner() {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
   const searchParams = useSearchParams();
