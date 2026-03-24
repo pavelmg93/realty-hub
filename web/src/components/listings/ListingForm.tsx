@@ -100,7 +100,10 @@ function listingToInput(listing: Listing): ListingInput {
     direction: listing.direction,
     depth_m: listing.depth_m,
     corner_lot: listing.corner_lot,
-    price_per_m2: listing.price_per_m2,
+    price_per_m2: listing.price_per_m2 ??
+      (listing.price_vnd && listing.area_m2 && listing.area_m2 > 0
+        ? Math.round(listing.price_vnd / listing.area_m2)
+        : null),
     negotiable: listing.negotiable,
     rental_income_vnd: listing.rental_income_vnd,
     has_elevator: listing.has_elevator,
@@ -311,7 +314,7 @@ export default function ListingForm({ existing, initialData }: Props) {
       </div>
 
       {/* ── Steps 2-10: Core form fields ── */}
-      <DatabaseView data={formData} onChange={setFormData} />
+      <DatabaseView data={formData} onChange={setFormData} isEdit={!!existing} />
 
       {/* ── Step 11: Photo uploader ── */}
       {!existing ? (

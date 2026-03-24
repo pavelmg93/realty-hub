@@ -22,25 +22,26 @@ const STATUS_FLAG_COLORS: Record<string, string | null> = {
   not_for_sale: "var(--status-nfs)",
 };
 
-const STATUS_FLAG_LABELS: Record<string, string> = {
-  just_listed: "Mới đăng",
-  price_dropped: "Giảm giá",
-  price_increased: "Tăng giá",
-  deposit: "Đặt cọc",
-  sold: "Đã bán",
-  not_for_sale: "Không bán",
+const STATUS_FLAG_KEYS: Record<string, "justListed" | "priceDropped" | "priceIncreased" | "deposit" | "sold" | "notForSale"> = {
+  just_listed: "justListed",
+  price_dropped: "priceDropped",
+  price_increased: "priceIncreased",
+  deposit: "deposit",
+  sold: "sold",
+  not_for_sale: "notForSale",
 };
 
 function StatusFlag({ status }: { status: string }) {
+  const { t } = useLanguage();
   const color = STATUS_FLAG_COLORS[status];
-  const label = STATUS_FLAG_LABELS[status];
-  if (!color || !label) return null;
+  const key = STATUS_FLAG_KEYS[status];
+  if (!color || !key) return null;
   return (
     <div
       className="absolute top-2 left-0 z-10 px-2 py-0.5 text-[9px] font-bold text-white"
       style={{ backgroundColor: color, borderRadius: "0 3px 3px 0" }}
     >
-      {label}
+      {t(key)}
     </div>
   );
 }
@@ -139,7 +140,6 @@ export default function ListingCard({
         {/* Right: details */}
         <div className="w-2/3 p-3 flex flex-col justify-between relative overflow-hidden">
           <div className="min-w-0">
-            <span className="text-xs text-[var(--text-muted)]">#{listing.id}</span>
             {/* Title lines — both same color (ADR-005) */}
             <p className="text-base font-bold text-[var(--text-primary)] truncate leading-tight">{line1}</p>
             <p className="text-base font-bold text-[var(--text-primary)] truncate leading-tight">{line2}</p>

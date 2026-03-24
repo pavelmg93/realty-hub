@@ -343,7 +343,7 @@ export default function FeedFilters({
               }
               className="rounded accent-[var(--orange)]"
             />
-            {t("favoritesOnly") || "Favorites Only"}
+            {t("favoritesOnly")}
           </label>
         </div>
       </div>

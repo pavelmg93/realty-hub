@@ -1,56 +1,58 @@
-# Session 28 — Map/Layout Escalation + Quick Fixes
+# Session 29 — UI Polish Batch
 
 **Date:** 2026-03-24
-**Focus:** Map mode definitive fix (5th attempt — ESCALATED), listing detail map overlap, separate view mode storage
-
-> **⚠️ ESCALATION PROTOCOL — READ BEFORE CODING ⚠️**
-> REA-79 has failed 4 prior times (REA-45, REA-60, REA-70, REA-77). Before writing ANY map-related code:
-> 1. Run the grep commands listed in REA-79
-> 2. Paste the full output as a comment on REA-79
-> 3. Trace the actual rendered JSX for map mode in both feed and listings pages
-> 4. Only THEN propose a fix
 
 **For each task, run `get_issue REA-XX` via Linear MCP to read the full spec before coding.**
 
----
+## Step Zero — Do this FIRST
 
-## Session Scope (3 issues)
-
-* [x] **[REA-79] P0 ESCALATED: Map mode — width, height, header, mobile viewport**
-  - Map must use `max-w-3xl mx-auto` like grid (not full-width)
-  - Header ("Listings Feed" + city selector) must stay visible in map mode
-  - Use `100dvh` not `100vh` for mobile browser chrome
-  - Desktop: cap map height at ~500px; Mobile: fill between toolbar and bottomnav
-  - Update `layout-constants.ts` with new MAP_HEIGHT using `min()` and `dvh`
-  - **MUST grep before coding. MUST screenshot-verify before marking Done.**
-
-* [x] **[REA-80] Bug: Listing detail Leaflet map overlaps FIDT header**
-  - Map in listing view should be fixed height (`h-48` or `h-56`), not viewport-relative
-  - Container: `overflow-hidden rounded-lg z-0`
-  - Must not use position absolute/fixed
-
-* [x] **[REA-81] Feed and My Listings separate stored view mode**
-  - Split `realtyhub_view_mode` → `realtyhub_feed_view_mode` + `realtyhub_listings_view_mode`
-  - Trivial 2-file change
+* [x] **[REA-86] CLAUDE.md: fix end-of-session flow, remove session numbers, remove deploy instructions**
 
 ---
 
-## Key files to modify
+## Parallelization Guide
 
-- `web/src/lib/layout-constants.ts` — update MAP_HEIGHT formula
-- `web/src/app/dashboard/feed/page.tsx` — map container, header visibility, localStorage key
-- `web/src/app/dashboard/listings/page.tsx` — same as feed
-- `web/src/app/dashboard/listings/[id]/view/page.tsx` — listing detail map height + z-index
-- `web/src/components/map/DynamicFeedMap.tsx` — may need height prop changes
-- `web/src/components/map/DynamicListingMap.tsx` — listing detail map component
+The remaining 8 issues fall into 4 independent clusters. Subagents can work in parallel across different clusters. Do NOT parallelize issues within the same cluster.
+
+```
+Cluster A (Card components):    REA-83, REA-84
+Cluster B (Listing detail):     REA-80, REA-85
+Cluster C (Edit/New form):      REA-82, REA-72
+Cluster D (Messages + i18n):    REA-71, REA-15
+```
 
 ---
 
-## NOT in scope (backlogged for S29+)
+## Session Scope (8 issues + step zero)
 
-- REA-82: Edit listing margins
-- REA-83: Card/view polish (duplicate flags, listing ID, status on view, i18n flags)
-- REA-84: Message button icon-only + agent info in embedded messages
-- REA-72: Add/Edit form fixes
-- REA-73: Status system (rename For Sale → Selling, colors, auto-revert)
-- REA-71: Embedded messages "No messages yet" bug
+### Cluster A — Card components
+* [x] **[REA-83] Card/view polish: duplicate flags, listing ID removal, status on view page, i18n flags**
+* [x] **[REA-84] Message button: icon-only + agent info in embedded message section**
+
+### Cluster B — Listing detail + header
+* [x] **[REA-80] REOPENED: Listing detail Leaflet map overlaps FIDT header** *(grep before coding — failed once already)*
+* [x] **[REA-85] Map mode header spacing + FIDT logo centering**
+
+### Cluster C — Edit/New form
+* [x] **[REA-82] Edit listing page missing left/right margins**
+* [x] **[REA-72] Add/Edit form fixes: labels, sections, ward seeding, translations, margins**
+
+### Cluster D — Messages + i18n
+* [x] **[REA-71] Bug: embedded messages show "No messages yet" despite messages existing**
+* [x] **[REA-15] Vietnamese UI translations: i18n pass (recurring)**
+
+---
+
+## Execution order
+
+1. **REA-86 first** (CLAUDE.md cleanup — must land before any other work)
+2. Clusters A + B + C in parallel (or sequential if single-agent)
+3. REA-71 (messages bug)
+4. REA-15 LAST (i18n sweep catches all new strings from above)
+
+## NOT in scope
+
+- REA-73: Status system rename (cross-cutting DB migration, deferred to S30)
+- REA-75: Scroll position restoration (deferred)
+- REA-13: Full-text search (feature, not polish)
+- REA-63: DB sync script (infra, manual — Pavel will prioritize after S29)

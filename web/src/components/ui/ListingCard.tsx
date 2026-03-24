@@ -169,11 +169,6 @@ export function ListingCard({
         {/* Right: details */}
         <div className="w-2/3 p-3 flex flex-col justify-between relative overflow-hidden">
           <div className="min-w-0">
-            {/* Badge + ID */}
-            <div className="flex items-center gap-1.5 mb-1">
-              <StatusBadge status={listing.status} />
-              <span className="text-xs text-[var(--text-muted)]">#{listing.id}</span>
-            </div>
             {/* Title lines — both same color (ADR-005) */}
             <p className="text-sm font-bold text-[var(--text-primary)] truncate leading-tight">
               {line1}
@@ -301,28 +296,31 @@ export function ListingCard({
               <button
                 type="button"
                 onClick={(e) => { e.preventDefault(); onViewMessages?.(); }}
-                className="flex items-center gap-1 text-[11px] font-medium border rounded-md px-2 py-1 transition-colors hover:bg-[var(--info)]/10"
+                className="flex items-center border rounded-md p-1.5 transition-colors hover:bg-[var(--info)]/10"
                 style={{ color: "var(--info)", borderColor: "rgba(59, 130, 246, 0.3)" }}
+                title={t("viewMessages")}
               >
-                <MessageSquare size={12} /> {t("viewMessages")}
+                <MessageSquare size={14} />
               </button>
             ) : hasConversation ? (
               <Link
                 href={`/dashboard/listings/${listing.id}/view${viewSearch}#messages`}
                 onClick={(e) => e.stopPropagation()}
-                className="flex items-center gap-1 text-[11px] font-medium border rounded-md px-2 py-1 transition-colors hover:bg-[var(--info)]/10"
+                className="flex items-center border rounded-md p-1.5 transition-colors hover:bg-[var(--info)]/10"
                 style={{ color: "var(--info)", borderColor: "rgba(59, 130, 246, 0.3)" }}
+                title={t("viewMessages")}
               >
-                <MessageSquare size={12} /> {t("viewMessages")}
+                <MessageSquare size={14} />
               </Link>
             ) : (
               <button
                 type="button"
                 onClick={(e) => { e.preventDefault(); onMessage?.(); }}
-                className="flex items-center gap-1 text-[11px] font-medium border rounded-md px-2 py-1 transition-colors hover:bg-[var(--info)]/10"
+                className="flex items-center border rounded-md p-1.5 transition-colors hover:bg-[var(--info)]/10"
                 style={{ color: "var(--info)", borderColor: "rgba(59, 130, 246, 0.3)" }}
+                title={t("message")}
               >
-                <MessageSquare size={12} /> {t("message")}
+                <MessageSquare size={14} />
               </button>
             )}
           </div>

@@ -126,7 +126,7 @@ export default function FeedPage() {
   const CITIES = ["Nha Trang", "Hà Nội", "TP.HCM", "Đà Nẵng"];
 
   return (
-    <div className={`px-4 sm:px-6 max-w-3xl mx-auto${viewMode === "grid" ? " py-4" : ""}`}>
+    <div className={`px-4 sm:px-6 max-w-3xl mx-auto pt-4${viewMode === "grid" ? " pb-4" : ""}`}>
       {/* Header + city selector */}
       <div className="flex items-center justify-between mb-4">
         <h1 className="text-lg font-semibold text-[var(--text-primary)]">

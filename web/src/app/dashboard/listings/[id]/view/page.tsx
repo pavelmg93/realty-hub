@@ -16,13 +16,44 @@ import {
   formatPrice,
   generateTitleStandardized,
 } from "@/lib/constants";
-import { StatusBadge } from "@/components/ui/StatusBadge";
 import { TranslateButton } from "@/components/ui/TranslateButton";
 import DynamicListingMap from "@/components/map/DynamicListingMap";
 import DocumentManager from "@/components/documents/DocumentManager";
 import { Link2, Share2 } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { getFieldValueLabel } from "@/lib/i18n";
+
+const STATUS_FLAG_COLORS: Record<string, string | null> = {
+  just_listed: "var(--info)",
+  for_sale: null,
+  price_dropped: "var(--error)",
+  price_increased: "var(--error)",
+  deposit: "var(--status-open)",
+  sold: "var(--status-open)",
+  not_for_sale: "var(--status-nfs)",
+};
+const STATUS_FLAG_KEYS: Record<string, "justListed" | "priceDropped" | "priceIncreased" | "deposit" | "sold" | "notForSale"> = {
+  just_listed: "justListed",
+  price_dropped: "priceDropped",
+  price_increased: "priceIncreased",
+  deposit: "deposit",
+  sold: "sold",
+  not_for_sale: "notForSale",
+};
+function StatusFlag({ status }: { status: string }) {
+  const { t } = useLanguage();
+  const color = STATUS_FLAG_COLORS[status];
+  const key = STATUS_FLAG_KEYS[status];
+  if (!color || !key) return null;
+  return (
+    <div
+      className="absolute top-2 left-0 z-10 px-2 py-0.5 text-[9px] font-bold text-white"
+      style={{ backgroundColor: color, borderRadius: "0 3px 3px 0" }}
+    >
+      {t(key)}
+    </div>
+  );
+}
 
 type ConversationWithMessages = {
   id: number;
@@ -125,9 +156,11 @@ export default function ListingViewPage() {
       .then(r => r.ok ? r.json() : { conversations: [] })
       .then(d => {
         setConversations(d.conversations || []);
-        // Auto-expand first conversation (most recent)
+        // Auto-expand first conversation (most recent) and immediately fetch its messages
         if (d.conversations?.length > 0) {
-          setExpandedConvId(d.conversations[0].id);
+          const firstId = d.conversations[0].id;
+          setExpandedConvId(firstId);
+          fetchConversationMessages(firstId);
         }
       })
       .catch(() => setConversations([]))
@@ -374,10 +407,6 @@ export default function ListingViewPage() {
       {/* Header: two-line title + nav buttons */}
       <div className="flex items-start justify-between mb-5">
         <div className="flex-1 min-w-0 mr-4">
-          <div className="flex items-center gap-2 mb-1">
-            <StatusBadge status={listing.status as "for_sale"} />
-            <span className="text-xs text-[var(--text-muted)]">#{listing.id}</span>
-          </div>
           {/* Line 1: street address */}
           <p className="text-2xl sm:text-3xl font-bold text-[var(--text-primary)] leading-tight">
             {listing.street || ""}
@@ -418,6 +447,7 @@ export default function ListingViewPage() {
               alt={photos[activePhotoIdx]?.original_name || ""}
               className="w-full h-full object-cover"
             />
+            <StatusFlag status={listing.status} />
             {photos.length > 1 && (
               <>
                 <button
@@ -526,7 +556,7 @@ export default function ListingViewPage() {
 
       {/* Map — inline, always visible if lat/lng exist */}
       {listing.latitude && listing.longitude && (
-        <div className="mb-6 overflow-hidden rounded-lg z-0">
+        <div className="mb-6 overflow-hidden rounded-lg relative isolate">
           <DynamicListingMap
             latitude={listing.latitude}
             longitude={listing.longitude}
@@ -661,6 +691,24 @@ export default function ListingViewPage() {
           // CASE A: Non-owner sees single thread or "start conversation"
           conversations.length === 0 ? (
             <div className="p-5">
+              {/* Agent info bar */}
+              {listing.agent_id && (
+                <div className="flex items-center gap-3 mb-4 pb-4 border-b border-[var(--border)]">
+                  {listing.owner_avatar_url ? (
+                    <img src={`/api/files/${listing.owner_avatar_url}`} alt="" className="w-9 h-9 rounded-full object-cover shrink-0" />
+                  ) : (
+                    <div className="w-9 h-9 rounded-full flex items-center justify-center font-bold text-white text-xs shrink-0" style={{ backgroundColor: "var(--orange)" }}>
+                      {(listing.owner_first_name || listing.owner_username || "?").slice(0, 2).toUpperCase()}
+                    </div>
+                  )}
+                  <div className="min-w-0">
+                    <p className="text-sm font-medium text-[var(--text-primary)]">
+                      {[listing.owner_first_name, listing.owner_last_name].filter(Boolean).join(" ") || listing.owner_username}
+                    </p>
+                    {listing.owner_phone && <p className="text-xs text-[var(--text-muted)]">{listing.owner_phone}</p>}
+                  </div>
+                </div>
+              )}
               <p className="text-sm text-[var(--text-muted)] mb-3">{t("askAboutListing")}</p>
               <InlineMessageInput
                 onSend={handleStartConversation}
@@ -670,6 +718,24 @@ export default function ListingViewPage() {
             </div>
           ) : (
             <div className="p-5">
+              {/* Agent info bar */}
+              {listing.agent_id && (
+                <div className="flex items-center gap-3 mb-4 pb-4 border-b border-[var(--border)]">
+                  {listing.owner_avatar_url ? (
+                    <img src={`/api/files/${listing.owner_avatar_url}`} alt="" className="w-9 h-9 rounded-full object-cover shrink-0" />
+                  ) : (
+                    <div className="w-9 h-9 rounded-full flex items-center justify-center font-bold text-white text-xs shrink-0" style={{ backgroundColor: "var(--orange)" }}>
+                      {(listing.owner_first_name || listing.owner_username || "?").slice(0, 2).toUpperCase()}
+                    </div>
+                  )}
+                  <div className="min-w-0">
+                    <p className="text-sm font-medium text-[var(--text-primary)]">
+                      {[listing.owner_first_name, listing.owner_last_name].filter(Boolean).join(" ") || listing.owner_username}
+                    </p>
+                    {listing.owner_phone && <p className="text-xs text-[var(--text-muted)]">{listing.owner_phone}</p>}
+                  </div>
+                </div>
+              )}
               <div className="max-h-60 overflow-y-auto space-y-2 mb-3">
                 {(conversations[0].messages || []).length === 0 && !conversations[0].messagesLoading ? (
                   // Load messages for first conversation

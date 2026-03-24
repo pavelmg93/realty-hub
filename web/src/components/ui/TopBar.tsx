@@ -26,7 +26,7 @@ export function TopBar({
         borderColor: "rgba(0,0,0,0.08)",
       }}
     >
-      <div className="w-10 flex-shrink-0" />
+      <div className="min-w-[5rem] flex-shrink-0" />
 
       <div className="flex-1 flex items-center justify-center min-w-0">
         {title ? (

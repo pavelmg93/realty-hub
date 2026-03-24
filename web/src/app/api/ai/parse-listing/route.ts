@@ -265,7 +265,7 @@ function parseWithMock(text: string): ParseResponse {
     fields.property_type = "villa";
     confidence.property_type = 0.8;
   } else if (/nhà|nha/i.test(text)) {
-    fields.property_type = "nha_rieng";
+    fields.property_type = "nha_pho";
     confidence.property_type = 0.5;
   }
 
@@ -343,7 +343,7 @@ function parseWithMock(text: string): ParseResponse {
 
 /** Python property_type keys → DB enum values */
 const PYTHON_PROP_TYPE_MAP: Record<string, string> = {
-  nha: "nha_rieng",
+  nha: "nha_pho",
   dat: "dat",
   can_ho: "can_ho",
   phong_tro: "phong_tro",

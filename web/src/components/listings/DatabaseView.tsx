@@ -17,7 +17,7 @@ import {
   generateCommissionDisplay,
 } from "@/lib/constants";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { getPropertyTypeKey, getTransactionTypeKey } from "@/lib/i18n";
+import { getPropertyTypeKey, getTransactionTypeKey, getFieldValueLabel } from "@/lib/i18n";
 
 /** Parse Vietnamese price text like "10 ty", "500 trieu", "3.5 tỷ" to VND. */
 function parseRawPrice(raw: string): number | null {
@@ -36,6 +36,7 @@ function parseRawPrice(raw: string): number | null {
 interface Props {
   data: ListingInput;
   onChange: (data: ListingInput) => void;
+  isEdit?: boolean;
 }
 
 function SelectField({
@@ -227,6 +228,32 @@ function LocationPicker({ data, onChange }: { data: ListingInput; onChange: (u: 
   );
 }
 
+/** New administrative ward groupings (post-2025 merger) */
+const NEW_WARD_OPTIONS: Record<string, string> = {
+  "Van Thanh": "Vạn Thạnh",
+  "Loc Tho": "Lộc Thọ",
+  "Vinh Nguyen": "Vĩnh Nguyên",
+  "Tan Tien": "Tân Tiến",
+  "Phuoc Hoa": "Phước Hòa",
+  "Vinh Hoa": "Vĩnh Hòa",
+  "Vinh Hai": "Vĩnh Hải",
+  "Vinh Phuoc": "Vĩnh Phước",
+  "Vinh Tho": "Vĩnh Thọ",
+  "Vinh Luong": "Vĩnh Lương",
+  "Vinh Phuong": "Vĩnh Phương",
+  "Ngoc Hiep": "Ngọc Hiệp",
+  "Phuong Sai": "Phương Sài",
+  "Vinh Ngoc": "Vĩnh Ngọc",
+  "Vinh Thanh": "Vĩnh Thạnh",
+  "Vinh Hiep": "Vĩnh Hiệp",
+  "Vinh Trung": "Vĩnh Trung",
+  "Phuoc Hai": "Phước Hải",
+  "Phuoc Long": "Phước Long",
+  "Vinh Truong": "Vĩnh Trường",
+  "Vinh Thai": "Vĩnh Thái",
+  "Phuoc Dong": "Phước Đồng",
+};
+
 const STATUS_LABEL_KEYS: Record<string, string> = {
   just_listed: "justListed",
   for_sale: "forSale",
@@ -237,8 +264,8 @@ const STATUS_LABEL_KEYS: Record<string, string> = {
   not_for_sale: "notForSale",
 };
 
-export default function DatabaseView({ data, onChange }: Props) {
-  const { t } = useLanguage();
+export default function DatabaseView({ data, onChange, isEdit = false }: Props) {
+  const { t, lang } = useLanguage();
 
   const set = (field: keyof ListingInput, value: unknown) => onChange({ ...data, [field]: value });
   const setMultiple = (updates: Partial<ListingInput>) => onChange({ ...data, ...updates });
@@ -337,7 +364,7 @@ export default function DatabaseView({ data, onChange }: Props) {
       </Row>
 
       {/* ── Row 3: Commission ── */}
-      <SectionLabel>Hoa hồng (Commission)</SectionLabel>
+      <SectionLabel>{t("commission")}</SectionLabel>
       <div className="flex items-center gap-3 mb-4">
         <div className="flex items-center gap-2 text-sm">
           <label className="flex items-center gap-1.5 cursor-pointer text-[var(--text-secondary)]">
@@ -358,7 +385,7 @@ export default function DatabaseView({ data, onChange }: Props) {
               onChange={() => handleCommissionChange("months", commValue)}
               className="accent-[var(--orange)]"
             />
-            Tháng
+            {t("months")}
           </label>
         </div>
         <input
@@ -370,49 +397,47 @@ export default function DatabaseView({ data, onChange }: Props) {
           className="w-24 rounded-lg px-3 py-2 text-sm"
           style={{ backgroundColor: "var(--bg-input)", color: "var(--text-primary)", borderColor: "var(--border)" }}
         />
-        <span className="text-sm font-bold" style={{ color: "var(--orange)" }}>
-          → {data.commission ?? "hh1"}
-        </span>
       </div>
 
-      {/* ── Row 4: Street Address ── */}
-      <SectionLabel>Địa chỉ (Street)</SectionLabel>
+      {/* ── Row 4+5: Address (Street + Ward combined) ── */}
+      <SectionLabel>{t("address")}</SectionLabel>
       <div className="mb-4">
         <TextField
-          label="Số nhà + Đường (Street Address)"
+          label={t("streetAddress")}
           value={data.street}
           onChange={(v) => set("street", v)}
-          placeholder="VD: 16/3 Hùng Vương"
+          placeholder={lang === "vi" ? "VD: 16/3 Hùng Vương" : "e.g. 16/3 Hung Vuong"}
         />
       </div>
-
-      {/* ── Row 5: Ward ── */}
-      <SectionLabel>{t("ward")}</SectionLabel>
       <Row cols={2}>
         <SelectField
-          label="Phường (cũ)"
+          label={t("wardOld")}
           value={data.ward}
           options={Object.fromEntries(NHA_TRANG_WARDS.map((w) => [w, w]))}
           onChange={(v) => set("ward", v)}
         />
-        <TextField
-          label="Phường (mới)"
+        <SelectField
+          label={t("wardNew")}
           value={data.ward_new}
+          options={NEW_WARD_OPTIONS}
           onChange={(v) => set("ward_new", v)}
-          placeholder="Nhập tên phường mới"
         />
       </Row>
 
-      {/* ── Row 6: Status ── */}
-      <SectionLabel>{t("status")}</SectionLabel>
-      <div className="mb-4 w-1/2">
-        <SelectField
-          label={t("status")}
-          value={data.status}
-          options={statusOptions}
-          onChange={(v) => set("status", v ?? "for_sale")}
-        />
-      </div>
+      {/* ── Row 6: Status — edit only ── */}
+      {isEdit && (
+        <>
+          <SectionLabel>{t("listingStatus")}</SectionLabel>
+          <div className="mb-4 w-1/2">
+            <SelectField
+              label={t("listingStatus")}
+              value={data.status}
+              options={statusOptions}
+              onChange={(v) => set("status", v ?? "for_sale")}
+            />
+          </div>
+        </>
+      )}
 
       {/* ── Row 7: Map ── */}
       <LocationPicker data={data} onChange={setMultiple} />
@@ -437,7 +462,7 @@ export default function DatabaseView({ data, onChange }: Props) {
 
 /** Extras section rendered separately (after photos/docs in ListingForm) */
 export function DatabaseExtras({ data, onChange }: Props) {
-  const { t } = useLanguage();
+  const { t, lang } = useLanguage();
   const set = (field: keyof ListingInput, value: unknown) => onChange({ ...data, [field]: value });
 
   return (
@@ -452,7 +477,7 @@ export function DatabaseExtras({ data, onChange }: Props) {
             style={{ backgroundColor: "var(--bg-input)", color: "var(--text-primary)", borderColor: "var(--border)" }}
           >
             <option value="">—</option>
-            {Object.entries(ACCESS_ROAD_TYPES).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
+            {Object.entries(ACCESS_ROAD_TYPES).map(([k]) => <option key={k} value={k}>{getFieldValueLabel("access_road", k, lang)}</option>)}
           </select>
         </div>
         <div>
@@ -464,7 +489,7 @@ export function DatabaseExtras({ data, onChange }: Props) {
             style={{ backgroundColor: "var(--bg-input)", color: "var(--text-primary)", borderColor: "var(--border)" }}
           >
             <option value="">—</option>
-            {Object.entries(FURNISHED_TYPES).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
+            {Object.entries(FURNISHED_TYPES).map(([k]) => <option key={k} value={k}>{getFieldValueLabel("furnished", k, lang)}</option>)}
           </select>
         </div>
         <div>
@@ -476,7 +501,7 @@ export function DatabaseExtras({ data, onChange }: Props) {
             style={{ backgroundColor: "var(--bg-input)", color: "var(--text-primary)", borderColor: "var(--border)" }}
           >
             <option value="">—</option>
-            {Object.entries(DIRECTION_TYPES).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
+            {Object.entries(DIRECTION_TYPES).map(([k]) => <option key={k} value={k}>{getFieldValueLabel("direction", k, lang)}</option>)}
           </select>
         </div>
         <div>
@@ -488,7 +513,7 @@ export function DatabaseExtras({ data, onChange }: Props) {
             style={{ backgroundColor: "var(--bg-input)", color: "var(--text-primary)", borderColor: "var(--border)" }}
           >
             <option value="">—</option>
-            {Object.entries(STRUCTURE_TYPES).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
+            {Object.entries(STRUCTURE_TYPES).map(([k]) => <option key={k} value={k}>{getFieldValueLabel("structure_type", k, lang)}</option>)}
           </select>
         </div>
         <div className="flex flex-col gap-2">

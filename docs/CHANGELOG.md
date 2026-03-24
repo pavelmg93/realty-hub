@@ -6,6 +6,21 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Session 29 — 2026-03-24 — UI Polish Batch
+
+#### Changed
+- **REA-86: CLAUDE.md cleanup** — Removed duplicate "After Every Session" block, removed session number footer, fixed end-of-session flow (Claude commits locally, user pushes/deploys), clarified Deployment section.
+- **REA-85: Feed header padding + FIDT logo centering** — `pt-4` now always applied to feed outer wrapper (was conditional on grid mode, causing header to sit too close to FIDT bar in map mode). TopBar left spacer changed from `w-10` to `min-w-[5rem]` to match right side and visually center the logo.
+- **REA-80: Listing detail map — stacking context fix** — Map wrapper now uses `relative isolate` (CSS isolation) instead of `z-0`. Creates a new stacking context so Leaflet's internal z-indices don't bleed through the fixed FIDT header.
+- **REA-83: Card/view polish (4 items)** — (1) Removed duplicate `StatusBadge` from 1-wide card info column in `ui/ListingCard.tsx`. (2) Removed `#{id}` display from all cards (`ui/ListingCard`, `listings/ListingCard`, view page, edit page title). (3) Added `StatusFlag` overlay to view page photo carousel; removed old `StatusBadge` from header. (4) `listings/ListingCard.tsx` `StatusFlag` now uses `useLanguage()`+`t()` instead of hardcoded Vietnamese labels.
+- **REA-84: Message button icon-only + agent info** — All message buttons in `ui/ListingCard.tsx` and `FeedCard.tsx` are now icon-only (`MessageSquare` 14px, no text label, tooltip via `title`). Agent info bar (avatar, name, phone) added above message thread in listing detail CASE A (non-owner view).
+- **REA-82: Edit page loading/error state margins** — Added `px-4 sm:px-6` to loading and error state wrappers in `edit/page.tsx`.
+- **REA-71: Messages auto-expand bug** — Auto-expanding the first conversation on page load now also calls `fetchConversationMessages()` immediately, fixing the "No messages yet" shown while messages exist.
+- **REA-72: Add/Edit form fixes** — (1) Section labels now i18n (commission, address). (2) STREET + WARD merged into single ADDRESS section. (3) Status field hidden from New Listing form, visible only in Edit (new `isEdit` prop on `DatabaseView`). (4) Orange `→ hh1` commission preview removed. (5) New ward dropdown added with 22 new administrative wards as options. (6) P/m² now calculated on form load for existing listings (fixed `listingToInput`). (7) DatabaseExtras dropdowns (access road, furnished, direction, structure type) now use `getFieldValueLabel()` for bilingual display. (8) AI parser `nha_rieng` → `nha_pho` in both JS regex fallback and `PYTHON_PROP_TYPE_MAP`.
+- **REA-15: i18n pass** — Added keys: `commission`, `wardOld`, `wardNew`, `listingStatus`, `months`, `streetAddress`, `photoCount`. Fixed: `ConversationList` fallback `"Agent"` → `t("agent")`, `FeedFilters` removed `|| "Favorites Only"` fallback, `FeedCard` photo count now uses `t("photoCount")`.
+
+---
+
 ### Session 28 — 2026-03-24 — Map Mode Fix (5th attempt), Detail Map, Separate View Storage
 
 #### Changed

@@ -245,6 +245,13 @@ export const translations = {
     typeReply: "Type a reply...",
     listingsFeed: "Listings Feed",
     city: "City",
+    commission: "Commission",
+    wardOld: "Old Ward",
+    wardNew: "New Ward",
+    listingStatus: "Listing Status",
+    months: "Months",
+    streetAddress: "Street Address",
+    photoCount: "photo(s)",
   },
   vi: {
     feed: "Bảng tin",
@@ -490,6 +497,13 @@ export const translations = {
     typeReply: "Nhập tin nhắn trả lời...",
     listingsFeed: "Bảng tin BĐS",
     city: "Thành phố",
+    commission: "Hoa hồng",
+    wardOld: "Phường (cũ)",
+    wardNew: "Phường (mới)",
+    listingStatus: "Trạng thái BĐS",
+    months: "Tháng",
+    streetAddress: "Số nhà + Đường",
+    photoCount: "ảnh",
   },
 } satisfies Record<Lang, Record<string, string>>;
 

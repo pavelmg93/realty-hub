@@ -64,7 +64,7 @@ export default function EditListingPage() {
 
   if (loading) {
     return (
-      <div className="max-w-3xl mx-auto">
+      <div className="max-w-3xl mx-auto px-4 sm:px-6">
         <div className="text-center py-12 text-[var(--text-muted)]">{t("loading")}</div>
       </div>
     );
@@ -72,7 +72,7 @@ export default function EditListingPage() {
 
   if (error || !listing) {
     return (
-      <div className="max-w-3xl mx-auto">
+      <div className="max-w-3xl mx-auto px-4 sm:px-6">
         <div className="text-center py-12">
           <p className="text-[var(--error)] mb-4">{error || t("notFound")}</p>
           <button
@@ -90,7 +90,7 @@ export default function EditListingPage() {
     <div className="max-w-3xl mx-auto px-4 sm:px-6">
       <div className="flex items-center justify-between mb-4">
         <h1 className="text-2xl font-bold text-[var(--text-primary)] bg-transparent select-text">
-          {t("editListing")} #{listing.id}
+          {t("editListing")}
         </h1>
         <button
           onClick={() => router.push(`/dashboard/listings/${listing.id}/view?from=listings`)}

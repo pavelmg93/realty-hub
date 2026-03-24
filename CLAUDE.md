@@ -195,11 +195,8 @@ playwright install chromium
 `deploy-vm.sh update` runs seed + migrate.sh + regenerate-titles.sh automatically.
 NEVER suggest running migrations manually — deploy handles it.
 
-End-of-session deploy instructions:
-1. `git push`
-2. On VM: `cd ~/realty-hub && git pull && ./scripts/deploy-vm.sh update`
-
-That's it. No separate migration commands.
+**Claude Code does NOT push or deploy.** It commits locally and recommends a commit message.
+User handles the full deploy chain: `git push` → SSH to VM → `git pull && ./scripts/deploy-vm.sh update`
 
 ---
 
@@ -256,9 +253,8 @@ Two loops. Linear is the spec, files are the handoff.
 2. Update `docs/CHANGELOG.md` with session changes
 3. Mark completed tasks in `docs/SCOPE.md` with `[x]`
 4. Run `cd web && npx tsc --noEmit` — confirm clean
-5. `git add -A` and suggest commit message: `Session NN: <brief summary>`
-6. After user confirms: `git commit` and `git push`
-7. Print reminder: `✅ Pushed. On VM: cd ~/realty-hub && git pull && ./scripts/deploy-vm.sh update`
+5. `git add -A` and recommend commit message: `Session NN: <brief summary>`
+6. Stop. User handles: `/export` → `git commit` → `git push` → VM deploy
 
 ### Rules
 - If it's not in SCOPE.md, it doesn't exist for this session
@@ -367,24 +363,10 @@ When I ask you to "log this test" or "create a test session," you must:
 - [ ] [Specific thing to fix in the next session]
 ```
 
----
-
-## After Every Session (AUTOMATIC — do not wait for user to ask)
-
-1. Create a code session log in `docs/code_sessions/YYYY-MM-DD-sessionNN-brief-topic.md` using the Code Session Template
-2. Update `docs/CHANGELOG.md` with session changes
-3. Mark completed tasks in `docs/SCOPE.md` with `[x]`
-4. Run `cd web && npx tsc --noEmit` — confirm clean
-5. `git add -A` and suggest commit message: `Session NN: <brief summary>`
-6. After user confirms: `git commit` (do NOT push — user pushes and deploys manually)
-7. Print reminder: `Pushed. On VM: cd ~/realty-hub && git pull && ./scripts/deploy-vm.sh update`
-
 ## Chat Exports
 
 Saved in `docs/chat_exports/`. Use `/export` (built-in, 0 tokens) to save a raw transcript to the project root. `scripts/claude-log.sh` (runs every 30 min via cron) moves it to `docs/chat_exports/{DATE}/` and appends to a daily markdown summary.
 
-**Current session number: 27**
-**Last completed session: 26 — 2026-03-24 — Card Redesign, Form Overhaul, Title Fix**
 **Deployment: Google Cloud VM — see `docs/DEPLOYMENT.md` for full guide**
 **Sprint: Stabilization — see `docs/SCOPE.md`**
 **Linear: https://linear.app/realty-hub**

@@ -5,6 +5,7 @@ import { generateTitleStandardized } from "@/lib/constants";
 import { StatusBadge } from "@/components/ui/StatusBadge";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { getPropertyTypeKey, getTransactionTypeKey, getFieldValueLabel } from "@/lib/i18n";
+import { MessageSquare } from "lucide-react";
 
 interface Props {
   listing: Listing;
@@ -37,7 +38,7 @@ export default function FeedCard({ listing, currentUserId, onMessage, onClick }:
           />
           {listing.photo_count && listing.photo_count > 0 && (
             <span className="absolute bottom-2 right-2 text-xs px-2 py-0.5 bg-black/60 text-white rounded-full">
-              {listing.photo_count} {listing.photo_count === 1 ? "photo" : "photos"}
+              {listing.photo_count} {t("photoCount")}
             </span>
           )}
         </div>
@@ -140,17 +141,18 @@ export default function FeedCard({ listing, currentUserId, onMessage, onClick }:
                 <a
                   href={`/dashboard/listings/${listing.id}/view?from=feed#messages`}
                   onClick={(e) => e.stopPropagation()}
-                  className="px-3 py-1.5 text-xs rounded-lg font-medium transition-colors border border-[var(--info)] text-[var(--info)] hover:bg-[var(--info)]/10"
+                  className="flex items-center border rounded-md p-1.5 transition-colors hover:bg-[var(--info)]/10"
+                  style={{ color: "var(--info)", borderColor: "rgba(59,130,246,0.3)" }}
                 >
-                  Messages
+                  <MessageSquare size={14} />
                 </a>
               ) : (
                 <button
                   onClick={(e) => { e.stopPropagation(); onMessage(listing); }}
-                  className="px-3 py-1.5 text-xs rounded-lg font-medium transition-colors text-[var(--orange)]"
-                  style={{ backgroundColor: "rgba(232,119,34,0.15)" }}
+                  className="flex items-center border rounded-md p-1.5 transition-colors hover:bg-[var(--info)]/10"
+                  style={{ color: "var(--info)", borderColor: "rgba(59,130,246,0.3)" }}
                 >
-                  Message
+                  <MessageSquare size={14} />
                 </button>
               )}
             </>
