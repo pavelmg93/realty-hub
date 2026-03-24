@@ -1,3 +1,5 @@
+# raw text chat_exports
+docs/chat_exports/*/*.txt
 # WSL - Windows temp files
 *:Zone.Identifier
 
