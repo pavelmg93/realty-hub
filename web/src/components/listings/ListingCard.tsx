@@ -10,26 +10,45 @@ import { useRouter } from "next/navigation";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { Heart, MapPin, User, Phone } from "lucide-react";
 
-const STATUS_COLORS: Record<string, string> = {
+// Corner flag colors (spec REA-69):
+// Blue=Just Listed, Red=Price Raised/Dropped, Green=Deposit/Sold, Gray=Not For Sale
+// Selling (for_sale) has NO flag
+const STATUS_FLAG_COLORS: Record<string, string | null> = {
   just_listed: "var(--info)",
-  for_sale: "var(--status-open)",
-  price_dropped: "var(--status-open)",
-  price_increased: "var(--status-open)",
-  deposit: "var(--status-pending)",
-  sold: "var(--status-sold)",
+  for_sale: null,
+  price_dropped: "var(--error)",
+  price_increased: "var(--error)",
+  deposit: "var(--status-open)",
+  sold: "var(--status-open)",
   not_for_sale: "var(--status-nfs)",
 };
 
-function StatusColorStrip({ status }: { status: string }) {
+const STATUS_FLAG_LABELS: Record<string, string> = {
+  just_listed: "Mới đăng",
+  price_dropped: "Giảm giá",
+  price_increased: "Tăng giá",
+  deposit: "Đặt cọc",
+  sold: "Đã bán",
+  not_for_sale: "Không bán",
+};
+
+function StatusFlag({ status }: { status: string }) {
+  const color = STATUS_FLAG_COLORS[status];
+  const label = STATUS_FLAG_LABELS[status];
+  if (!color || !label) return null;
   return (
-    <div className="h-1.5 w-full shrink-0" style={{ backgroundColor: STATUS_COLORS[status] ?? "var(--status-open)" }} />
+    <div
+      className="absolute top-2 left-0 z-10 px-2 py-0.5 text-[9px] font-bold text-white"
+      style={{ backgroundColor: color, borderRadius: "0 3px 3px 0" }}
+    >
+      {label}
+    </div>
   );
 }
 
 interface Props {
   listing: Listing;
   isArchived?: boolean;
-  /** When true, show corp. orange highlight (e.g. on My Listings) */
   isOwner?: boolean;
   cols?: 1 | 2;
   onArchive?: (id: number) => void;
@@ -42,7 +61,6 @@ export default function ListingCard({
   isArchived,
   isOwner,
   cols = 2,
-  onArchive,
   onReactivate,
   onDelete,
 }: Props) {
@@ -86,6 +104,7 @@ export default function ListingCard({
   // Build two-line headline (ADR-005)
   const line1 = listing.street || "";
   const line2 = listing.title_standardized || generateTitleStandardized(listing);
+  const agentName = [listing.owner_first_name, listing.owner_last_name].filter(Boolean).join(" ");
 
   // ── 1-wide: horizontal card ──
   if (cols === 1) {
@@ -99,26 +118,24 @@ export default function ListingCard({
           ...(isOwner ? { borderLeftColor: "var(--orange)" } : {}),
         }}
       >
-        {/* Left: photo + status strip */}
-        <div className="w-1/3 relative h-full flex flex-col shrink-0">
-          <div className="flex-grow overflow-hidden bg-[var(--bg-elevated)] relative">
-            {photoUrl ? (
-              <Image
-                src={photoUrl}
-                alt={line1 || "listing"}
-                fill
-                className="object-cover"
-                sizes="33vw"
-              />
-            ) : (
-              <div className="w-full h-full flex items-center justify-center text-[var(--text-muted)]">
-                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-                  <path d="M3 21h18M9 21V5a2 2 0 012-2h2a2 2 0 012 2v16M9 10h.01M15 10h.01M9 14h.01M15 14h.01" />
-                </svg>
-              </div>
-            )}
-          </div>
-          <StatusColorStrip status={listing.status} />
+        {/* Left: photo + status flag */}
+        <div className="w-1/3 relative h-full shrink-0 overflow-hidden bg-[var(--bg-elevated)]">
+          {photoUrl ? (
+            <Image
+              src={photoUrl}
+              alt={line1 || "listing"}
+              fill
+              className="object-cover"
+              sizes="33vw"
+            />
+          ) : (
+            <div className="w-full h-full flex items-center justify-center text-[var(--text-muted)]">
+              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                <path d="M3 21h18M9 21V5a2 2 0 012-2h2a2 2 0 012 2v16M9 10h.01M15 10h.01M9 14h.01M15 14h.01" />
+              </svg>
+            </div>
+          )}
+          <StatusFlag status={listing.status} />
         </div>
 
         {/* Right: details */}
@@ -128,8 +145,9 @@ export default function ListingCard({
               <StatusBadge status={listing.status} />
               <span className="text-xs text-[var(--text-muted)]">#{listing.id}</span>
             </div>
+            {/* Title lines — both same color (ADR-005) */}
             <p className="text-sm font-bold text-[var(--text-primary)] truncate leading-tight">{line1}</p>
-            <p className="text-sm font-bold truncate leading-tight" style={{ color: "var(--orange)" }}>{line2}</p>
+            <p className="text-sm font-bold text-[var(--text-primary)] truncate leading-tight">{line2}</p>
             <div className="mt-1.5 space-y-0.5">
               {listing.ward && (
                 <div className="flex items-center gap-1 text-xs text-[var(--text-secondary)]">
@@ -137,10 +155,10 @@ export default function ListingCard({
                   <span className="truncate">{listing.ward}</span>
                 </div>
               )}
-              {listing.owner_first_name && (
+              {agentName && (
                 <div className="flex items-center gap-1 text-xs text-[var(--text-secondary)]">
                   <User size={11} className="shrink-0" />
-                  <span className="truncate">{listing.owner_first_name}</span>
+                  <span className="truncate">{agentName}</span>
                 </div>
               )}
               {listing.owner_phone && (
@@ -158,22 +176,17 @@ export default function ListingCard({
             </div>
           </div>
 
-          {/* Heart + minimal actions */}
+          {/* Actions row */}
           <div className="flex items-center justify-between" onClick={(e) => e.preventDefault()}>
             <div className="flex gap-2 flex-wrap">
               {!isArchived ? (
-                <>
-                  <button
-                    type="button"
-                    onClick={(e) => { e.preventDefault(); e.stopPropagation(); router.push(`/dashboard/listings/${listing.id}/edit`); }}
-                    className="px-2 py-0.5 text-[11px] border rounded font-medium border-[var(--orange)]/30 text-[var(--orange)] hover:bg-[var(--orange)]/10"
-                  >
-                    {t("edit")}
-                  </button>
-                  {onArchive && (
-                    <ConfirmButton label={t("archive")} confirmLabel={t("confirm")} onConfirm={() => onArchive(listing.id)} className="text-[11px] text-[var(--text-muted)] hover:text-[var(--text-secondary)]" />
-                  )}
-                </>
+                <button
+                  type="button"
+                  onClick={(e) => { e.preventDefault(); e.stopPropagation(); router.push(`/dashboard/listings/${listing.id}/edit`); }}
+                  className="px-2 py-0.5 text-[11px] border rounded font-medium border-[var(--orange)]/30 text-[var(--orange)] hover:bg-[var(--orange)]/10"
+                >
+                  {t("edit")}
+                </button>
               ) : (
                 <>
                   {onReactivate && (
@@ -227,9 +240,8 @@ export default function ListingCard({
             </svg>
           </div>
         )}
-        <div className="absolute top-2 left-2">
-          <StatusBadge status={listing.status} />
-        </div>
+        {/* Corner flag replaces old status badge overlay */}
+        <StatusFlag status={listing.status} />
         <button
           onClick={toggleFavorite}
           disabled={isTogglingFavorite}
@@ -249,10 +261,18 @@ export default function ListingCard({
       </div>
 
       <div className="p-4">
+        {/* Title lines — both same color (ADR-005) */}
         {line1 && <p className="text-base font-bold text-[var(--text-primary)] truncate leading-tight">{line1}</p>}
         {line2 && <p className="text-base font-bold text-[var(--text-primary)] truncate leading-tight">{line2}</p>}
 
-        <div className="flex items-center justify-between text-xs pt-3 mt-3 border-t border-[var(--border-subtle)] text-[var(--text-muted)]">
+        {agentName && (
+          <div className="flex items-center gap-1 mt-1.5 text-xs text-[var(--text-secondary)]">
+            <User size={11} className="shrink-0" />
+            <span className="truncate">{agentName}</span>
+          </div>
+        )}
+
+        <div className="flex items-center justify-between text-xs pt-3 mt-2 border-t border-[var(--border-subtle)] text-[var(--text-muted)]">
           <span>
             {t("updated")}{" "}
             {new Date(listing.updated_at).toLocaleDateString(undefined, { month: "short", day: "numeric" })}
@@ -276,9 +296,6 @@ export default function ListingCard({
                 >
                   {t("edit")}
                 </button>
-                {onArchive && (
-                  <ConfirmButton label={t("archive")} confirmLabel={t("confirm")} onConfirm={() => onArchive(listing.id)} className="text-orange-600 hover:bg-orange-50" />
-                )}
               </>
             ) : (
               <>

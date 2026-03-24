@@ -71,6 +71,7 @@ export interface Listing {
   // Joined fields (from feed)
   owner_username?: string;
   owner_first_name?: string;
+  owner_last_name?: string;
   owner_phone?: string;
   owner_email?: string;
   owner_avatar_url?: string | null;

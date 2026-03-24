@@ -162,6 +162,7 @@ export async function GET(request: NextRequest) {
         pl.*,
         a.username AS owner_username,
         a.first_name AS owner_first_name,
+        a.last_name AS owner_last_name,
         a.phone AS owner_phone,
         a.email AS owner_email,
         c.id AS existing_conversation_id,

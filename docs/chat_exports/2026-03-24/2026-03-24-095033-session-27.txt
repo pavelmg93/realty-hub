@@ -1,0 +1,1389 @@
+ ▐▛███▜▌   Claude Code v2.1.81
+▝▜█████▛▘  Sonnet 4.6 · Claude Pro
+  ▘▘ ▝▝    ~/dev_projects/realty-hub/web
+
+❯ Session 27.                                                                   
+
+  Read 1 file (ctrl+o to expand)
+
+● Session 27 loaded. Let me fetch all 4 Linear issues in parallel.
+
+  Queried Linear 4 times (ctrl+o to expand)
+
+● All specs loaded. Session 27 plan:
+
+  1. REA-68 — Create layout-constants.ts + design rules in CLAUDE.md
+  2. REA-70 — Fix map height using those constants (4th attempt, definitive)
+  3. REA-69 — 8 card fixes (title color, status flags, agent full name,
+  truncation, etc.)
+  4. REA-76 — CLAUDE.md auto-logging + backfill S25/25b/26 logs
+
+  Starting with REA-68. Let me explore the current layout files.
+
+  Searched for 7 patterns, read 4 files (ctrl+o to expand)
+
+● Now let me read the card components and feed/listings pages:
+
+  Read 2 files (ctrl+o to expand)
+
+● Now let me read the feed and listings pages:
+
+  Read 3 files (ctrl+o to expand)
+
+● Let me read the map height usage in the pages and the Listing type:
+
+  Read 3 files (ctrl+o to expand)
+
+● Let me check the FeedFilters component and toolbar structure:
+
+  Read 2 files (ctrl+o to expand)
+
+● Let me check the API routes for feed and listings to see the SQL queries:
+
+  Searched for 5 patterns, read 3 files (ctrl+o to expand)
+
+● Good. Now let me check the chat exports for session log backfill and the
+  current session number in CLAUDE.md:
+
+  Read 1 file (ctrl+o to expand)
+
+● Bash(git log --oneline -15)
+  ⎿  550b4d7 pre Session 27: CLAUDE updates, Linear MCP rules, etc.
+     113533e Session 26: Card Redesign, Form Overhaul, Title Fix (REA-65, R
+     EA-66, REA-67)
+     … +14 lines (ctrl+o to expand)
+
+  Read 4 files (ctrl+o to expand)
+● I have everything I need. Let me now implement all 4 issues. Starting with
+  REA-68 (layout constants), then REA-70 (map), REA-69 (cards), REA-76 (docs).
+
+● Write(src/lib/layout-constants.ts)
+  ⎿  Wrote 21 lines to src/lib/layout-constants.ts
+       1 /**
+       2  * Layout constants — single source of truth for all layout dime
+         nsions.
+       3  * Import from here instead of hardcoding pixel values in compon
+         ents.
+       4  */
+       5 export const LAYOUT = {
+       6   /** Fixed FIDT header bar (h-14 = 56px) */
+       7   TOPBAR_HEIGHT: 56,
+       8   /** Fixed mobile bottom nav */
+       9   BOTTOMNAV_HEIGHT: 64,
+      10   /** Search/filter toolbar row */
+     … +11 lines (ctrl+o to expand)
+
+● Now update BottomNav height from 60px → 64px:
+
+● Update(src/components/ui/BottomNav.tsx)
+  ⎿  Added 1 line, removed 1 line
+      52        className="fixed bottom-0 left-0 right-0 z-50 flex items-
+          center justify-around px-2 border-t border-[var(--border)]"
+      53        style={{
+      54          backgroundColor: "var(--bg-surface)",
+      55 -        height: "60px",                                        
+      55 +        height: "64px",                                        
+      56          paddingBottom: "env(safe-area-inset-bottom, 0)",
+      57        }}
+      58      >
+
+● Now add owner_last_name to the Listing type:
+
+● Update(src/lib/types.ts)
+  ⎿  Added 1 line
+      71    // Joined fields (from feed)
+      72    owner_username?: string;
+      73    owner_first_name?: string;
+      74 +  owner_last_name?: string;                                    
+      75    owner_phone?: string;
+      76    owner_email?: string;
+      77    owner_avatar_url?: string | null;
+
+● Update AgentChip to support last_name:
+
+● Update(src/components/ui/AgentChip.tsx)
+  ⎿  Added 1 line
+       6    agent: {
+       7      id: number;
+       8      first_name: string | null;
+       9 +    last_name?: string | null;                                 
+      10      username: string | null;
+      11      phone?: string | null;
+      12      avatar_url?: string | null;
+
+● Update(src/components/ui/AgentChip.tsx)
+  ⎿  Added 4 lines, removed 1 line
+      22    showOnline = false,
+      23    clickable = true,
+      24  }: AgentChipProps) {
+      25 -  const displayName = agent.first_name || agent.username || "?"
+         -;                                                              
+      25 +  const displayName =                                          
+      26 +    [agent.first_name, agent.last_name].filter(Boolean).join(" 
+         +") ||                                                          
+      27 +    agent.username ||                                          
+      28 +    "?";                                                       
+      29    const initials = displayName.slice(0, 2).toUpperCase();
+      30    const inner = (
+      31      <div
+
+● Now update the feed API to include owner_last_name:
+
+● Update(src/app/api/feed/route.ts)
+  ⎿  Added 1 line
+      162          pl.*,
+      163          a.username AS owner_username,
+      164          a.first_name AS owner_first_name,
+      165 +        a.last_name AS owner_last_name,                       
+      166          a.phone AS owner_phone,
+      167          a.email AS owner_email,
+      168          c.id AS existing_conversation_id,
+
+● Now update the listings API to join agents and return name fields:
+
+● Update(src/app/api/listings/route.ts)
+  ⎿  Added 7 lines, removed 1 line
+      103      const whereClause = conditions.join(" AND ");
+      104      const result = await pool.query(
+      105        `SELECT parsed_listings.*,
+      106 +        a.username AS owner_username,                         
+      107 +        a.first_name AS owner_first_name,                     
+      108 +        a.last_name AS owner_last_name,                       
+      109 +        a.phone AS owner_phone,                               
+      110          EXISTS(SELECT 1 FROM listing_favorites f WHERE f.listi
+           ng_id = parsed_listings.id AND f.agent_id = $1) AS is_favorite
+           d,
+      111          (SELECT COUNT(*) FROM listing_photos lp WHERE lp.listi
+           ng_id = parsed_listings.id) AS photo_count,
+      112          (SELECT lp.file_path FROM listing_photos lp WHERE lp.l
+           isting_id = parsed_listings.id ORDER BY lp.is_primary DESC, lp
+           .display_order LIMIT 1) AS primary_photo
+      109 -       FROM parsed_listings WHERE ${whereClause} ORDER BY ${sa
+          -feSort} ${safeOrder}`,                                        
+      113 +       FROM parsed_listings                                   
+      114 +       JOIN agents a ON a.id = parsed_listings.agent_id       
+      115 +       WHERE ${whereClause} ORDER BY ${safeSort} ${safeOrder}`
+          +,                                                             
+      116        params
+      117      );
+      118  
+
+● Now rewrite web/src/components/ui/ListingCard.tsx with all REA-69 fixes:
+
+● Write(src/components/ui/ListingCard.tsx)
+  ⎿  Added 71 lines, removed 51 lines
+      22    onViewMessages?: () => void;
+      23  }
+      24  
+      25 -const STATUS_STRIP_COLORS: Record<string, string> = {          
+      25 +// Corner flag colors per status (spec REA-69):                
+      26 +// Blue=Just Listed, Red=Price Raised/Dropped, Green=Deposit/So
+         +ld, Gray=Not For Sale                                          
+      27 +// Selling (for_sale) has NO flag                              
+      28 +const STATUS_FLAG_COLORS: Record<string, string | null> = {    
+      29    just_listed: "var(--info)",
+      27 -  for_sale: "var(--status-open)",                              
+      28 -  price_dropped: "var(--status-open)",                         
+      29 -  price_increased: "var(--status-open)",                       
+      30 -  deposit: "var(--status-pending)",                            
+      31 -  sold: "var(--status-sold)",                                  
+      30 +  for_sale: null,                                              
+      31 +  price_dropped: "var(--error)",                               
+      32 +  price_increased: "var(--error)",                             
+      33 +  deposit: "var(--status-open)",                               
+      34 +  sold: "var(--status-open)",                                  
+      35    not_for_sale: "var(--status-nfs)",
+      36  };
+      37  
+      35 -function StatusBadgeStrip({ status }: { status: string }) {    
+      36 -  const color = STATUS_STRIP_COLORS[status] ?? "var(--status-op
+         -en)";                                                          
+      37 -  return (                                                     
+      38 -    <div                                                       
+      39 -      className="h-1.5 w-full shrink-0"                        
+      40 -      style={{ backgroundColor: color }}                       
+      41 -    />                                                         
+      42 -  );                                                           
+      43 -}                                                              
+      44 -                                                               
+      38  function Building2Icon() {
+      39    return (
+      40      <svg
+     ...
+      50    );
+      51  }
+      52  
+      53 +/** Corner flag overlay on top-left of a photo area */         
+      54 +function StatusFlag({ status }: { status: string }) {          
+      55 +  const { t } = useLanguage();                                 
+      56 +  const color = STATUS_FLAG_COLORS[status];                    
+      57 +  if (!color) return null;                                     
+      58 +                                                               
+      59 +  const STATUS_FLAG_KEYS: Record<string, "justListed" | "priceD
+         +ropped" | "priceIncreased" | "deposit" | "sold" | "notForSale">
+         + = {                                                           
+      60 +    just_listed: "justListed",                                 
+      61 +    price_dropped: "priceDropped",                             
+      62 +    price_increased: "priceIncreased",                         
+      63 +    deposit: "deposit",                                        
+      64 +    sold: "sold",                                              
+      65 +    not_for_sale: "notForSale",                                
+      66 +  };                                                           
+      67 +  const key = STATUS_FLAG_KEYS[status];                        
+      68 +  if (!key) return null;                                       
+      69 +                                                               
+      70 +  return (                                                     
+      71 +    <div                                                       
+      72 +      className="absolute top-2 left-0 z-10 px-2 py-0.5 text-[9
+         +px] font-bold text-white"                                      
+      73 +      style={{ backgroundColor: color, borderRadius: "0 3px 3px
+         + 0" }}                                                         
+      74 +    >                                                          
+      75 +      {t(key)}                                                 
+      76 +    </div>                                                     
+      77 +  );                                                           
+      78 +}                                                              
+      79 +                                                               
+      80  export function ListingCard({
+      81    listing,
+      82    cols = 2,
+     ...
+      93        ? {
+      94            id: listing.agent_id,
+      95            first_name: listing.owner_first_name ?? null,
+      96 +          last_name: listing.owner_last_name ?? null,          
+      97            username: listing.owner_username ?? null,
+      98            phone: listing.owner_phone ?? null,
+      99            avatar_url: listing.owner_avatar_url ?? null,
+     ...
+      113  
+      114      setIsTogglingFavorite(true);
+      115      const prev = isFavorited;
+       95 -    setIsFavorited(!prev); // Optimistic UI update            
+      116 +    setIsFavorited(!prev);                                    
+      117  
+      118      try {
+      119        const res = await fetch(`/api/listings/${listing.id}/fav
+           orite`, {
+      120          method: "POST",
+      121        });
+      122        if (!res.ok) {
+      102 -        setIsFavorited(prev); // Revert on failure            
+      123 +        setIsFavorited(prev);                                 
+      124        } else {
+      125          const data = await res.json();
+      126          setIsFavorited(data.favorited);
+      127        }
+      128      } catch (err) {
+      129        console.error("Favorite toggle failed:", err);
+      109 -      setIsFavorited(prev); // Revert on error                
+      130 +      setIsFavorited(prev);                                   
+      131      } finally {
+      132        setIsTogglingFavorite(false);
+      133      }
+     ...
+      136    const line1 = listing.street || "";
+      137    const line2 = listing.title_standardized || generateTitleSta
+           ndardized(listing);
+      138  
+      118 -  // ── 1-wide: horizontal card (Stitch layout) ──            
+      139 +  // ── 1-wide: horizontal card ──                            
+      140    if (cols === 1) {
+      141      return (
+      142        <Link
+     ...
+      148            ...(isOwner ? { borderLeftColor: "var(--orange)" } :
+            {}),
+      149          }}
+      150        >
+      130 -        {/* Left: photo + status strip */}                    
+      131 -        <div className="w-1/3 relative h-full flex flex-col sh
+          -rink-0">                                                      
+      132 -          <div className="flex-grow overflow-hidden bg-[var(--
+          -bg-elevated)]">                                               
+      133 -            {photoUrl ? (                                     
+      134 -              <Image                                          
+      135 -                src={photoUrl}                                
+      136 -                alt={line1 || "listing"}                      
+      137 -                fill                                          
+      138 -                className="object-cover"                      
+      139 -                sizes="33vw"                                  
+      140 -              />                                              
+      141 -            ) : (                                             
+      142 -              <div className="w-full h-full flex items-center 
+          -justify-center text-[var(--text-muted)]">                     
+      143 -                <Building2Icon />                             
+      144 -              </div>                                          
+      145 -            )}                                                
+      146 -          </div>                                              
+      147 -          <StatusBadgeStrip status={listing.status} />        
+      151 +        {/* Left: photo + status flag */}                     
+      152 +        <div className="w-1/3 relative h-full shrink-0 overflo
+          +w-hidden bg-[var(--bg-elevated)]">                            
+      153 +          {photoUrl ? (                                       
+      154 +            <Image                                            
+      155 +              src={photoUrl}                                  
+      156 +              alt={line1 || "listing"}                        
+      157 +              fill                                            
+      158 +              className="object-cover"                        
+      159 +              sizes="33vw"                                    
+      160 +            />                                                
+      161 +          ) : (                                               
+      162 +            <div className="w-full h-full flex items-center ju
+          +stify-center text-[var(--text-muted)]">                       
+      163 +              <Building2Icon />                               
+      164 +            </div>                                            
+      165 +          )}                                                  
+      166 +          <StatusFlag status={listing.status} />              
+      167          </div>
+      168  
+      169          {/* Right: details */}
+      170          <div className="w-2/3 p-3 flex flex-col justify-betwee
+           n relative overflow-hidden">
+      171            <div className="min-w-0">
+      153 -            {/* Badge row */}                                 
+      172 +            {/* Badge + ID */}                                
+      173              <div className="flex items-center gap-1.5 mb-1">
+      155 -              <StatusBadge status={(listing.status as "for_sal
+          -e") || "for_sale"} />                                         
+      174 +              <StatusBadge status={listing.status} />         
+      175                <span className="text-xs text-[var(--text-muted)
+           ]">#{listing.id}</span>
+      176              </div>
+      158 -            {/* Title lines */}                               
+      177 +            {/* Title lines — both same color (ADR-005) */}   
+      178              <p className="text-sm font-bold text-[var(--text-p
+           rimary)] truncate leading-tight">
+      179                {line1}
+      180              </p>
+      162 -            <p className="text-sm font-bold truncate leading-t
+          -ight" style={{ color: "var(--orange)" }}>                     
+      181 +            <p className="text-sm font-bold text-[var(--text-p
+          +rimary)] truncate leading-tight">                             
+      182                {line2}
+      183              </p>
+      184              {/* Metadata */}
+     ...
+      189                    <span className="truncate">{listing.ward}</s
+           pan>
+      190                  </div>
+      191                )}
+      173 -              {agent?.first_name && (                         
+      192 +              {(listing.owner_first_name || listing.owner_last
+          +_name) && (                                                   
+      193                  <div className="flex items-center gap-1 text-x
+           s text-[var(--text-secondary)]">
+      194                    <User size={11} className="shrink-0" />
+      176 -                  <span className="truncate">{agent.first_name
+          -}</span>                                                      
+      195 +                  <span className="truncate">                 
+      196 +                    {[listing.owner_first_name, listing.owner_
+          +last_name].filter(Boolean).join(" ")}                         
+      197 +                  </span>                                     
+      198                  </div>
+      199                )}
+      179 -              {agent?.phone && (                              
+      200 +              {listing.owner_phone && (                       
+      201                  <div className="flex items-center gap-1 text-x
+           s text-[var(--text-secondary)]">
+      202                    <Phone size={11} className="shrink-0" />
+      203                    <a
+      183 -                    href={`tel:${agent.phone}`}               
+      204 +                    href={`tel:${listing.owner_phone}`}       
+      205                      onClick={(e) => e.stopPropagation()}
+      206                      className="truncate hover:text-[var(--oran
+           ge)] transition-colors"
+      207                    >
+      187 -                    {agent.phone}                             
+      208 +                    {listing.owner_phone}                     
+      209                    </a>
+      210                  </div>
+      211                )}
+     ...
+      255                <Building2Icon />
+      256              </div>
+      257            )}
+      237 -          <div className="absolute top-2 left-2">             
+      238 -            <StatusBadge status={(listing.status as "for_sale"
+          -) || "for_sale"} />                                           
+      239 -          </div>                                              
+      258 +          {/* Corner flag replaces status badge overlay */}   
+      259 +          <StatusFlag status={listing.status} />              
+      260            <button
+      261              onClick={toggleFavorite}
+      262              disabled={isTogglingFavorite}
+     ...
+      286        </Link>
+      287  
+      288        <div className="p-3">
+      269 -        {/* Two-line headline */}                             
+      289 +        {/* Two-line headline — both same color (ADR-005) */} 
+      290          <p className={`font-bold text-[var(--text-primary)] tr
+           uncate leading-tight ${cols === 3 ? "text-sm" : "text-base"}`}
+           >
+      291            {line1}
+      292          </p>
+
+● Now update web/src/components/listings/ListingCard.tsx with all REA-69 fixes:
+
+● Write(src/components/listings/ListingCard.tsx)
+  ⎿  Added 70 lines, removed 53 lines
+      10  import { useLanguage } from "@/contexts/LanguageContext";
+      11  import { Heart, MapPin, User, Phone } from "lucide-react";
+      12  
+      13 -const STATUS_COLORS: Record<string, string> = {                
+      13 +// Corner flag colors (spec REA-69):                           
+      14 +// Blue=Just Listed, Red=Price Raised/Dropped, Green=Deposit/So
+         +ld, Gray=Not For Sale                                          
+      15 +// Selling (for_sale) has NO flag                              
+      16 +const STATUS_FLAG_COLORS: Record<string, string | null> = {    
+      17    just_listed: "var(--info)",
+      15 -  for_sale: "var(--status-open)",                              
+      16 -  price_dropped: "var(--status-open)",                         
+      17 -  price_increased: "var(--status-open)",                       
+      18 -  deposit: "var(--status-pending)",                            
+      19 -  sold: "var(--status-sold)",                                  
+      18 +  for_sale: null,                                              
+      19 +  price_dropped: "var(--error)",                               
+      20 +  price_increased: "var(--error)",                             
+      21 +  deposit: "var(--status-open)",                               
+      22 +  sold: "var(--status-open)",                                  
+      23    not_for_sale: "var(--status-nfs)",
+      24  };
+      25  
+      23 -function StatusColorStrip({ status }: { status: string }) {    
+      26 +const STATUS_FLAG_LABELS: Record<string, string> = {           
+      27 +  just_listed: "Mới đăng",                                     
+      28 +  price_dropped: "Giảm giá",                                   
+      29 +  price_increased: "Tăng giá",                                 
+      30 +  deposit: "Đặt cọc",                                          
+      31 +  sold: "Đã bán",                                              
+      32 +  not_for_sale: "Không bán",                                   
+      33 +};                                                             
+      34 +                                                               
+      35 +function StatusFlag({ status }: { status: string }) {          
+      36 +  const color = STATUS_FLAG_COLORS[status];                    
+      37 +  const label = STATUS_FLAG_LABELS[status];                    
+      38 +  if (!color || !label) return null;                           
+      39    return (
+      25 -    <div className="h-1.5 w-full shrink-0" style={{ backgroundC
+         -olor: STATUS_COLORS[status] ?? "var(--status-open)" }} />      
+      40 +    <div                                                       
+      41 +      className="absolute top-2 left-0 z-10 px-2 py-0.5 text-[9
+         +px] font-bold text-white"                                      
+      42 +      style={{ backgroundColor: color, borderRadius: "0 3px 3px
+         + 0" }}                                                         
+      43 +    >                                                          
+      44 +      {label}                                                  
+      45 +    </div>                                                     
+      46    );
+      47  }
+      48  
+      49  interface Props {
+      50    listing: Listing;
+      51    isArchived?: boolean;
+      32 -  /** When true, show corp. orange highlight (e.g. on My Listin
+         -gs) */                                                         
+      52    isOwner?: boolean;
+      53    cols?: 1 | 2;
+      54    onArchive?: (id: number) => void;
+     ...
+      61    isArchived,
+      62    isOwner,
+      63    cols = 2,
+      45 -  onArchive,                                                   
+      64    onReactivate,
+      65    onDelete,
+      66  }: Props) {
+     ...
+      104    // Build two-line headline (ADR-005)
+      105    const line1 = listing.street || "";
+      106    const line2 = listing.title_standardized || generateTitleSta
+           ndardized(listing);
+      107 +  const agentName = [listing.owner_first_name, listing.owner_l
+          +ast_name].filter(Boolean).join(" ");                          
+      108  
+      109    // ── 1-wide: horizontal card ──
+      110    if (cols === 1) {
+     ...
+      118            ...(isOwner ? { borderLeftColor: "var(--orange)" } :
+            {}),
+      119          }}
+      120        >
+      102 -        {/* Left: photo + status strip */}                    
+      103 -        <div className="w-1/3 relative h-full flex flex-col sh
+          -rink-0">                                                      
+      104 -          <div className="flex-grow overflow-hidden bg-[var(--
+          -bg-elevated)] relative">                                      
+      105 -            {photoUrl ? (                                     
+      106 -              <Image                                          
+      107 -                src={photoUrl}                                
+      108 -                alt={line1 || "listing"}                      
+      109 -                fill                                          
+      110 -                className="object-cover"                      
+      111 -                sizes="33vw"                                  
+      112 -              />                                              
+      113 -            ) : (                                             
+      114 -              <div className="w-full h-full flex items-center 
+          -justify-center text-[var(--text-muted)]">                     
+      115 -                <svg width="32" height="32" viewBox="0 0 24 24
+          -" fill="none" stroke="currentColor" strokeWidth="1.5">        
+      116 -                  <path d="M3 21h18M9 21V5a2 2 0 012-2h2a2 2 0
+          - 012 2v16M9 10h.01M15 10h.01M9 14h.01M15 14h.01" />           
+      117 -                </svg>                                        
+      118 -              </div>                                          
+      119 -            )}                                                
+      120 -          </div>                                              
+      121 -          <StatusColorStrip status={listing.status} />        
+      121 +        {/* Left: photo + status flag */}                     
+      122 +        <div className="w-1/3 relative h-full shrink-0 overflo
+          +w-hidden bg-[var(--bg-elevated)]">                            
+      123 +          {photoUrl ? (                                       
+      124 +            <Image                                            
+      125 +              src={photoUrl}                                  
+      126 +              alt={line1 || "listing"}                        
+      127 +              fill                                            
+      128 +              className="object-cover"                        
+      129 +              sizes="33vw"                                    
+      130 +            />                                                
+      131 +          ) : (                                               
+      132 +            <div className="w-full h-full flex items-center ju
+          +stify-center text-[var(--text-muted)]">                       
+      133 +              <svg width="32" height="32" viewBox="0 0 24 24" 
+          +fill="none" stroke="currentColor" strokeWidth="1.5">          
+      134 +                <path d="M3 21h18M9 21V5a2 2 0 012-2h2a2 2 0 0
+          +12 2v16M9 10h.01M15 10h.01M9 14h.01M15 14h.01" />             
+      135 +              </svg>                                          
+      136 +            </div>                                            
+      137 +          )}                                                  
+      138 +          <StatusFlag status={listing.status} />              
+      139          </div>
+      140  
+      141          {/* Right: details */}
+     ...
+      145                <StatusBadge status={listing.status} />
+      146                <span className="text-xs text-[var(--text-muted)
+           ]">#{listing.id}</span>
+      147              </div>
+      148 +            {/* Title lines — both same color (ADR-005) */}   
+      149              <p className="text-sm font-bold text-[var(--text-p
+           rimary)] truncate leading-tight">{line1}</p>
+      132 -            <p className="text-sm font-bold truncate leading-t
+          -ight" style={{ color: "var(--orange)" }}>{line2}</p>          
+      150 +            <p className="text-sm font-bold text-[var(--text-p
+          +rimary)] truncate leading-tight">{line2}</p>                  
+      151              <div className="mt-1.5 space-y-0.5">
+      152                {listing.ward && (
+      153                  <div className="flex items-center gap-1 text-x
+           s text-[var(--text-secondary)]">
+     ...
+      155                    <span className="truncate">{listing.ward}</s
+           pan>
+      156                  </div>
+      157                )}
+      140 -              {listing.owner_first_name && (                  
+      158 +              {agentName && (                                 
+      159                  <div className="flex items-center gap-1 text-x
+           s text-[var(--text-secondary)]">
+      160                    <User size={11} className="shrink-0" />
+      143 -                  <span className="truncate">{listing.owner_fi
+          -rst_name}</span>                                              
+      161 +                  <span className="truncate">{agentName}</span
+          +>                                                             
+      162                  </div>
+      163                )}
+      164                {listing.owner_phone && (
+     ...
+      176              </div>
+      177            </div>
+      178  
+      161 -          {/* Heart + minimal actions */}                     
+      179 +          {/* Actions row */}                                 
+      180            <div className="flex items-center justify-between" o
+           nClick={(e) => e.preventDefault()}>
+      181              <div className="flex gap-2 flex-wrap">
+      182                {!isArchived ? (
+      165 -                <>                                            
+      166 -                  <button                                     
+      167 -                    type="button"                             
+      168 -                    onClick={(e) => { e.preventDefault(); e.st
+          -opPropagation(); router.push(`/dashboard/listings/${listing.id
+          -}/edit`); }}                                                  
+      169 -                    className="px-2 py-0.5 text-[11px] border 
+          -rounded font-medium border-[var(--orange)]/30 text-[var(--oran
+          -ge)] hover:bg-[var(--orange)]/10"                             
+      170 -                  >                                           
+      171 -                    {t("edit")}                               
+      172 -                  </button>                                   
+      173 -                  {onArchive && (                             
+      174 -                    <ConfirmButton label={t("archive")} confir
+          -mLabel={t("confirm")} onConfirm={() => onArchive(listing.id)} 
+          -className="text-[11px] text-[var(--text-muted)] hover:text-[va
+          -r(--text-secondary)]" />                                      
+      175 -                  )}                                          
+      176 -                </>                                           
+      183 +                <button                                       
+      184 +                  type="button"                               
+      185 +                  onClick={(e) => { e.preventDefault(); e.stop
+          +Propagation(); router.push(`/dashboard/listings/${listing.id}/
+          +edit`); }}                                                    
+      186 +                  className="px-2 py-0.5 text-[11px] border ro
+          +unded font-medium border-[var(--orange)]/30 text-[var(--orange
+          +)] hover:bg-[var(--orange)]/10"                               
+      187 +                >                                             
+      188 +                  {t("edit")}                                 
+      189 +                </button>                                     
+      190                ) : (
+      191                  <>
+      192                    {onReactivate && (
+     ...
+      240              </svg>
+      241            </div>
+      242          )}
+      230 -        <div className="absolute top-2 left-2">               
+      231 -          <StatusBadge status={listing.status} />             
+      232 -        </div>                                                
+      243 +        {/* Corner flag replaces old status badge overlay */} 
+      244 +        <StatusFlag status={listing.status} />                
+      245          <button
+      246            onClick={toggleFavorite}
+      247            disabled={isTogglingFavorite}
+     ...
+      261        </div>
+      262  
+      263        <div className="p-4">
+      264 +        {/* Title lines — both same color (ADR-005) */}       
+      265          {line1 && <p className="text-base font-bold text-[var(
+           --text-primary)] truncate leading-tight">{line1}</p>}
+      266          {line2 && <p className="text-base font-bold text-[var(
+           --text-primary)] truncate leading-tight">{line2}</p>}
+      267  
+      255 -        <div className="flex items-center justify-between text
+          --xs pt-3 mt-3 border-t border-[var(--border-subtle)] text-[var
+          -(--text-muted)]">                                             
+      268 +        {agentName && (                                       
+      269 +          <div className="flex items-center gap-1 mt-1.5 text-
+          +xs text-[var(--text-secondary)]">                             
+      270 +            <User size={11} className="shrink-0" />           
+      271 +            <span className="truncate">{agentName}</span>     
+      272 +          </div>                                              
+      273 +        )}                                                    
+      274 +                                                              
+      275 +        <div className="flex items-center justify-between text
+          +-xs pt-3 mt-2 border-t border-[var(--border-subtle)] text-[var
+          +(--text-muted)]">                                             
+      276            <span>
+      277              {t("updated")}{" "}
+      278              {new Date(listing.updated_at).toLocaleDateString(u
+           ndefined, { month: "short", day: "numeric" })}
+     ...
+      296                  >
+      297                    {t("edit")}
+      298                  </button>
+      279 -                {onArchive && (                               
+      280 -                  <ConfirmButton label={t("archive")} confirmL
+          -abel={t("confirm")} onConfirm={() => onArchive(listing.id)} cl
+          -assName="text-orange-600 hover:bg-orange-50" />               
+      281 -                )}                                            
+      299                </>
+      300              ) : (
+      301                <>
+  ⎿  You've hit your limit · resets 9am (Asia/Bangkok)
+     /upgrade or /extra-usage to finish what you’re working on.
+
+✻ Churned for 10m 51s
+
+❯ resume                                                                        
+
+● Now updating the feed page for REA-70 (map mode restructure +
+  LAYOUT.MAP_HEIGHT):
+
+  Read 1 file (ctrl+o to expand)
+
+● Now I'll update the feed page return block to restructure map mode:
+
+● Update(src/app/dashboard/feed/page.tsx)
+  ⎿  Added 1 line
+      12  } from "@/components/feed/FeedFilters";
+      13  import DynamicFeedMap from "@/components/map/DynamicFeedMap";
+      14  import { useLanguage } from "@/contexts/LanguageContext";
+      15 +import { LAYOUT } from "@/lib/layout-constants";               
+      16  import { Filter, Map } from "lucide-react";
+      17  
+      18  interface Pagination {
+
+● Update(src/app/dashboard/feed/page.tsx)  ⎿  Added 47 lines, removed 39 lines
+      107    const CITIES = ["Nha Trang", "Hà Nội", "TP.HCM", "Đà Nẵng"];
+      108  
+      109    return (
+      110 -    <div className="px-4 sm:px-6 py-4 max-w-3xl mx-auto">     
+      111 -      {/* Header */}                                          
+      112 -      <div className="flex items-center justify-between mb-4">
+      113 -        <h1 className="text-lg font-semibold text-[var(--text-
+          -primary)]">                                                   
+      114 -          {t("listingsFeed")}                                 
+      115 -        </h1>                                                 
+      116 -        <select                                               
+      117 -          value={city}                                        
+      118 -          onChange={(e) => setCity(e.target.value)}           
+      119 -          className="text-sm rounded-lg border border-[var(--b
+          -order)] bg-[var(--bg-surface)] text-[var(--text-primary)] px-2
+          - py-1.5 focus:outline-none focus:border-[var(--orange)]"      
+      120 -        >                                                     
+      121 -          {CITIES.map((c) => (                                
+      122 -            <option key={c} value={c}>{c}</option>            
+      123 -          ))}                                                 
+      124 -        </select>                                             
+      125 -      </div>                                                  
+      110 +    <div className={viewMode === "map" ? "" : "px-4 sm:px-6 py
+          +-4 max-w-3xl mx-auto"}>                                       
+      111 +      {/* Header + city selector — hidden in map mode */}     
+      112 +      {viewMode !== "map" && (                                
+      113 +        <div className="flex items-center justify-between mb-4
+          +">                                                            
+      114 +          <h1 className="text-lg font-semibold text-[var(--tex
+          +t-primary)]">                                                 
+      115 +            {t("listingsFeed")}                               
+      116 +          </h1>                                               
+      117 +          <select                                             
+      118 +            value={city}                                      
+      119 +            onChange={(e) => setCity(e.target.value)}         
+      120 +            className="text-sm rounded-lg border border-[var(-
+          +-border)] bg-[var(--bg-surface)] text-[var(--text-primary)] px
+          +-2 py-1.5 focus:outline-none focus:border-[var(--orange)]"    
+      121 +          >                                                   
+      122 +            {CITIES.map((c) => (                              
+      123 +              <option key={c} value={c}>{c}</option>          
+      124 +            ))}                                               
+      125 +          </select>                                           
+      126 +        </div>                                                
+      127 +      )}                                                      
+      128  
+      127 -      {/* Unified toolbar */}                                 
+      128 -      <div className="flex items-center gap-2 mb-3">          
+      129 +      {/* Unified toolbar — h-12 (48px) in map mode, normal in
+          + grid mode */}                                                
+      130 +      <div className={`flex items-center gap-2 ${viewMode === 
+          +"map" ? "px-4 sm:px-6 h-12" : "mb-3"}`}>                      
+      131          {/* Search */}
+      132          <div className="relative flex-1">
+      133            <svg
+     ...
+      156            )}
+      157          </div>
+      158  
+      157 -        {/* Filter */}                                        
+      158 -        <button                                               
+      159 -          type="button"                                       
+      160 -          onClick={() => setShowFilters(!showFilters)}        
+      161 -          className={`inline-flex flex-none items-center gap-1
+          -.5 px-3 py-2 text-sm rounded-lg border border-[var(--border)] 
+          -transition-colors ${                                          
+      162 -            showFilters ? "text-white" : "text-[var(--text-sec
+          -ondary)]"                                                     
+      163 -          }`}                                                 
+      164 -          style={showFilters ? { backgroundColor: "var(--orang
+          -e)" } : { backgroundColor: "var(--bg-surface)" }}             
+      165 -        >                                                     
+      166 -          <Filter size={16} /> {t("filter")}                  
+      167 -        </button>                                             
+      159 +        {/* Filter — hidden in map mode */}                   
+      160 +        {viewMode !== "map" && (                              
+      161 +          <button                                             
+      162 +            type="button"                                     
+      163 +            onClick={() => setShowFilters(!showFilters)}      
+      164 +            className={`inline-flex flex-none items-center gap
+          +-1.5 px-3 py-2 text-sm rounded-lg border border-[var(--border)
+          +] transition-colors ${                                        
+      165 +              showFilters ? "text-white" : "text-[var(--text-s
+          +econdary)]"                                                   
+      166 +            }`}                                               
+      167 +            style={showFilters ? { backgroundColor: "var(--ora
+          +nge)" } : { backgroundColor: "var(--bg-surface)" }}           
+      168 +          >                                                   
+      169 +            <Filter size={16} /> {t("filter")}                
+      170 +          </button>                                           
+      171 +        )}                                                    
+      172  
+      173          {/* Grid toggle */}
+      174          {viewMode === "grid" && (
+     ...
+      186          </button>
+      187        </div>
+      188  
+      185 -      {/* Listing count */}                                   
+      186 -      {!loading && (                                          
+      189 +      {/* Listing count — hidden in map mode */}              
+      190 +      {viewMode !== "map" && !loading && (                    
+      191          <div className="mb-3 text-sm text-[var(--text-muted)]"
+           >
+      192            {pagination.total} {t("listings")}
+      193            {searchQuery && <span className="ml-1 text-[var(--or
+           ange)]">"{searchQuery}"</span>}
+      194          </div>
+      195        )}
+      196  
+      193 -      {showFilters && (                                       
+      197 +      {/* Filters panel — hidden in map mode */}              
+      198 +      {viewMode !== "map" && showFilters && (                 
+      199          <FeedFilters
+      200            filters={filters}
+      201            onChange={setFilters}
+     ...
+      205          />
+      206        )}
+      207  
+      203 -      {loading ? (                                            
+      208 +      {/* Content */}                                         
+      209 +      {viewMode === "map" ? (                                 
+      210 +        <div className="overflow-hidden">                     
+      211 +          <DynamicFeedMap                                     
+      212 +            listings={listings}                               
+      213 +            onListingClick={(l) => router.push(`/dashboard/lis
+          +tings/${l.id}/view?from=feed`)}                               
+      214 +            height={LAYOUT.MAP_HEIGHT}                        
+      215 +          />                                                  
+      216 +        </div>                                                
+      217 +      ) : loading ? (                                         
+      218          <div className="space-y-3">
+      219            {[...Array(4)].map((_, i) => (
+      220              <div
+     ...
+      240              </button>
+      241            )}
+      242          </div>
+      229 -      ) : viewMode === "map" ? (                              
+      230 -        <DynamicFeedMap                                       
+      231 -          listings={listings}                                 
+      232 -          onListingClick={(l) => router.push(`/dashboard/listi
+          -ngs/${l.id}/view?from=feed`)}                                 
+      233 -          height="calc(100vh - 56px - 60px - 124px)"          
+      234 -        />                                                    
+      243        ) : (
+      244          <>
+      245            <div
+
+● Now update the listings page similarly:
+
+● Update(src/app/dashboard/listings/page.tsx)
+  ⎿  Added 1 line
+      12  } from "@/components/feed/FeedFilters";
+      13  import DynamicFeedMap from "@/components/map/DynamicFeedMap";
+      14  import { useLanguage } from "@/contexts/LanguageContext";
+      15 +import { LAYOUT } from "@/lib/layout-constants";               
+      16  import { Plus, Filter, Map, Search } from "lucide-react";
+      17  
+      18  type ViewMode = "grid" | "map";
+
+● Now replace the listings page return block:
+
+● Update(src/app/dashboard/listings/page.tsx)
+  ⎿  Added 33 lines, removed 27 lines
+       91    };
+       92  
+       93    return (
+       94 -    <div className="px-4 sm:px-6 py-4 max-w-3xl mx-auto">     
+       95 -      <div className="flex items-center justify-between mb-6">
+       96 -        <h1 className="text-lg font-semibold text-[var(--text-
+          -primary)]">                                                   
+       97 -          {t("myListings")}                                   
+       98 -        </h1>                                                 
+       99 -        <Link                                                 
+      100 -          href="/dashboard/listings/new"                      
+      101 -          className="flex items-center gap-1.5 px-4 py-2 text-
+          -sm font-medium rounded-lg text-white"                         
+      102 -          style={{ backgroundColor: "var(--orange)" }}        
+      103 -        >                                                     
+      104 -          <Plus size={16} /> {t("addListing")}                
+      105 -        </Link>                                               
+      106 -      </div>                                                  
+       94 +    <div className={viewMode === "map" ? "" : "px-4 sm:px-6 py
+          +-4 max-w-3xl mx-auto"}>                                       
+       95 +      {/* Header — hidden in map mode */}                     
+       96 +      {viewMode !== "map" && (                                
+       97 +        <div className="flex items-center justify-between mb-6
+          +">                                                            
+       98 +          <h1 className="text-lg font-semibold text-[var(--tex
+          +t-primary)]">                                                 
+       99 +            {t("myListings")}                                 
+      100 +          </h1>                                               
+      101 +          <Link                                               
+      102 +            href="/dashboard/listings/new"                    
+      103 +            className="flex items-center gap-1.5 px-4 py-2 tex
+          +t-sm font-medium rounded-lg text-white"                       
+      104 +            style={{ backgroundColor: "var(--orange)" }}      
+      105 +          >                                                   
+      106 +            <Plus size={16} /> {t("addListing")}              
+      107 +          </Link>                                             
+      108 +        </div>                                                
+      109 +      )}                                                      
+      110  
+      108 -      {/* Unified toolbar */}                                 
+      109 -      <div className="flex items-center gap-2 mb-3">          
+      111 +      {/* Unified toolbar — h-12 (48px) in map mode */}       
+      112 +      <div className={`flex items-center gap-2 ${viewMode === 
+          +"map" ? "px-4 sm:px-6 h-12" : "mb-3"}`}>                      
+      113          {/* Search */}
+      114          <div className="relative flex-1">
+      115            <span className="absolute inset-y-0 left-0 pl-3 flex
+            items-center pointer-events-none text-[var(--text-muted)]">
+     ...
+      133            )}
+      134          </div>
+      135  
+      133 -        {/* Filter */}                                        
+      134 -        <button                                               
+      135 -          type="button"                                       
+      136 -          onClick={() => setShowFilters((s) => !s)}           
+      137 -          className={`inline-flex flex-none items-center gap-1
+          -.5 px-3 py-2 text-sm rounded-lg border border-[var(--border)] 
+          -transition-colors ${                                          
+      138 -            showFilters ? "text-white" : "text-[var(--text-sec
+          -ondary)]"                                                     
+      139 -          }`}                                                 
+      140 -          style={showFilters ? { backgroundColor: "var(--orang
+          -e)" } : { backgroundColor: "var(--bg-surface)" }}             
+      141 -        >                                                     
+      142 -          <Filter size={16} /> {t("filter")}                  
+      143 -        </button>                                             
+      136 +        {/* Filter — hidden in map mode */}                   
+      137 +        {viewMode !== "map" && (                              
+      138 +          <button                                             
+      139 +            type="button"                                     
+      140 +            onClick={() => setShowFilters((s) => !s)}         
+      141 +            className={`inline-flex flex-none items-center gap
+          +-1.5 px-3 py-2 text-sm rounded-lg border border-[var(--border)
+          +] transition-colors ${                                        
+      142 +              showFilters ? "text-white" : "text-[var(--text-s
+          +econdary)]"                                                   
+      143 +            }`}                                               
+      144 +            style={showFilters ? { backgroundColor: "var(--ora
+          +nge)" } : { backgroundColor: "var(--bg-surface)" }}           
+      145 +          >                                                   
+      146 +            <Filter size={16} /> {t("filter")}                
+      147 +          </button>                                           
+      148 +        )}                                                    
+      149  
+      150          {/* Grid toggle */}
+      151          {viewMode === "grid" && (
+     ...
+      163          </button>
+      164        </div>
+      165  
+      161 -      {showFilters && (                                       
+      166 +      {/* Filters panel — hidden in map mode */}              
+      167 +      {viewMode !== "map" && showFilters && (                 
+      168          <FeedFilters
+      169            filters={filters}
+      170            onChange={setFilters}
+
+● Now update the map height in the listings page content section:
+
+● Update(src/app/dashboard/listings/page.tsx)
+  ⎿  Added 7 lines, removed 5 lines
+      194            </button>
+      195          </div>
+      196        ) : viewMode === "map" ? (
+      197 -        <DynamicFeedMap                                       
+      198 -          listings={listings}                                 
+      199 -          onListingClick={(l) => router.push(`/dashboard/listi
+          -ngs/${l.id}/view?from=listings`)}                             
+      200 -          height="calc(100vh - 56px - 60px - 124px)"          
+      201 -        />                                                    
+      197 +        <div className="overflow-hidden">                     
+      198 +          <DynamicFeedMap                                     
+      199 +            listings={listings}                               
+      200 +            onListingClick={(l) => router.push(`/dashboard/lis
+          +tings/${l.id}/view?from=listings`)}                           
+      201 +            height={LAYOUT.MAP_HEIGHT}                        
+      202 +          />                                                  
+      203 +        </div>                                                
+      204        ) : (
+      205          <div
+      206            className={`grid gap-4 ${
+
+● Now fix the messages page which also has a hardcoded calc:
+
+  Read 1 file (ctrl+o to expand)
+
+● That calc is correct (topbar + bottomnav, no toolbar). Now update CLAUDE.md
+  for REA-68 (design rules) and REA-76 (auto logging):
+
+  Searched for 1 pattern, read 1 file (ctrl+o to expand)
+
+● Now update the ## After Every Session section to be automatic, and update
+  session numbers:
+
+● Update(~/dev_projects/realty-hub/CLAUDE.md)
+  ⎿  Added 8 lines, removed 7 lines
+      369  
+      370  ---
+      371  
+      372 -## After Every Session                                        
+      372 +## After Every Session (AUTOMATIC — do not wait for user to as
+          +k)                                                            
+      373  
+      374 -1. **Export chat:** Run `/export` any time to save a raw `.txt
+          -` transcript. The `scripts/claude-log.sh` script runs every 30
+          - min and automatically moves exports from project root into `d
+          -ocs/chat_exports/{DATE}/` and appends to a daily `.md` summary
+          - there.                                                       
+      375 -2. **Log it:** Ask me to "generate a code session" so I docume
+          -nt the work in `docs/code_sessions/`.                         
+      376 -3. **Changelog:** Update `docs/CHANGELOG.md` — what was added/
+          -changed/fixed.                                                
+      377 -4. **Schema:** Update `docs/SCHEMA.md` — if any migrations wer
+          -e applied.                                                    
+      378 -5. **Compile check:** Run `cd web && npx tsc --noEmit` — confi
+          -rm clean before committing.                                   
+      379 -6. **Commit:** `git add -A && git commit -m "Session N: <one-l
+          -ine summary>"`                                                
+      374 +1. Create a code session log in `docs/code_sessions/YYYY-MM-DD
+          +-sessionNN-brief-topic.md` using the Code Session Template    
+      375 +2. Update `docs/CHANGELOG.md` with session changes            
+      376 +3. Mark completed tasks in `docs/SCOPE.md` with `[x]`         
+      377 +4. Run `cd web && npx tsc --noEmit` — confirm clean           
+      378 +5. `git add -A` and suggest commit message: `Session NN: <brie
+          +f summary>`                                                   
+      379 +6. After user confirms: `git commit` (do NOT push — user pushe
+          +s and deploys manually)                                       
+      380 +7. Print reminder: `Pushed. On VM: cd ~/realty-hub && git pull
+          + && ./scripts/deploy-vm.sh update`                            
+      381  
+      382  ## Chat Exports
+      383  
+
+● Also update the "Logging Workflows" section to indicate it's automatic:
+
+● Update(~/dev_projects/realty-hub/CLAUDE.md)
+  ⎿  Added 3 lines, removed 3 lines
+      322  
+      323  ## Logging Workflows (Session & Testing)
+      324  
+      325 -When I ask you to "log this session" or "generate a code sessi
+          -on," you must:                                                
+      325 +At the end of every session (automatically, without being aske
+          +d), you must:                                                 
+      326  1. Review the git diffs, files we modified, and the terminal h
+           istory of our current conversation.
+      327 -2. Create a new markdown file in `docs/code_sessions/` named `
+          -YYYY-MM-DD-brief-topic.md`.                                   
+      328 -3. Use the **Code Session Template** below. Do not ask me for 
+          -permission to create the file, just draft it and summarize wha
+          -t you did.                                                    
+      327 +2. Create a new markdown file in `docs/code_sessions/` named `
+          +YYYY-MM-DD-sessionNN-brief-topic.md`.                         
+      328 +3. Use the **Code Session Template** below. Do not ask for per
+          +mission — just create it.                                     
+      329  
+      330  When I ask you to "log this test" or "create a test session," 
+           you must:
+      331  1. Ask me for my manual testing observations if I haven't prov
+           ided them yet.
+
+● Update the session footer:
+
+● Update(~/dev_projects/realty-hub/CLAUDE.md)
+  ⎿  Added 3 lines, removed 3 lines
+      383  
+      384  Saved in `docs/chat_exports/`. Use `/export` (built-in, 0 toke
+           ns) to save a raw transcript to the project root. `scripts/cla
+           ude-log.sh` (runs every 30 min via cron) moves it to `docs/cha
+           t_exports/{DATE}/` and appends to a daily markdown summary.
+      385  
+      386 -**Current session number: 24**                                
+      387 -**Last completed session: 23 — 2026-03-21 — Pilot Branding + D
+          -ata Fixes**                                                   
+      386 +**Current session number: 27**                                
+      387 +**Last completed session: 26 — 2026-03-24 — Card Redesign, For
+          +m Overhaul, Title Fix**                                       
+      388  **Deployment: Google Cloud VM — see `docs/DEPLOYMENT.md` for f
+           ull guide**
+      389 -**Sprint: Pilot Launch (Mar 19–22) — see `docs/SCOPE.md`**    
+      389 +**Sprint: Stabilization — see `docs/SCOPE.md`**               
+      390  **Linear: https://linear.app/realty-hub**
+      391   No newline at end of file
+
+● Now backfill session logs for S25, S25b, S26. Let me check git diffs for
+  context:
+
+● Bash(git show 687272c --stat | head -20)
+  ⎿  commit 687272c1f65042d5c3b598763d94d608496303ab
+     Author: Pavel Garanin <pavelmg93@gmail.com>
+     Date:   Mon Mar 23 16:06:49 2026 +0700
+     … +8 lines (ctrl+o to expand)
+
+● Bash(git show 8d821ef --stat | head -20)
+  ⎿  commit 8d821efe7900004edeefea2db6970961bcae0c03
+     Author: Pavel Garanin <pavelmg93@gmail.com>
+     Date:   Mon Mar 23 17:47:11 2026 +0700
+     … +7 lines (ctrl+o to expand)
+
+● Bash(git log --oneline 7ea3ec3..5ca4a35 2>/dev/null | head -10)
+  ⎿  5ca4a35 Session 25b: Title Zombie Kill + Infra Fixes
+     687272c Session 25: Critical Bug Fixes + Listing Detail Cleanup…
+     69fff86 Session 25: Critical Bug Fixes + Listing Detail Cleanup
+
+● Bash(git show 113533e --stat | head -20)
+  ⎿  commit 113533ebb70359549c72d9fe0a43087883d06631
+     Author: Pavel Garanin <pavelmg93@gmail.com>
+     Date:   Tue Mar 24 04:52:36 2026 +0700
+     … +9 lines (ctrl+o to expand)
+
+● Now creating the backfill session logs:
+
+● Write(~/dev_projects/realty-hub/docs/code_sessions/2026-03-23-session25-critic
+       al-bug-fixes-listing-detail.md)
+  ⎿  Wrote 37 lines to ../docs/code_sessions/2026-03-23-session25-critical-
+     bug-fixes-listing-detail.md
+       1 # Session: Critical Bug Fixes + Listing Detail Cleanup
+       2 **Date:** 2026-03-23
+       3 
+       4 ### Summary
+       5 Session 25 addressed a set of critical bugs and UX improvements 
+         across the listing detail, messaging, feed, and map views. The s
+         ession also introduced the `regenerate-titles.sh` script, migrat
+         ion 017 (city field), and the feed city selector. Multiple listi
+         ng detail layout issues were resolved.
+       6 
+       7 ### Technical Details & Fixes
+       8 * **Features Delivered:**
+       9   - REA-57: `scripts/regenerate-titles.sh` — regenerates all `ti
+         tle_standardized` values via SQL on every deploy. Integrated int
+         o `deploy-vm.sh update`.
+      10   - REA-59: Feed header "Listings Feed" + city dropdown (Nha Tra
+         ng/Hà Nội/TP.HCM/Đà Nẵng) filtering via `?city=`
+     … +27 lines (ctrl+o to expand)
+
+● Write(~/dev_projects/realty-hub/docs/code_sessions/2026-03-23-session25b-title
+       -zombie-kill-infra.md)
+  ⎿  Wrote 23 lines to
+     ../docs/code_sessions/2026-03-23-session25b-title-zombie-kill-infra.md
+       1 # Session: Title Zombie Kill + Infra Fixes
+       2 **Date:** 2026-03-23
+       3 
+       4 ### Summary
+       5 Session 25b was a focused follow-up to S25, addressing residual 
+         "zombie" title_standardized values that survived the initial reg
+         enerate script, plus infrastructure hardening. The session also 
+         fixed the `create_agent.sh` default handling and cleaned up stal
+         e DB entries.
+       6 
+       7 ### Technical Details & Fixes
+       8 * **Features Delivered:**
+       9   - Title zombie kill — improved `regenerate-titles.sh` SQL form
+         ula to catch edge cases where titles weren't being overwritten
+      10   - Infra fixes — `create_agent.sh` parameter handling improved;
+          stale agent seed references cleaned up
+     … +13 lines (ctrl+o to expand)
+● Write(~/dev_projects/realty-hub/docs/code_sessions/2026-03-24-session26-card-r
+       edesign-form-overhaul-title-fix.md)
+  ⎿  Wrote 29 lines to ../docs/code_sessions/2026-03-24-session26-card-rede
+     sign-form-overhaul-title-fix.md
+       1 # Session: Card Redesign, Form Overhaul, Title Fix
+       2 **Date:** 2026-03-24
+       3 
+       4 ### Summary
+       5 Session 26 delivered three major UI features: a new Stitch-style
+          horizontal listing card (1-wide), a full listing form rebuild w
+         ith correct field ordering and commission radio, and a listing d
+         etail title fix (both lines same style, no address_raw). Migrati
+         on 018 added commission_pct, commission_months, and ward_new col
+         umns.
+       6 
+       7 ### Technical Details & Fixes
+       8 * **Features Delivered:**
+       9   - REA-65: 1-wide horizontal card — `ui/ListingCard` (cols===1)
+          and `listings/ListingCard` (cols===1) render Stitch-style horiz
+         ontal card: photo w-1/3 with status color strip, right panel wit
+         h StatusBadge + #id, street, title_standardized (orange), ward, 
+         agent, phone, heart
+      10   - REA-66: Listing detail title fix — both title lines use iden
+         tical `text-2xl sm:text-3xl font-bold text-[var(--text-primary)]
+         `. Line 1 source: `listing.street || ""`; `address_raw` referenc
+         e removed entirely
+     … +19 lines (ctrl+o to expand)
+
+● Now run TypeScript check to verify everything compiles:
+
+● Bash(cd /home/pavel/dev_projects/realty-hub/web && npx tsc --noEmit 2>&1 |
+      head -50)
+  ⎿  (No output)
+  ⎿  (timeout 1m)
+
+● Clean. Now mark tasks complete in SCOPE.md and move Linear issues to Done:
+
+● Update(~/dev_projects/realty-hub/docs/SCOPE.md)
+  ⎿  Added 4 lines, removed 4 lines
+      16  **Branch:** `main`
+      17  **Max items this session:** 4 (deploy+test between sessions)
+      18  
+      19 -* [ ] REA-68 — Create layout-constants.ts + design bible in CLA
+         -UDE.md                                                         
+      20 -* [ ] REA-70 — Map height MUST use layout constants — bottom na
+         -v NEVER hidden (4th attempt)                                   
+      21 -* [ ] REA-69 — Listing card fixes: title color, status flags, f
+         -ont size, agent name, truncation, remove archive               
+      22 -* [ ] REA-76 — CLAUDE.md: make session logging automatic + back
+         -fill S25/25b/26 logs                                           
+      19 +* [x] REA-68 — Create layout-constants.ts + design bible in CLA
+         +UDE.md                                                         
+      20 +* [x] REA-70 — Map height MUST use layout constants — bottom na
+         +v NEVER hidden (4th attempt)                                   
+      21 +* [x] REA-69 — Listing card fixes: title color, status flags, f
+         +ont size, agent name, truncation, remove archive               
+      22 +* [x] REA-76 — CLAUDE.md: make session logging automatic + back
+         +fill S25/25b/26 logs                                           
+      23  
+      24  ---
+      25  
+
+● claude.ai Linear - save_issue (MCP)(id: "REA-68", state: "Done")
+  ⎿  {
+       "id": "REA-68",
+       "title": "Create layout-constants.ts — single source of truth for di
+     … +36 lines (ctrl+o to expand)
+
+● claude.ai Linear - save_issue (MCP)(id: "REA-70", state: "Done")
+  ⎿  {
+       "id": "REA-70",
+       "title": "P0 (4th attempt): Map height MUST use layout constants — b
+     … +35 lines (ctrl+o to expand)
+
+● claude.ai Linear - save_issue (MCP)(id: "REA-69", state: "Done")
+  ⎿  {
+       "id": "REA-69",
+       "title": "Listing card fixes: title color, status flags, font size,
+     … +40 lines (ctrl+o to expand)
+
+● claude.ai Linear - save_issue (MCP)(id: "REA-76", state: "Done")
+  ⎿  {
+       "id": "REA-76",
+       "title": "CLAUDE.md: make session logging automatic + backfill S25/2
+     … +28 lines (ctrl+o to expand)
+
+● All 4 Linear issues marked Done. Now the automatic end-of-session wrap-up:
+
+  Session 27 — CHANGELOG update:
+
+  Read 1 file (ctrl+o to expand)
+
+● Update(~/dev_projects/realty-hub/docs/CHANGELOG.md)
+  ⎿  Added 19 lines
+       6  
+       7  ## [Unreleased]
+       8  
+       9 +### Session 27 — 2026-03-24 — Layout Constants, Map Fix, Card F
+         +ixes, Auto Logging                                             
+      10 +                                                               
+      11 +#### Added                                                     
+      12 +- **REA-68: `web/src/lib/layout-constants.ts`** — single source
+         + of truth: `TOPBAR_HEIGHT` (56), `BOTTOMNAV_HEIGHT` (64), `TOOL
+         +BAR_HEIGHT` (48), `MAP_HEIGHT` (`calc(100vh - 184px)`), `PAGE_P
+         +ADDING_X`, `PAGE_MAX_WIDTH`.                                   
+      13 +- **REA-69: Status corner flag** — colored ribbon at top-left o
+         +f photo in both card variants. Blue=Just Listed, Red=Price Rais
+         +ed/Dropped, Green=Deposit/Sold, Gray=Not For Sale. Replaces sta
+         +tus color strip and photo overlay badge.                       
+      14 +- **REA-69: Agent full name** — `owner_last_name` added to `Lis
+         +ting` type; feed API and listings API now return `a.last_name A
+         +S owner_last_name`. Both card components display `first_name + 
+         +last_name`.                                                    
+      15 +- **REA-76: Session logs backfilled** — S25, S25b, S26 log file
+         +s created in `docs/code_sessions/`.                            
+      16 +                                                               
+      17 +#### Changed                                                   
+      18 +- **REA-70: Map height (4th/definitive fix)** — feed and listin
+         +gs pages import `LAYOUT.MAP_HEIGHT`; in map mode, header/city s
+         +elector/filters/listing count are hidden, toolbar is exactly `h
+         +-12` (48px) with no extra top padding, map wrapper has `overflo
+         +w-hidden`. Bottom nav height standardized to 64px (was 60px in 
+         +BottomNav style).                                              
+      19 +- **REA-69: Title line 2 color** — both title lines now `text-[
+         +var(--text-primary)]` in all card variants (orange removed).   
+      20 +- **REA-69: Archive button removed** — `onArchive` prop and Con
+         +firmButton for archive removed from `listings/ListingCard` (bot
+         +h 1-wide and 2-wide). Archived state still shows Reactivate + D
+         +elete.                                                         
+      21 +- **REA-69: Title truncation** — consistent `truncate` on both 
+         +title lines in all card variants.                              
+      22 +- **REA-76: CLAUDE.md** — "After Every Session" section is now 
+         +AUTOMATIC (no longer requires user to ask). Logging Workflows s
+         +ection updated. Session footer updated to S27.                 
+      23 +- **AgentChip** — `last_name` added to interface; `displayName`
+         + shows full name.                                              
+      24 +- **listings API** — now JOINs agents table, returns `owner_fir
+         +st_name`, `owner_last_name`, `owner_phone`, `owner_username`.  
+      25 +                                                               
+      26 +---                                                            
+      27 +                                                               
+      28  ### Session 26 — 2026-03-24 — Card Redesign, Form Overhaul, Tit
+          le Fix
+      29  
+      30  #### Added
+
+● Now create the session 27 log:
+
+● Write(~/dev_projects/realty-hub/docs/code_sessions/2026-03-24-session27-layout
+       -constants-map-fix-card-fixes.md)
+  ⎿  Wrote 39 lines to ../docs/code_sessions/2026-03-24-session27-layout-co
+     nstants-map-fix-card-fixes.md
+       1 # Session: Layout Constants, Map Fix, Card Fixes, Auto Logging
+       2 **Date:** 2026-03-24
+       3 
+       4 ### Summary
+       5 Session 27 established a single source of truth for layout dimen
+         sions via `layout-constants.ts`, delivered the definitive (4th a
+         ttempt) map height fix using those constants, applied a batch of
+          8 listing card visual fixes (status flags, title color, agent f
+         ull name, archive removal), and updated CLAUDE.md to make sessio
+         n logging automatic while backfilling missing S25/25b/26 logs.
+       6 
+       7 ### Technical Details & Fixes
+       8 * **Features Delivered:**
+       9   - REA-68: `web/src/lib/layout-constants.ts` created with `TOPB
+         AR_HEIGHT` (56px), `BOTTOMNAV_HEIGHT` (64px), `TOOLBAR_HEIGHT` (
+         48px), `MAP_HEIGHT` (`calc(100vh - 184px)`), `PAGE_PADDING_X`, `
+         PAGE_MAX_WIDTH`
+      10   - REA-70: Map height definitively fixed — feed and listings pa
+         ges restructure map mode: header/filters/count hidden, toolbar `
+         h-12`, no top padding, `overflow-hidden` wrapper, `LAYOUT.MAP_HE
+         IGHT` used. BottomNav height standardized 60→64px.
+     … +29 lines (ctrl+o to expand)
+
+● Final TypeScript check and commit suggestion:
+
+● Bash(npx tsc --noEmit 2>&1)
+  ⎿  (No output)
+
+● Clean. Here's the suggested commit:
+
+  git add -A && git commit -m "Session 27: Layout Constants, Map Fix
+  (REA-68/70), Card Fixes (REA-69), Auto Logging (REA-76)"
+
+  ---
+  Session 27 complete. Summary of what was done:
+
+  ┌────────┬─────────────────────────────────────────────────────────────────┐
+  │ Issue  │                          What changed                           │
+  ├────────┼─────────────────────────────────────────────────────────────────┤
+  │ REA-68 │ web/src/lib/layout-constants.ts created —                       │
+  │        │ TOPBAR/BOTTOMNAV/TOOLBAR/MAP_HEIGHT constants                   │
+  ├────────┼─────────────────────────────────────────────────────────────────┤
+  │        │ Map mode restructured in feed + listings pages — header/filters │
+  │ REA-70 │  hidden, toolbar h-12, LAYOUT.MAP_HEIGHT. BottomNav height      │
+  │        │ 60→64px.                                                        │
+  ├────────┼─────────────────────────────────────────────────────────────────┤
+  │        │ Both card components: title line 2 now text-primary (not        │
+  │ REA-69 │ orange), corner status flag on photo, archive button removed,   │
+  │        │ agent full/last name, consistent truncation. Feed + listings    │
+  │        │ APIs now return owner_last_name.                                │
+  ├────────┼─────────────────────────────────────────────────────────────────┤
+  │ REA-76 │ CLAUDE.md "After Every Session" is now AUTOMATIC. S25/25b/26    │
+  │        │ session logs backfilled.                                        │
+  └────────┴─────────────────────────────────────────────────────────────────┘
+
+  After you confirm, run the commit then deploy: cd ~/realty-hub && git pull && 
+  ./scripts/deploy-vm.sh update
+
+✻ Brewed for 5m 21s

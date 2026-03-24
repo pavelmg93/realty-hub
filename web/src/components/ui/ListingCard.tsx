@@ -22,25 +22,18 @@ interface ListingCardProps {
   onViewMessages?: () => void;
 }
 
-const STATUS_STRIP_COLORS: Record<string, string> = {
+// Corner flag colors per status (spec REA-69):
+// Blue=Just Listed, Red=Price Raised/Dropped, Green=Deposit/Sold, Gray=Not For Sale
+// Selling (for_sale) has NO flag
+const STATUS_FLAG_COLORS: Record<string, string | null> = {
   just_listed: "var(--info)",
-  for_sale: "var(--status-open)",
-  price_dropped: "var(--status-open)",
-  price_increased: "var(--status-open)",
-  deposit: "var(--status-pending)",
-  sold: "var(--status-sold)",
+  for_sale: null,
+  price_dropped: "var(--error)",
+  price_increased: "var(--error)",
+  deposit: "var(--status-open)",
+  sold: "var(--status-open)",
   not_for_sale: "var(--status-nfs)",
 };
-
-function StatusBadgeStrip({ status }: { status: string }) {
-  const color = STATUS_STRIP_COLORS[status] ?? "var(--status-open)";
-  return (
-    <div
-      className="h-1.5 w-full shrink-0"
-      style={{ backgroundColor: color }}
-    />
-  );
-}
 
 function Building2Icon() {
   return (
@@ -54,6 +47,33 @@ function Building2Icon() {
     >
       <path d="M3 21h18M9 21V5a2 2 0 012-2h2a2 2 0 012 2v16M9 10h.01M15 10h.01M9 14h.01M15 14h.01" />
     </svg>
+  );
+}
+
+/** Corner flag overlay on top-left of a photo area */
+function StatusFlag({ status }: { status: string }) {
+  const { t } = useLanguage();
+  const color = STATUS_FLAG_COLORS[status];
+  if (!color) return null;
+
+  const STATUS_FLAG_KEYS: Record<string, "justListed" | "priceDropped" | "priceIncreased" | "deposit" | "sold" | "notForSale"> = {
+    just_listed: "justListed",
+    price_dropped: "priceDropped",
+    price_increased: "priceIncreased",
+    deposit: "deposit",
+    sold: "sold",
+    not_for_sale: "notForSale",
+  };
+  const key = STATUS_FLAG_KEYS[status];
+  if (!key) return null;
+
+  return (
+    <div
+      className="absolute top-2 left-0 z-10 px-2 py-0.5 text-[9px] font-bold text-white"
+      style={{ backgroundColor: color, borderRadius: "0 3px 3px 0" }}
+    >
+      {t(key)}
+    </div>
   );
 }
 
@@ -73,6 +93,7 @@ export function ListingCard({
       ? {
           id: listing.agent_id,
           first_name: listing.owner_first_name ?? null,
+          last_name: listing.owner_last_name ?? null,
           username: listing.owner_username ?? null,
           phone: listing.owner_phone ?? null,
           avatar_url: listing.owner_avatar_url ?? null,
@@ -92,21 +113,21 @@ export function ListingCard({
 
     setIsTogglingFavorite(true);
     const prev = isFavorited;
-    setIsFavorited(!prev); // Optimistic UI update
+    setIsFavorited(!prev);
 
     try {
       const res = await fetch(`/api/listings/${listing.id}/favorite`, {
         method: "POST",
       });
       if (!res.ok) {
-        setIsFavorited(prev); // Revert on failure
+        setIsFavorited(prev);
       } else {
         const data = await res.json();
         setIsFavorited(data.favorited);
       }
     } catch (err) {
       console.error("Favorite toggle failed:", err);
-      setIsFavorited(prev); // Revert on error
+      setIsFavorited(prev);
     } finally {
       setIsTogglingFavorite(false);
     }
@@ -115,7 +136,7 @@ export function ListingCard({
   const line1 = listing.street || "";
   const line2 = listing.title_standardized || generateTitleStandardized(listing);
 
-  // ── 1-wide: horizontal card (Stitch layout) ──
+  // ── 1-wide: horizontal card ──
   if (cols === 1) {
     return (
       <Link
@@ -127,39 +148,37 @@ export function ListingCard({
           ...(isOwner ? { borderLeftColor: "var(--orange)" } : {}),
         }}
       >
-        {/* Left: photo + status strip */}
-        <div className="w-1/3 relative h-full flex flex-col shrink-0">
-          <div className="flex-grow overflow-hidden bg-[var(--bg-elevated)]">
-            {photoUrl ? (
-              <Image
-                src={photoUrl}
-                alt={line1 || "listing"}
-                fill
-                className="object-cover"
-                sizes="33vw"
-              />
-            ) : (
-              <div className="w-full h-full flex items-center justify-center text-[var(--text-muted)]">
-                <Building2Icon />
-              </div>
-            )}
-          </div>
-          <StatusBadgeStrip status={listing.status} />
+        {/* Left: photo + status flag */}
+        <div className="w-1/3 relative h-full shrink-0 overflow-hidden bg-[var(--bg-elevated)]">
+          {photoUrl ? (
+            <Image
+              src={photoUrl}
+              alt={line1 || "listing"}
+              fill
+              className="object-cover"
+              sizes="33vw"
+            />
+          ) : (
+            <div className="w-full h-full flex items-center justify-center text-[var(--text-muted)]">
+              <Building2Icon />
+            </div>
+          )}
+          <StatusFlag status={listing.status} />
         </div>
 
         {/* Right: details */}
         <div className="w-2/3 p-3 flex flex-col justify-between relative overflow-hidden">
           <div className="min-w-0">
-            {/* Badge row */}
+            {/* Badge + ID */}
             <div className="flex items-center gap-1.5 mb-1">
-              <StatusBadge status={(listing.status as "for_sale") || "for_sale"} />
+              <StatusBadge status={listing.status} />
               <span className="text-xs text-[var(--text-muted)]">#{listing.id}</span>
             </div>
-            {/* Title lines */}
+            {/* Title lines — both same color (ADR-005) */}
             <p className="text-sm font-bold text-[var(--text-primary)] truncate leading-tight">
               {line1}
             </p>
-            <p className="text-sm font-bold truncate leading-tight" style={{ color: "var(--orange)" }}>
+            <p className="text-sm font-bold text-[var(--text-primary)] truncate leading-tight">
               {line2}
             </p>
             {/* Metadata */}
@@ -170,21 +189,23 @@ export function ListingCard({
                   <span className="truncate">{listing.ward}</span>
                 </div>
               )}
-              {agent?.first_name && (
+              {(listing.owner_first_name || listing.owner_last_name) && (
                 <div className="flex items-center gap-1 text-xs text-[var(--text-secondary)]">
                   <User size={11} className="shrink-0" />
-                  <span className="truncate">{agent.first_name}</span>
+                  <span className="truncate">
+                    {[listing.owner_first_name, listing.owner_last_name].filter(Boolean).join(" ")}
+                  </span>
                 </div>
               )}
-              {agent?.phone && (
+              {listing.owner_phone && (
                 <div className="flex items-center gap-1 text-xs text-[var(--text-secondary)]">
                   <Phone size={11} className="shrink-0" />
                   <a
-                    href={`tel:${agent.phone}`}
+                    href={`tel:${listing.owner_phone}`}
                     onClick={(e) => e.stopPropagation()}
                     className="truncate hover:text-[var(--orange)] transition-colors"
                   >
-                    {agent.phone}
+                    {listing.owner_phone}
                   </a>
                 </div>
               )}
@@ -234,9 +255,8 @@ export function ListingCard({
               <Building2Icon />
             </div>
           )}
-          <div className="absolute top-2 left-2">
-            <StatusBadge status={(listing.status as "for_sale") || "for_sale"} />
-          </div>
+          {/* Corner flag replaces status badge overlay */}
+          <StatusFlag status={listing.status} />
           <button
             onClick={toggleFavorite}
             disabled={isTogglingFavorite}
@@ -266,7 +286,7 @@ export function ListingCard({
       </Link>
 
       <div className="p-3">
-        {/* Two-line headline */}
+        {/* Two-line headline — both same color (ADR-005) */}
         <p className={`font-bold text-[var(--text-primary)] truncate leading-tight ${cols === 3 ? "text-sm" : "text-base"}`}>
           {line1}
         </p>

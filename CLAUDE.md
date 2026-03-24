@@ -322,10 +322,10 @@ Claude Code has access to Linear via MCP (cloud integration, no local setup need
 
 ## Logging Workflows (Session & Testing)
 
-When I ask you to "log this session" or "generate a code session," you must:
+At the end of every session (automatically, without being asked), you must:
 1. Review the git diffs, files we modified, and the terminal history of our current conversation.
-2. Create a new markdown file in `docs/code_sessions/` named `YYYY-MM-DD-brief-topic.md`.
-3. Use the **Code Session Template** below. Do not ask me for permission to create the file, just draft it and summarize what you did.
+2. Create a new markdown file in `docs/code_sessions/` named `YYYY-MM-DD-sessionNN-brief-topic.md`.
+3. Use the **Code Session Template** below. Do not ask for permission — just create it.
 
 When I ask you to "log this test" or "create a test session," you must:
 1. Ask me for my manual testing observations if I haven't provided them yet.
@@ -369,21 +369,22 @@ When I ask you to "log this test" or "create a test session," you must:
 
 ---
 
-## After Every Session
+## After Every Session (AUTOMATIC — do not wait for user to ask)
 
-1. **Export chat:** Run `/export` any time to save a raw `.txt` transcript. The `scripts/claude-log.sh` script runs every 30 min and automatically moves exports from project root into `docs/chat_exports/{DATE}/` and appends to a daily `.md` summary there.
-2. **Log it:** Ask me to "generate a code session" so I document the work in `docs/code_sessions/`.
-3. **Changelog:** Update `docs/CHANGELOG.md` — what was added/changed/fixed.
-4. **Schema:** Update `docs/SCHEMA.md` — if any migrations were applied.
-5. **Compile check:** Run `cd web && npx tsc --noEmit` — confirm clean before committing.
-6. **Commit:** `git add -A && git commit -m "Session N: <one-line summary>"`
+1. Create a code session log in `docs/code_sessions/YYYY-MM-DD-sessionNN-brief-topic.md` using the Code Session Template
+2. Update `docs/CHANGELOG.md` with session changes
+3. Mark completed tasks in `docs/SCOPE.md` with `[x]`
+4. Run `cd web && npx tsc --noEmit` — confirm clean
+5. `git add -A` and suggest commit message: `Session NN: <brief summary>`
+6. After user confirms: `git commit` (do NOT push — user pushes and deploys manually)
+7. Print reminder: `Pushed. On VM: cd ~/realty-hub && git pull && ./scripts/deploy-vm.sh update`
 
 ## Chat Exports
 
 Saved in `docs/chat_exports/`. Use `/export` (built-in, 0 tokens) to save a raw transcript to the project root. `scripts/claude-log.sh` (runs every 30 min via cron) moves it to `docs/chat_exports/{DATE}/` and appends to a daily markdown summary.
 
-**Current session number: 24**
-**Last completed session: 23 — 2026-03-21 — Pilot Branding + Data Fixes**
+**Current session number: 27**
+**Last completed session: 26 — 2026-03-24 — Card Redesign, Form Overhaul, Title Fix**
 **Deployment: Google Cloud VM — see `docs/DEPLOYMENT.md` for full guide**
-**Sprint: Pilot Launch (Mar 19–22) — see `docs/SCOPE.md`**
+**Sprint: Stabilization — see `docs/SCOPE.md`**
 **Linear: https://linear.app/realty-hub**

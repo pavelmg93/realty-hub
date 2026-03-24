@@ -16,10 +16,10 @@ SCOPE.md only has titles — the detail, acceptance criteria, and implementation
 **Branch:** `main`
 **Max items this session:** 4 (deploy+test between sessions)
 
-* [ ] REA-68 — Create layout-constants.ts + design bible in CLAUDE.md
-* [ ] REA-70 — Map height MUST use layout constants — bottom nav NEVER hidden (4th attempt)
-* [ ] REA-69 — Listing card fixes: title color, status flags, font size, agent name, truncation, remove archive
-* [ ] REA-76 — CLAUDE.md: make session logging automatic + backfill S25/25b/26 logs
+* [x] REA-68 — Create layout-constants.ts + design bible in CLAUDE.md
+* [x] REA-70 — Map height MUST use layout constants — bottom nav NEVER hidden (4th attempt)
+* [x] REA-69 — Listing card fixes: title color, status flags, font size, agent name, truncation, remove archive
+* [x] REA-76 — CLAUDE.md: make session logging automatic + backfill S25/25b/26 logs
 
 ---
 

@@ -6,6 +6,7 @@ interface AgentChipProps {
   agent: {
     id: number;
     first_name: string | null;
+    last_name?: string | null;
     username: string | null;
     phone?: string | null;
     avatar_url?: string | null;
@@ -21,7 +22,10 @@ export function AgentChip({
   showOnline = false,
   clickable = true,
 }: AgentChipProps) {
-  const displayName = agent.first_name || agent.username || "?";
+  const displayName =
+    [agent.first_name, agent.last_name].filter(Boolean).join(" ") ||
+    agent.username ||
+    "?";
   const initials = displayName.slice(0, 2).toUpperCase();
   const inner = (
     <div

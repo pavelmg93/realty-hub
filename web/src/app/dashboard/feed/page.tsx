@@ -12,6 +12,7 @@ import FeedFilters, {
 } from "@/components/feed/FeedFilters";
 import DynamicFeedMap from "@/components/map/DynamicFeedMap";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { LAYOUT } from "@/lib/layout-constants";
 import { Filter, Map } from "lucide-react";
 
 interface Pagination {
@@ -106,25 +107,27 @@ export default function FeedPage() {
   const CITIES = ["Nha Trang", "Hà Nội", "TP.HCM", "Đà Nẵng"];
 
   return (
-    <div className="px-4 sm:px-6 py-4 max-w-3xl mx-auto">
-      {/* Header */}
-      <div className="flex items-center justify-between mb-4">
-        <h1 className="text-lg font-semibold text-[var(--text-primary)]">
-          {t("listingsFeed")}
-        </h1>
-        <select
-          value={city}
-          onChange={(e) => setCity(e.target.value)}
-          className="text-sm rounded-lg border border-[var(--border)] bg-[var(--bg-surface)] text-[var(--text-primary)] px-2 py-1.5 focus:outline-none focus:border-[var(--orange)]"
-        >
-          {CITIES.map((c) => (
-            <option key={c} value={c}>{c}</option>
-          ))}
-        </select>
-      </div>
+    <div className={viewMode === "map" ? "" : "px-4 sm:px-6 py-4 max-w-3xl mx-auto"}>
+      {/* Header + city selector — hidden in map mode */}
+      {viewMode !== "map" && (
+        <div className="flex items-center justify-between mb-4">
+          <h1 className="text-lg font-semibold text-[var(--text-primary)]">
+            {t("listingsFeed")}
+          </h1>
+          <select
+            value={city}
+            onChange={(e) => setCity(e.target.value)}
+            className="text-sm rounded-lg border border-[var(--border)] bg-[var(--bg-surface)] text-[var(--text-primary)] px-2 py-1.5 focus:outline-none focus:border-[var(--orange)]"
+          >
+            {CITIES.map((c) => (
+              <option key={c} value={c}>{c}</option>
+            ))}
+          </select>
+        </div>
+      )}
 
-      {/* Unified toolbar */}
-      <div className="flex items-center gap-2 mb-3">
+      {/* Unified toolbar — h-12 (48px) in map mode, normal in grid mode */}
+      <div className={`flex items-center gap-2 ${viewMode === "map" ? "px-4 sm:px-6 h-12" : "mb-3"}`}>
         {/* Search */}
         <div className="relative flex-1">
           <svg
@@ -153,17 +156,19 @@ export default function FeedPage() {
           )}
         </div>
 
-        {/* Filter */}
-        <button
-          type="button"
-          onClick={() => setShowFilters(!showFilters)}
-          className={`inline-flex flex-none items-center gap-1.5 px-3 py-2 text-sm rounded-lg border border-[var(--border)] transition-colors ${
-            showFilters ? "text-white" : "text-[var(--text-secondary)]"
-          }`}
-          style={showFilters ? { backgroundColor: "var(--orange)" } : { backgroundColor: "var(--bg-surface)" }}
-        >
-          <Filter size={16} /> {t("filter")}
-        </button>
+        {/* Filter — hidden in map mode */}
+        {viewMode !== "map" && (
+          <button
+            type="button"
+            onClick={() => setShowFilters(!showFilters)}
+            className={`inline-flex flex-none items-center gap-1.5 px-3 py-2 text-sm rounded-lg border border-[var(--border)] transition-colors ${
+              showFilters ? "text-white" : "text-[var(--text-secondary)]"
+            }`}
+            style={showFilters ? { backgroundColor: "var(--orange)" } : { backgroundColor: "var(--bg-surface)" }}
+          >
+            <Filter size={16} /> {t("filter")}
+          </button>
+        )}
 
         {/* Grid toggle */}
         {viewMode === "grid" && (
@@ -181,15 +186,16 @@ export default function FeedPage() {
         </button>
       </div>
 
-      {/* Listing count */}
-      {!loading && (
+      {/* Listing count — hidden in map mode */}
+      {viewMode !== "map" && !loading && (
         <div className="mb-3 text-sm text-[var(--text-muted)]">
           {pagination.total} {t("listings")}
           {searchQuery && <span className="ml-1 text-[var(--orange)]">"{searchQuery}"</span>}
         </div>
       )}
 
-      {showFilters && (
+      {/* Filters panel — hidden in map mode */}
+      {viewMode !== "map" && showFilters && (
         <FeedFilters
           filters={filters}
           onChange={setFilters}
@@ -199,7 +205,16 @@ export default function FeedPage() {
         />
       )}
 
-      {loading ? (
+      {/* Content */}
+      {viewMode === "map" ? (
+        <div className="overflow-hidden">
+          <DynamicFeedMap
+            listings={listings}
+            onListingClick={(l) => router.push(`/dashboard/listings/${l.id}/view?from=feed`)}
+            height={LAYOUT.MAP_HEIGHT}
+          />
+        </div>
+      ) : loading ? (
         <div className="space-y-3">
           {[...Array(4)].map((_, i) => (
             <div
@@ -225,12 +240,6 @@ export default function FeedPage() {
             </button>
           )}
         </div>
-      ) : viewMode === "map" ? (
-        <DynamicFeedMap
-          listings={listings}
-          onListingClick={(l) => router.push(`/dashboard/listings/${l.id}/view?from=feed`)}
-          height="calc(100vh - 56px - 60px - 124px)"
-        />
       ) : (
         <>
           <div

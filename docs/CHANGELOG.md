@@ -6,6 +6,25 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Session 27 — 2026-03-24 — Layout Constants, Map Fix, Card Fixes, Auto Logging
+
+#### Added
+- **REA-68: `web/src/lib/layout-constants.ts`** — single source of truth: `TOPBAR_HEIGHT` (56), `BOTTOMNAV_HEIGHT` (64), `TOOLBAR_HEIGHT` (48), `MAP_HEIGHT` (`calc(100vh - 184px)`), `PAGE_PADDING_X`, `PAGE_MAX_WIDTH`.
+- **REA-69: Status corner flag** — colored ribbon at top-left of photo in both card variants. Blue=Just Listed, Red=Price Raised/Dropped, Green=Deposit/Sold, Gray=Not For Sale. Replaces status color strip and photo overlay badge.
+- **REA-69: Agent full name** — `owner_last_name` added to `Listing` type; feed API and listings API now return `a.last_name AS owner_last_name`. Both card components display `first_name + last_name`.
+- **REA-76: Session logs backfilled** — S25, S25b, S26 log files created in `docs/code_sessions/`.
+
+#### Changed
+- **REA-70: Map height (4th/definitive fix)** — feed and listings pages import `LAYOUT.MAP_HEIGHT`; in map mode, header/city selector/filters/listing count are hidden, toolbar is exactly `h-12` (48px) with no extra top padding, map wrapper has `overflow-hidden`. Bottom nav height standardized to 64px (was 60px in BottomNav style).
+- **REA-69: Title line 2 color** — both title lines now `text-[var(--text-primary)]` in all card variants (orange removed).
+- **REA-69: Archive button removed** — `onArchive` prop and ConfirmButton for archive removed from `listings/ListingCard` (both 1-wide and 2-wide). Archived state still shows Reactivate + Delete.
+- **REA-69: Title truncation** — consistent `truncate` on both title lines in all card variants.
+- **REA-76: CLAUDE.md** — "After Every Session" section is now AUTOMATIC (no longer requires user to ask). Logging Workflows section updated. Session footer updated to S27.
+- **AgentChip** — `last_name` added to interface; `displayName` shows full name.
+- **listings API** — now JOINs agents table, returns `owner_first_name`, `owner_last_name`, `owner_phone`, `owner_username`.
+
+---
+
 ### Session 26 — 2026-03-24 — Card Redesign, Form Overhaul, Title Fix
 
 #### Added
