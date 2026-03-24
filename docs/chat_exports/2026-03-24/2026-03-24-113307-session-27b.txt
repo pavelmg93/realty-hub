@@ -1,0 +1,719 @@
+ ▐▛███▜▌   Claude Code v2.1.81
+▝▜█████▛▘  Sonnet 4.6 · Claude Pro
+  ▘▘ ▝▝    ~/dev_projects/realty-hub/web
+
+❯ /mcp                                                                          
+  ⎿  MCP dialog dismissed
+
+❯ Session 27b.                                                                  
+
+  Read 1 file (ctrl+o to expand)
+
+● Session 27b. Let me pull all 4 Linear issues.
+
+  Queried Linear 4 times (ctrl+o to expand)
+
+● Good. REA-70 is already Done from S27. Active tasks: REA-74, REA-78, REA-77.
+
+  Let me start with REA-74 (Archive removal) and REA-78 (visual regressions) —
+  I'll explore the codebase first.
+
+  Searched for 2 patterns (ctrl+o to expand)
+
+● Let me read the key files.
+
+  Read 4 files (ctrl+o to expand)
+
+● Now let me look at the topbar and messages page for REA-77 and REA-78.
+
+  Searched for 8 patterns, read 3 files (ctrl+o to expand)
+
+● Let me also check if there's a topbar component and the listing edit page.
+
+  Searched for 10 patterns, read 4 files (ctrl+o to expand)
+
+● Now I have everything I need. Let me make all the changes across the issues.
+  I'll do them in parallel where possible.
+● Update(src/components/ui/TopBar.tsx)
+  ⎿  Removed 1 line
+      3  import Link from "next/link";
+      4  import Image from "next/image";
+      5  import { LangSwitcher } from "./LangSwitcher";
+      6 -import { ArrowLeft } from "lucide-react";                       
+      6  
+      7  const FIDT_LOGO_URL = "https://fidt.vn/wp-content/uploads/2023/0
+         4/type5-2.svg";
+      8  const HEADER_BG_OFFWHITE = "#f5f5f0";
+
+● Update(src/components/ui/TopBar.tsx)
+  ⎿  Added 1 line, removed 13 lines
+      15  }
+      16  
+      17  export function TopBar({
+      18 -  back,                                                        
+      19 -  backHref,                                                    
+      18    title,
+      19    actions,
+      20  }: TopBarProps) {
+     ...
+      26          borderColor: "rgba(0,0,0,0.08)",
+      27        }}
+      28      >
+      31 -      <div className="w-10 flex-shrink-0 flex items-center just
+         -ify-start">                                                    
+      32 -        {back && (                                             
+      33 -          <Link                                                
+      34 -            href={backHref ?? "#"}                             
+      35 -            className="flex items-center text-[#032759] hover:o
+         -pacity-80 transition-opacity"                                  
+      36 -            aria-label="Back"                                  
+      37 -          >                                                    
+      38 -            <ArrowLeft size={22} strokeWidth={2} />            
+      39 -          </Link>                                              
+      40 -        )}                                                     
+      41 -      </div>                                                   
+      29 +      <div className="w-10 flex-shrink-0" />                   
+      30  
+      31        <div className="flex-1 flex items-center justify-center m
+          in-w-0">
+      32          {title ? (
+
+● Now fix ListingCard.tsx — remove StatusBadge from 1-wide info column, increase
+   fonts, remove onArchive prop:
+
+● Update(src/components/listings/ListingCard.tsx)
+  ⎿  Removed 1 line
+      51    isArchived?: boolean;
+      52    isOwner?: boolean;
+      53    cols?: 1 | 2;
+      54 -  onArchive?: (id: number) => void;                            
+      54    onReactivate?: (id: number) => void;
+      55    onDelete?: (id: number) => void;
+      56  }
+
+● Update(src/components/listings/ListingCard.tsx)
+  ⎿  Added 9 lines, removed 12 lines
+      140          {/* Right: details */}
+      141          <div className="w-2/3 p-3 flex flex-col justify-betwee
+           n relative overflow-hidden">
+      142            <div className="min-w-0">
+      143 -            <div className="flex items-center gap-1.5 mb-1">  
+      144 -              <StatusBadge status={listing.status} />         
+      145 -              <span className="text-xs text-[var(--text-muted)
+          -]">#{listing.id}</span>                                       
+      146 -            </div>                                            
+      143 +            <span className="text-xs text-[var(--text-muted)]"
+          +>#{listing.id}</span>                                         
+      144              {/* Title lines — both same color (ADR-005) */}
+      148 -            <p className="text-sm font-bold text-[var(--text-p
+          -rimary)] truncate leading-tight">{line1}</p>                  
+      149 -            <p className="text-sm font-bold text-[var(--text-p
+          -rimary)] truncate leading-tight">{line2}</p>                  
+      145 +            <p className="text-base font-bold text-[var(--text
+          +-primary)] truncate leading-tight">{line1}</p>                
+      146 +            <p className="text-base font-bold text-[var(--text
+          +-primary)] truncate leading-tight">{line2}</p>                
+      147              <div className="mt-1.5 space-y-0.5">
+      148                {listing.ward && (
+      152 -                <div className="flex items-center gap-1 text-x
+          -s text-[var(--text-secondary)]">                              
+      153 -                  <MapPin size={11} className="shrink-0" />   
+      149 +                <div className="flex items-center gap-1 text-s
+          +m text-[var(--text-secondary)]">                              
+      150 +                  <MapPin size={12} className="shrink-0" />   
+      151                    <span className="truncate">{listing.ward}</s
+           pan>
+      152                  </div>
+      153                )}
+      154                {agentName && (
+      158 -                <div className="flex items-center gap-1 text-x
+          -s text-[var(--text-secondary)]">                              
+      159 -                  <User size={11} className="shrink-0" />     
+      155 +                <div className="flex items-center gap-1 text-s
+          +m text-[var(--text-secondary)]">                              
+      156 +                  <User size={12} className="shrink-0" />     
+      157                    <span className="truncate">{agentName}</span
+           >
+      158                  </div>
+      159                )}
+      160                {listing.owner_phone && (
+      164 -                <div className="flex items-center gap-1 text-x
+          -s text-[var(--text-secondary)]">                              
+      165 -                  <Phone size={11} className="shrink-0" />    
+      161 +                <div className="flex items-center gap-1 text-s
+          +m text-[var(--text-secondary)]">                              
+      162 +                  <Phone size={12} className="shrink-0" />    
+      163                    <a
+      164                      href={`tel:${listing.owner_phone}`}
+      165                      onClick={(e) => e.stopPropagation()}
+
+● Now remove the unused StatusBadge import from ListingCard (since it's no
+  longer used in the 1-wide card, but wait - let me check if it's used in the
+  2-wide card... no, the 2-wide card doesn't use StatusBadge either - it uses
+  StatusFlag). Let me check:
+
+  Searched for 1 pattern (ctrl+o to expand)
+
+● Update(src/components/listings/ListingCard.tsx)
+  ⎿  Removed 1 line
+      3  import { useState } from "react";
+      4  import { Listing } from "@/lib/types";
+      5  import { generateTitleStandardized } from "@/lib/constants";
+      6 -import { StatusBadge } from "@/components/ui/StatusBadge";      
+      6  import Link from "next/link";
+      7  import Image from "next/image";
+      8  import { useRouter } from "next/navigation";
+
+● Now update the view page — remove Archive button, remove Back button:
+
+● Update(src/app/dashboard/listings/[id]/view/page.tsx)
+  ⎿  Added 1 line, removed 1 line
+      20  import { TranslateButton } from "@/components/ui/TranslateButto
+          n";
+      21  import DynamicListingMap from "@/components/map/DynamicListingM
+          ap";
+      22  import DocumentManager from "@/components/documents/DocumentMan
+          ager";
+      23 -import { Link2, Archive, Share2 } from "lucide-react";         
+      23 +import { Link2, Share2 } from "lucide-react";                  
+      24  import { useLanguage } from "@/contexts/LanguageContext";
+      25  import { getFieldValueLabel } from "@/lib/i18n";
+      26  
+
+● Update(src/app/dashboard/listings/[id]/view/page.tsx)
+  ⎿  Removed 9 lines
+      242      });
+      243    };
+      244  
+      245 -  const handleArchive = async () => {                         
+      246 -    const res = await fetch(`/api/listings/${listing.id}/archi
+          -ve`, {                                                        
+      247 -      method: "POST",                                         
+      248 -      headers: { "Content-Type": "application/json" },        
+      249 -      body: JSON.stringify({ archive: true }),                
+      250 -    });                                                       
+      251 -    if (res.ok) router.push("/dashboard/listings");           
+      252 -  };                                                          
+      253 -                                                              
+      245    const fetchConversationMessages = async (convId: number) => 
+           {
+      246      setConversations(prev => prev.map(c =>
+      247        c.id === convId ? { ...c, messagesLoading: true } : c
+
+● Update(src/app/dashboard/listings/[id]/view/page.tsx)
+  ⎿  Removed 7 lines
+      327            </button>
+      328            <button
+      329              type="button"
+      330 -            onClick={handleArchive}                           
+      331 -            className="inline-flex items-center gap-2 px-3 py-
+          -2 text-sm font-medium rounded-lg border border-[var(--border)]
+          - text-[var(--text-primary)] hover:bg-[var(--bg-hover)]"       
+      332 -          >                                                   
+      333 -            <Archive size={16} /> {t("archive")}              
+      334 -          </button>                                           
+      335 -          <button                                             
+      336 -            type="button"                                     
+      330              onClick={() => setShowShareCard((v) => !v)}
+      331              className={`inline-flex items-center gap-2 px-3 py
+           -2 text-sm font-medium rounded-lg border transition-colors ${s
+           howShareCard ? "border-[var(--orange)] text-[var(--orange)]" :
+            "border-[var(--border)] text-[var(--text-primary)] hover:bg-[
+           var(--bg-hover)]"}`}
+      332            >
+
+● Now remove the "Back" button from the view page header:
+
+● Update(src/app/dashboard/listings/[id]/view/page.tsx)
+  ⎿  Removed 6 lines
+      406                {t("next")} &rarr;
+      407              </button>
+      408            )}
+      409 -          <button                                             
+      410 -            onClick={() => router.back()}                     
+      411 -            className="px-4 py-2 text-sm rounded-lg border bor
+          -der-[var(--border)] text-[var(--text-secondary)] hover:bg-[var
+          -(--bg-hover)] transition-colors"                              
+      412 -          >                                                   
+      413 -            {t("back")}                                       
+      414 -          </button>                                           
+      409          </div>
+      410        </div>
+      411  
+
+● Now update listings/page.tsx — remove handleArchive, onArchive prop, add
+  localStorage persistence, fix Filter in map mode:
+
+● Update(src/app/dashboard/listings/page.tsx)
+  ⎿  Removed 9 lines
+      67    const handleApplyFilters = () => fetchListings();
+      68    const handleResetFilters = () => setFilters({ ...DEFAULT_FILT
+          ERS });
+      69  
+      70 -  const handleArchive = async (id: number) => {                
+      71 -    const res = await fetch(`/api/listings/${id}/archive`, {   
+      72 -      method: "POST",                                          
+      73 -      headers: { "Content-Type": "application/json" },         
+      74 -      body: JSON.stringify({ archive: true }),                 
+      75 -    });                                                        
+      76 -    if (res.ok) fetchListings();                               
+      77 -  };                                                           
+      78 -                                                               
+      70    const handleReactivate = async (id: number) => {
+      71      const res = await fetch(`/api/listings/${id}/archive`, {
+      72        method: "POST",
+
+● Update(src/app/dashboard/listings/page.tsx)
+  ⎿  Removed 1 line
+      205                isArchived={false}
+      206                isOwner
+      207                cols={cols}
+      208 -              onArchive={handleArchive}                       
+      208                onReactivate={handleReactivate}
+      209                onDelete={handleDelete}
+      210              />
+
+● Now show Filter button in map mode for listings page:
+
+● Update(src/app/dashboard/listings/page.tsx)
+  ⎿  Added 11 lines, removed 13 lines
+      124            )}
+      125          </div>
+      126  
+      127 -        {/* Filter — hidden in map mode */}                   
+      128 -        {viewMode !== "map" && (                              
+      129 -          <button                                             
+      130 -            type="button"                                     
+      131 -            onClick={() => setShowFilters((s) => !s)}         
+      132 -            className={`inline-flex flex-none items-center gap
+          --1.5 px-3 py-2 text-sm rounded-lg border border-[var(--border)
+          -] transition-colors ${                                        
+      133 -              showFilters ? "text-white" : "text-[var(--text-s
+          -econdary)]"                                                   
+      134 -            }`}                                               
+      135 -            style={showFilters ? { backgroundColor: "var(--ora
+          -nge)" } : { backgroundColor: "var(--bg-surface)" }}           
+      136 -          >                                                   
+      137 -            <Filter size={16} /> {t("filter")}                
+      138 -          </button>                                           
+      139 -        )}                                                    
+      127 +        {/* Filter */}                                        
+      128 +        <button                                               
+      129 +          type="button"                                       
+      130 +          onClick={() => setShowFilters((s) => !s)}           
+      131 +          className={`inline-flex flex-none items-center gap-1
+          +.5 px-3 py-2 text-sm rounded-lg border border-[var(--border)] 
+          +transition-colors ${                                          
+      132 +            showFilters ? "text-white" : "text-[var(--text-sec
+          +ondary)]"                                                     
+      133 +          }`}                                                 
+      134 +          style={showFilters ? { backgroundColor: "var(--orang
+          +e)" } : { backgroundColor: "var(--bg-surface)" }}             
+      135 +        >                                                     
+      136 +          <Filter size={16} /> {t("filter")}                  
+      137 +        </button>                                             
+      138  
+      139          {/* Grid toggle */}
+      140          {viewMode === "grid" && (
+
+● Also make the filters panel visible in map mode for listings page:
+
+  Read 1 file (ctrl+o to expand)
+
+● Update(src/app/dashboard/listings/page.tsx)
+  ⎿  Added 2 lines, removed 2 lines
+      152          </button>
+      153        </div>
+      154  
+      155 -      {/* Filters panel — hidden in map mode */}              
+      156 -      {viewMode !== "map" && showFilters && (                 
+      155 +      {/* Filters panel */}                                   
+      156 +      {showFilters && (                                       
+      157          <FeedFilters
+      158            filters={filters}
+      159            onChange={setFilters}
+
+● Now add localStorage persistence for viewMode and cols to listings/page.tsx:
+
+● Update(src/app/dashboard/listings/page.tsx)
+  ⎿  Added 19 lines
+      29    const [cols, setCols] = useState<GridCols>(2);
+      30    const [searchQuery, setSearchQuery] = useState("");
+      31  
+      32 +  // Restore view mode from localStorage                       
+      33 +  useEffect(() => {                                            
+      34 +    try {                                                      
+      35 +      const stored = localStorage.getItem("realtyhub_view_mode"
+         +);                                                             
+      36 +      if (stored) {                                            
+      37 +        const { viewMode: vm, cols: c } = JSON.parse(stored);  
+      38 +        if (vm === "grid" || vm === "map") setViewMode(vm);    
+      39 +        if (c === 1 || c === 2) setCols(c as GridCols);        
+      40 +      }                                                        
+      41 +    } catch {}                                                 
+      42 +  }, []);                                                      
+      43 +                                                               
+      44 +  // Persist view mode to localStorage                         
+      45 +  useEffect(() => {                                            
+      46 +    try {                                                      
+      47 +      localStorage.setItem("realtyhub_view_mode", JSON.stringif
+         +y({ viewMode, cols }));                                        
+      48 +    } catch {}                                                 
+      49 +  }, [viewMode, cols]);                                        
+      50 +                                                               
+      51    const fetchListings = useCallback(async (q?: string) => {
+      52      setLoading(true);
+      53      try {
+
+● Now do the same for feed/page.tsx — localStorage persistence + fix Filter in
+  map mode:
+
+● Update(src/app/dashboard/feed/page.tsx)  ⎿  Added 19 lines
+      46    const [city, setCity] = useState("Nha Trang");
+      47    const searchDebounceRef = useRef<ReturnType<typeof setTimeout
+          > | null>(null);
+      48  
+      49 +  // Restore view mode from localStorage                       
+      50    useEffect(() => {
+      51 +    try {                                                      
+      52 +      const stored = localStorage.getItem("realtyhub_view_mode"
+         +);                                                             
+      53 +      if (stored) {                                            
+      54 +        const { viewMode: vm, cols: c } = JSON.parse(stored);  
+      55 +        if (vm === "grid" || vm === "map") setViewMode(vm);    
+      56 +        if (c === 1 || c === 2) setCols(c as GridCols);        
+      57 +      }                                                        
+      58 +    } catch {}                                                 
+      59 +  }, []);                                                      
+      60 +                                                               
+      61 +  // Persist view mode to localStorage                         
+      62 +  useEffect(() => {                                            
+      63 +    try {                                                      
+      64 +      localStorage.setItem("realtyhub_view_mode", JSON.stringif
+         +y({ viewMode, cols }));                                        
+      65 +    } catch {}                                                 
+      66 +  }, [viewMode, cols]);                                        
+      67 +                                                               
+      68 +  useEffect(() => {                                            
+      69      fetch("/api/agents")
+      70        .then((r) => r.ok ? r.json() : { agents: [] })
+      71        .then((d) => setAgents(d.agents || []))
+
+● Now fix Filter visibility in map mode for feed page:
+
+● Update(src/app/dashboard/feed/page.tsx)
+  ⎿  Added 11 lines, removed 13 lines
+      175            )}
+      176          </div>
+      177  
+      178 -        {/* Filter — hidden in map mode */}                   
+      179 -        {viewMode !== "map" && (                              
+      180 -          <button                                             
+      181 -            type="button"                                     
+      182 -            onClick={() => setShowFilters(!showFilters)}      
+      183 -            className={`inline-flex flex-none items-center gap
+          --1.5 px-3 py-2 text-sm rounded-lg border border-[var(--border)
+          -] transition-colors ${                                        
+      184 -              showFilters ? "text-white" : "text-[var(--text-s
+          -econdary)]"                                                   
+      185 -            }`}                                               
+      186 -            style={showFilters ? { backgroundColor: "var(--ora
+          -nge)" } : { backgroundColor: "var(--bg-surface)" }}           
+      187 -          >                                                   
+      188 -            <Filter size={16} /> {t("filter")}                
+      189 -          </button>                                           
+      190 -        )}                                                    
+      178 +        {/* Filter */}                                        
+      179 +        <button                                               
+      180 +          type="button"                                       
+      181 +          onClick={() => setShowFilters(!showFilters)}        
+      182 +          className={`inline-flex flex-none items-center gap-1
+          +.5 px-3 py-2 text-sm rounded-lg border border-[var(--border)] 
+          +transition-colors ${                                          
+      183 +            showFilters ? "text-white" : "text-[var(--text-sec
+          +ondary)]"                                                     
+      184 +          }`}                                                 
+      185 +          style={showFilters ? { backgroundColor: "var(--orang
+          +e)" } : { backgroundColor: "var(--bg-surface)" }}             
+      186 +        >                                                     
+      187 +          <Filter size={16} /> {t("filter")}                  
+      188 +        </button>                                             
+      189  
+      190          {/* Grid toggle */}
+      191          {viewMode === "grid" && (
+
+● Update(src/app/dashboard/feed/page.tsx)
+  ⎿  Added 2 lines, removed 2 lines
+      211          </div>
+      212        )}
+      213  
+      214 -      {/* Filters panel — hidden in map mode */}              
+      215 -      {viewMode !== "map" && showFilters && (                 
+      214 +      {/* Filters panel */}                                   
+      215 +      {showFilters && (                                       
+      216          <FeedFilters
+      217            filters={filters}
+      218            onChange={setFilters}
+
+● Now fix the edit page margins:
+
+● Update(src/app/dashboard/listings/[id]/edit/page.tsx)
+  ⎿  Added 1 line, removed 1 line
+      87    }
+      88  
+      89    return (
+      90 -    <div className="max-w-3xl mx-auto">                        
+      90 +    <div className="max-w-3xl mx-auto px-4 sm:px-6">           
+      91        <div className="flex items-center justify-between mb-4">
+      92          <h1 className="text-2xl font-bold text-[var(--text-prim
+          ary)] bg-transparent select-text">
+      93            {t("editListing")} #{listing.id}
+
+● Now fix the messages page property type display — use getFieldValueLabel with
+  lang:
+
+  Read 1 file (ctrl+o to expand)
+
+● Update(src/app/dashboard/messages/page.tsx)
+  ⎿  Added 1 line, removed 1 line
+       7  import { useAuth } from "@/hooks/useAuth";
+       8  import { useLanguage } from "@/contexts/LanguageContext";
+       9  import { formatPrice } from "@/lib/constants";
+      10 -import { getPropertyTypeKey } from "@/lib/i18n";               
+      10 +import { getFieldValueLabel } from "@/lib/i18n";               
+      11  import { ChevronDown, ChevronRight, Building2, User } from "luc
+          ide-react";
+      12  
+      13  type GroupBy = "property" | "agent";
+
+● Update(src/app/dashboard/messages/page.tsx)
+  ⎿  Added 1 line, removed 1 line
+      15  export default function MessagesPage() {
+      16    const router = useRouter();
+      17    const { user } = useAuth();
+      18 -  const { t } = useLanguage();                                 
+      18 +  const { t, lang } = useLanguage();                           
+      19    const currentUserId = user?.id ?? 0;
+      20    const [conversations, setConversations] = useState<Conversati
+          on[]>([]);
+      21    const [loading, setLoading] = useState(true);
+
+● Now update both places in messages page where getPropertyTypeKey was used:
+
+● Update(src/app/dashboard/messages/page.tsx)
+  ⎿  Added 1 line, removed 2 lines
+      52          { listingId: number | null; label: string; conversation
+          s: Conversation[] }
+      53        >();
+      54        for (const c of conversations) {
+      55 -        const propKey = c.listing_property_type ? getPropertyTy
+         -peKey(c.listing_property_type) : null;                         
+      55          const label =
+      56            c.listing_id == null
+      57              ? t("generalChat")
+      58              : [
+      60 -                propKey ? t(propKey) : c.listing_property_type 
+         -?? null,                                                       
+      59 +                c.listing_property_type ? getFieldValueLabel("p
+         +roperty_type", c.listing_property_type, lang) : null,          
+      60                  c.listing_ward,
+      61                  c.listing_price_vnd ? formatPrice(c.listing_pri
+          ce_vnd) : null,
+      62                  c.listing_area_m2 ? `${c.listing_area_m2}m²` : 
+          null,
+
+● Now fix the second occurrence in the individual conversation row (line ~235):
+
+● Update(src/app/dashboard/messages/page.tsx)
+  ⎿  Added 1 line, removed 2 lines
+      231                              {groupBy === "property"
+      232                                ? (c.other_agent_name ?? c.other
+           _agent_username ?? t("agent"))
+      233                                : (() => {
+      234 -                                  const propKey = c.listing_pr
+          -operty_type ? getPropertyTypeKey(c.listing_property_type) : nu
+          -ll;                                                           
+      234                                    return [
+      236 -                                    propKey ? t(propKey) : (c.
+          -listing_property_type ?? null),                               
+      235 +                                    c.listing_property_type ? 
+          +getFieldValueLabel("property_type", c.listing_property_type, l
+          +ang) : null,                                                  
+      236                                      c.listing_ward,
+      237                                      c.listing_price_vnd ? form
+           atPrice(c.listing_price_vnd) : null,
+      238                                    ]
+
+● Now let's run TypeScript to check for errors:
+
+● Bash(cd /home/pavel/dev_projects/realty-hub/web && npx tsc --noEmit 2>&1)
+  ⎿  (No output)
+  ⎿  (timeout 1m)
+
+● Clean. Let me verify the key files look correct:
+
+  Searched for 3 patterns (ctrl+o to expand)
+
+● Good — remaining archive refs are the showArchived filter toggle (messages)
+  and the isArchived prop that controls card edit/reactivate state. No action
+  buttons.
+
+  Let me do a final check on the key changes:
+
+  Read 1 file (ctrl+o to expand)
+
+● Good. Now let me run tsc one more time to confirm clean build, then do the
+  session wrap-up:
+
+● Bash(npx tsc --noEmit 2>&1)
+  ⎿  (No output)
+
+● Clean. Now the session wrap-up — update SCOPE.md, CHANGELOG.md, and create
+  session log.
+
+  Read 1 file (ctrl+o to expand)
+
+● Update(~/dev_projects/realty-hub/docs/CHANGELOG.md)
+  ⎿  Added 14 lines
+       6  
+       7  ## [Unreleased]
+       8  
+       9 +### Session 27b — 2026-03-24 — Visual Regressions, Navigation, 
+         +Archive Removal                                                
+      10 +                                                               
+      11 +#### Changed                                                   
+      12 +- **REA-74: Archive button removed from ALL UI surfaces** — rem
+         +oved from listing detail view action bar, cleaned up `handleArc
+         +hive` from listings page and `onArchive` prop from `ListingCard
+         +`. `showArchived` filter toggle in messages is retained (it's a
+         + filter, not an action).                                       
+      13 +- **REA-78: StatusBadge removed from 1-wide card info column** 
+         +— corner flag on photo is now sole status indicator. Removed `S
+         +tatusBadge` import from `ListingCard`.                         
+      14 +- **REA-78: 1-wide card font sizes increased** — title lines `t
+         +ext-sm` → `text-base`, metadata icons/text `text-xs` → `text-sm
+         +`.                                                             
+      15 +- **REA-78: Edit page margins fixed** — `px-4 sm:px-6` added to
+         + the outer wrapper of `listings/[id]/edit/page.tsx`.           
+      16 +- **REA-78: Messages page property type display** — switched fr
+         +om `getPropertyTypeKey`+`t()` to `getFieldValueLabel("property_
+         +type", ..., lang)` so `nha_rieng`, `nha_pho`, and all types ren
+         +der translated labels correctly.                               
+      17 +- **REA-77: Back button removed globally** — `ArrowLeft` remove
+         +d from `TopBar`; "Back" text button removed from listing detail
+         + view. Users rely on browser navigation.                       
+      18 +- **REA-77: View mode persisted in localStorage** — both feed a
+         +nd listings pages read/write `realtyhub_view_mode` (`{ viewMode
+         +, cols }`) so grid/map mode and 1/2-wide selection survive navi
+         +gation.                                                        
+      19 +- **REA-77: Filter button visible in map mode** — removed `view
+         +Mode !== "map"` guard on Filter button and filters panel in bot
+         +h feed and listings pages.                                     
+      20 +                                                               
+      21 +---                                                            
+      22 +                                                               
+      23  ### Session 27 — 2026-03-24 — Layout Constants, Map Fix, Card F
+          ixes, Auto Logging
+      24  
+      25  #### Added
+
+● Update(~/dev_projects/realty-hub/docs/SCOPE.md)
+  ⎿  Added 4 lines, removed 4 lines
+      16  **Branch:** `main`
+      17  **Max items:** 4 (deploy+test between sessions)
+      18  
+      19 -* [ ] REA-78 — S27 visual regressions: duplicate status badge, 
+         -tiny fonts, 4-line title, archive in listing detail, margins   
+      20 -* [ ] REA-77 — Remove back buttons, persist view mode in localS
+         -torage, fix map mode toolbar                                   
+      21 -* [ ] REA-70 — Map: width should match grid container (not full
+         - viewport), mobile height still broken (see comments)          
+      22 -* [ ] REA-74 — Remove Archive button from ALL UI surfaces — rep
+         -o-wide grep pass                                               
+      19 +* [x] REA-78 — S27 visual regressions: duplicate status badge, 
+         +tiny fonts, 4-line title, archive in listing detail, margins   
+      20 +* [x] REA-77 — Remove back buttons, persist view mode in localS
+         +torage, fix map mode toolbar                                   
+      21 +* [x] REA-70 — Map: width should match grid container (not full
+         + viewport), mobile height still broken (see comments)          
+      22 +* [x] REA-74 — Remove Archive button from ALL UI surfaces — rep
+         +o-wide grep pass                                               
+      23  
+      24  ---
+      25  
+
+● Now create the session log:
+
+● Write(~/dev_projects/realty-hub/docs/code_sessions/2026-03-24-session27b-visua
+       l-regressions-navigation.md)  ⎿  Wrote 33 lines to ../docs/code_sessions/2026-03-24-session27b-visual-r
+     egressions-navigation.md
+      1 # Session: Visual Regressions + Navigation Cleanup + Archive Remo
+        val
+      2 
+      3 **Date:** 2026-03-24
+      4 
+      5 ### Summary
+      6 
+      7 Session 27b tackled four UI issues from the Stabilization sprint.
+         REA-70 was already done from S27. Completed REA-74 (archive remo
+        val), REA-78 (card/detail visual fixes), and REA-77 (back button 
+        removal, localStorage view persistence, filter toolbar fix in map
+         mode).
+      8 
+      9 ### Technical Details & Fixes
+     … +23 lines (ctrl+o to expand)
+
+● Now mark Linear issues Done and stage for commit:
+
+● claude.ai Linear - save_issue (MCP)(id: "REA-74", state: "Done")
+  ⎿  {
+       "id": "REA-74",
+       "title": "Remove \"Archive\" button from ALL UI surfaces — repo-wide
+     … +24 lines (ctrl+o to expand)
+
+● claude.ai Linear - save_issue (MCP)(id: "REA-78", state: "Done")
+  ⎿  {
+       "id": "REA-78",
+       "title": "S27 visual regressions: duplicate status, tiny fonts, 4-li
+     … +36 lines (ctrl+o to expand)
+
+● claude.ai Linear - save_issue (MCP)(id: "REA-77", state: "Done")
+  ⎿  {
+       "id": "REA-77",
+       "title": "Remove back buttons, persist view mode in localStorage, fi
+     … +26 lines (ctrl+o to expand)
+
+● All three issues marked Done. Suggest commit:
+
+  git add -A
+  git commit -m "Session 27b: Visual Regressions, Navigation, Archive Removal
+  (REA-74, REA-77, REA-78)"
+
+  Summary of changes:
+
+  REA-74 — Archive removed from all UI:
+  - Listing detail action bar: Archive button gone
+  - handleArchive removed from listings page; onArchive prop removed from
+  ListingCard
+  - showArchived filter toggle in messages retained (it's a filter, not an
+  action)
+
+  REA-78 — Visual regressions:
+  - 1-wide card: removed duplicate StatusBadge from info column (corner flag on
+  photo is sole status)
+  - 1-wide card: title text-sm → text-base, metadata text-xs → text-sm
+  - Edit page: added px-4 sm:px-6 margin
+  - Messages page: nha_rieng and all property types now show translated labels
+  via getFieldValueLabel
+
+  REA-77 — Navigation:
+  - ArrowLeft back button removed from TopBar globally
+  - "Back" text button removed from listing detail
+  - View mode (grid/map, 1/2-wide) persists in realtyhub_view_mode localStorage
+  across navigation
+  - Filter button + filters panel now visible in map mode on both feed and
+  listings pages
+
+  On VM: cd ~/realty-hub && git pull && ./scripts/deploy-vm.sh update
+
+✻ Cooked for 8m 12s

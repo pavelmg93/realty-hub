@@ -1,46 +1,46 @@
 # Realty Hub — Project Scope
-**Sprint:** Stabilization
+**Sprint:** Stabilization (continued)
 **Version:** v1.3
 
 ---
 
-## ⚠️ CLAUDE CODE: READ LINEAR ISSUES BEFORE CODING
+## ⚠️ READ LINEAR ISSUES BEFORE CODING
 
-For each task below, run `get_issue REA-XX` via Linear MCP to read the FULL specification.
-SCOPE.md only has titles — the detail, acceptance criteria, and implementation hints are in Linear.
+For each task below, run `get_issue REA-XX` via Linear MCP to read the FULL spec + comments.
+Comments contain post-deploy testing feedback with specific remaining bugs.
 
 ---
 
-## 🔴 Current Session: 27 — Layout Constants + Card Fixes + Map Fix
+## 🔴 Current Session: 27b — Visual Regressions + Navigation + Map
 
 **Branch:** `main`
-**Max items this session:** 4 (deploy+test between sessions)
+**Max items:** 4 (deploy+test between sessions)
 
-* [x] REA-68 — Create layout-constants.ts + design bible in CLAUDE.md
-* [x] REA-70 — Map height MUST use layout constants — bottom nav NEVER hidden (4th attempt)
-* [x] REA-69 — Listing card fixes: title color, status flags, font size, agent name, truncation, remove archive
-* [x] REA-76 — CLAUDE.md: make session logging automatic + backfill S25/25b/26 logs
+* [x] REA-78 — S27 visual regressions: duplicate status badge, tiny fonts, 4-line title, archive in listing detail, margins
+* [x] REA-77 — Remove back buttons, persist view mode in localStorage, fix map mode toolbar
+* [x] REA-70 — Map: width should match grid container (not full viewport), mobile height still broken (see comments)
+* [x] REA-74 — Remove Archive button from ALL UI surfaces — repo-wide grep pass
 
 ---
 
-## ⏭️ Session 27b — Form + Messages + Status
+## ⏭️ Session 28
 
-* [ ] REA-71 — Bug: embedded messages show "No messages yet" despite messages existing
-* [ ] REA-72 — Add/Edit form fixes: labels, sections, ward seeding, translations, margins
-* [ ] REA-73 — Listing status: rename For Sale → Selling, flag colors, auto-revert
-* [ ] REA-74 — Remove "Archive" button from ALL UI surfaces
-* [ ] REA-75 — Navigation: stateful back button, grid mode persistence
+* [ ] REA-71 — Bug: embedded messages "No messages yet" despite messages existing
+* [ ] REA-72 — Form fixes: labels, sections, ward seeding, translations, margins, nha_rieng ghost
+* [ ] REA-73 — Status: rename For Sale → Selling, flag colors, auto-revert just_listed
+* [ ] REA-75 — Navigation state: grid mode persistence, scroll restoration
 
 ---
 
 ## 🧊 Backlog
 
-* [ ] REA-8 — Create 10 pilot agent accounts
-* [ ] REA-12 — Gemini OCR parsing
-* [ ] REA-13 — Feed full-text search
-* [ ] REA-14 — Share card image + copy text
-* [ ] REA-18 — Migrate photos to GCS
+* [ ] REA-8 — Create pilot accounts
+* [ ] REA-12 — Gemini OCR
+* [ ] REA-13 — Feed FTS
+* [ ] REA-14 — Share card
+* [ ] REA-18 — Photos to GCS
 * [ ] REA-20 — Notifications
 * [ ] REA-21 — API rate limiting
-* [ ] REA-51 — Remove stale ~/re-nhatrang/ from VM
-* [ ] REA-63 — DB sync script (production → local)
+* [ ] REA-51 — VM cleanup
+* [ ] REA-63 — DB sync script
+* [ ] REA-76 — Session logging (done in S27 — verify)

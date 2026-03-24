@@ -29,6 +29,25 @@ export default function ListingsPage() {
   const [cols, setCols] = useState<GridCols>(2);
   const [searchQuery, setSearchQuery] = useState("");
 
+  // Restore view mode from localStorage
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem("realtyhub_view_mode");
+      if (stored) {
+        const { viewMode: vm, cols: c } = JSON.parse(stored);
+        if (vm === "grid" || vm === "map") setViewMode(vm);
+        if (c === 1 || c === 2) setCols(c as GridCols);
+      }
+    } catch {}
+  }, []);
+
+  // Persist view mode to localStorage
+  useEffect(() => {
+    try {
+      localStorage.setItem("realtyhub_view_mode", JSON.stringify({ viewMode, cols }));
+    } catch {}
+  }, [viewMode, cols]);
+
   const fetchListings = useCallback(async (q?: string) => {
     setLoading(true);
     try {
@@ -66,15 +85,6 @@ export default function ListingsPage() {
 
   const handleApplyFilters = () => fetchListings();
   const handleResetFilters = () => setFilters({ ...DEFAULT_FILTERS });
-
-  const handleArchive = async (id: number) => {
-    const res = await fetch(`/api/listings/${id}/archive`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ archive: true }),
-    });
-    if (res.ok) fetchListings();
-  };
 
   const handleReactivate = async (id: number) => {
     const res = await fetch(`/api/listings/${id}/archive`, {
@@ -133,19 +143,17 @@ export default function ListingsPage() {
           )}
         </div>
 
-        {/* Filter — hidden in map mode */}
-        {viewMode !== "map" && (
-          <button
-            type="button"
-            onClick={() => setShowFilters((s) => !s)}
-            className={`inline-flex flex-none items-center gap-1.5 px-3 py-2 text-sm rounded-lg border border-[var(--border)] transition-colors ${
-              showFilters ? "text-white" : "text-[var(--text-secondary)]"
-            }`}
-            style={showFilters ? { backgroundColor: "var(--orange)" } : { backgroundColor: "var(--bg-surface)" }}
-          >
-            <Filter size={16} /> {t("filter")}
-          </button>
-        )}
+        {/* Filter */}
+        <button
+          type="button"
+          onClick={() => setShowFilters((s) => !s)}
+          className={`inline-flex flex-none items-center gap-1.5 px-3 py-2 text-sm rounded-lg border border-[var(--border)] transition-colors ${
+            showFilters ? "text-white" : "text-[var(--text-secondary)]"
+          }`}
+          style={showFilters ? { backgroundColor: "var(--orange)" } : { backgroundColor: "var(--bg-surface)" }}
+        >
+          <Filter size={16} /> {t("filter")}
+        </button>
 
         {/* Grid toggle */}
         {viewMode === "grid" && (
@@ -163,8 +171,8 @@ export default function ListingsPage() {
         </button>
       </div>
 
-      {/* Filters panel — hidden in map mode */}
-      {viewMode !== "map" && showFilters && (
+      {/* Filters panel */}
+      {showFilters && (
         <FeedFilters
           filters={filters}
           onChange={setFilters}
@@ -214,7 +222,6 @@ export default function ListingsPage() {
               isArchived={false}
               isOwner
               cols={cols}
-              onArchive={handleArchive}
               onReactivate={handleReactivate}
               onDelete={handleDelete}
             />

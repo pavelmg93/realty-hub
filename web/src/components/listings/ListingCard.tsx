@@ -3,7 +3,6 @@
 import { useState } from "react";
 import { Listing } from "@/lib/types";
 import { generateTitleStandardized } from "@/lib/constants";
-import { StatusBadge } from "@/components/ui/StatusBadge";
 import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
@@ -51,7 +50,6 @@ interface Props {
   isArchived?: boolean;
   isOwner?: boolean;
   cols?: 1 | 2;
-  onArchive?: (id: number) => void;
   onReactivate?: (id: number) => void;
   onDelete?: (id: number) => void;
 }
@@ -141,29 +139,26 @@ export default function ListingCard({
         {/* Right: details */}
         <div className="w-2/3 p-3 flex flex-col justify-between relative overflow-hidden">
           <div className="min-w-0">
-            <div className="flex items-center gap-1.5 mb-1">
-              <StatusBadge status={listing.status} />
-              <span className="text-xs text-[var(--text-muted)]">#{listing.id}</span>
-            </div>
+            <span className="text-xs text-[var(--text-muted)]">#{listing.id}</span>
             {/* Title lines — both same color (ADR-005) */}
-            <p className="text-sm font-bold text-[var(--text-primary)] truncate leading-tight">{line1}</p>
-            <p className="text-sm font-bold text-[var(--text-primary)] truncate leading-tight">{line2}</p>
+            <p className="text-base font-bold text-[var(--text-primary)] truncate leading-tight">{line1}</p>
+            <p className="text-base font-bold text-[var(--text-primary)] truncate leading-tight">{line2}</p>
             <div className="mt-1.5 space-y-0.5">
               {listing.ward && (
-                <div className="flex items-center gap-1 text-xs text-[var(--text-secondary)]">
-                  <MapPin size={11} className="shrink-0" />
+                <div className="flex items-center gap-1 text-sm text-[var(--text-secondary)]">
+                  <MapPin size={12} className="shrink-0" />
                   <span className="truncate">{listing.ward}</span>
                 </div>
               )}
               {agentName && (
-                <div className="flex items-center gap-1 text-xs text-[var(--text-secondary)]">
-                  <User size={11} className="shrink-0" />
+                <div className="flex items-center gap-1 text-sm text-[var(--text-secondary)]">
+                  <User size={12} className="shrink-0" />
                   <span className="truncate">{agentName}</span>
                 </div>
               )}
               {listing.owner_phone && (
-                <div className="flex items-center gap-1 text-xs text-[var(--text-secondary)]">
-                  <Phone size={11} className="shrink-0" />
+                <div className="flex items-center gap-1 text-sm text-[var(--text-secondary)]">
+                  <Phone size={12} className="shrink-0" />
                   <a
                     href={`tel:${listing.owner_phone}`}
                     onClick={(e) => e.stopPropagation()}

@@ -46,6 +46,25 @@ export default function FeedPage() {
   const [city, setCity] = useState("Nha Trang");
   const searchDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
+  // Restore view mode from localStorage
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem("realtyhub_view_mode");
+      if (stored) {
+        const { viewMode: vm, cols: c } = JSON.parse(stored);
+        if (vm === "grid" || vm === "map") setViewMode(vm);
+        if (c === 1 || c === 2) setCols(c as GridCols);
+      }
+    } catch {}
+  }, []);
+
+  // Persist view mode to localStorage
+  useEffect(() => {
+    try {
+      localStorage.setItem("realtyhub_view_mode", JSON.stringify({ viewMode, cols }));
+    } catch {}
+  }, [viewMode, cols]);
+
   useEffect(() => {
     fetch("/api/agents")
       .then((r) => r.ok ? r.json() : { agents: [] })
@@ -156,19 +175,17 @@ export default function FeedPage() {
           )}
         </div>
 
-        {/* Filter — hidden in map mode */}
-        {viewMode !== "map" && (
-          <button
-            type="button"
-            onClick={() => setShowFilters(!showFilters)}
-            className={`inline-flex flex-none items-center gap-1.5 px-3 py-2 text-sm rounded-lg border border-[var(--border)] transition-colors ${
-              showFilters ? "text-white" : "text-[var(--text-secondary)]"
-            }`}
-            style={showFilters ? { backgroundColor: "var(--orange)" } : { backgroundColor: "var(--bg-surface)" }}
-          >
-            <Filter size={16} /> {t("filter")}
-          </button>
-        )}
+        {/* Filter */}
+        <button
+          type="button"
+          onClick={() => setShowFilters(!showFilters)}
+          className={`inline-flex flex-none items-center gap-1.5 px-3 py-2 text-sm rounded-lg border border-[var(--border)] transition-colors ${
+            showFilters ? "text-white" : "text-[var(--text-secondary)]"
+          }`}
+          style={showFilters ? { backgroundColor: "var(--orange)" } : { backgroundColor: "var(--bg-surface)" }}
+        >
+          <Filter size={16} /> {t("filter")}
+        </button>
 
         {/* Grid toggle */}
         {viewMode === "grid" && (
@@ -194,8 +211,8 @@ export default function FeedPage() {
         </div>
       )}
 
-      {/* Filters panel — hidden in map mode */}
-      {viewMode !== "map" && showFilters && (
+      {/* Filters panel */}
+      {showFilters && (
         <FeedFilters
           filters={filters}
           onChange={setFilters}

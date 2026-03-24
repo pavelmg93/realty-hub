@@ -3,7 +3,6 @@
 import Link from "next/link";
 import Image from "next/image";
 import { LangSwitcher } from "./LangSwitcher";
-import { ArrowLeft } from "lucide-react";
 
 const FIDT_LOGO_URL = "https://fidt.vn/wp-content/uploads/2023/04/type5-2.svg";
 const HEADER_BG_OFFWHITE = "#f5f5f0";
@@ -16,8 +15,6 @@ interface TopBarProps {
 }
 
 export function TopBar({
-  back,
-  backHref,
   title,
   actions,
 }: TopBarProps) {
@@ -29,17 +26,7 @@ export function TopBar({
         borderColor: "rgba(0,0,0,0.08)",
       }}
     >
-      <div className="w-10 flex-shrink-0 flex items-center justify-start">
-        {back && (
-          <Link
-            href={backHref ?? "#"}
-            className="flex items-center text-[#032759] hover:opacity-80 transition-opacity"
-            aria-label="Back"
-          >
-            <ArrowLeft size={22} strokeWidth={2} />
-          </Link>
-        )}
-      </div>
+      <div className="w-10 flex-shrink-0" />
 
       <div className="flex-1 flex items-center justify-center min-w-0">
         {title ? (

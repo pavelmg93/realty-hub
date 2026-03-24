@@ -6,6 +6,20 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Session 27b — 2026-03-24 — Visual Regressions, Navigation, Archive Removal
+
+#### Changed
+- **REA-74: Archive button removed from ALL UI surfaces** — removed from listing detail view action bar, cleaned up `handleArchive` from listings page and `onArchive` prop from `ListingCard`. `showArchived` filter toggle in messages is retained (it's a filter, not an action).
+- **REA-78: StatusBadge removed from 1-wide card info column** — corner flag on photo is now sole status indicator. Removed `StatusBadge` import from `ListingCard`.
+- **REA-78: 1-wide card font sizes increased** — title lines `text-sm` → `text-base`, metadata icons/text `text-xs` → `text-sm`.
+- **REA-78: Edit page margins fixed** — `px-4 sm:px-6` added to the outer wrapper of `listings/[id]/edit/page.tsx`.
+- **REA-78: Messages page property type display** — switched from `getPropertyTypeKey`+`t()` to `getFieldValueLabel("property_type", ..., lang)` so `nha_rieng`, `nha_pho`, and all types render translated labels correctly.
+- **REA-77: Back button removed globally** — `ArrowLeft` removed from `TopBar`; "Back" text button removed from listing detail view. Users rely on browser navigation.
+- **REA-77: View mode persisted in localStorage** — both feed and listings pages read/write `realtyhub_view_mode` (`{ viewMode, cols }`) so grid/map mode and 1/2-wide selection survive navigation.
+- **REA-77: Filter button visible in map mode** — removed `viewMode !== "map"` guard on Filter button and filters panel in both feed and listings pages.
+
+---
+
 ### Session 27 — 2026-03-24 — Layout Constants, Map Fix, Card Fixes, Auto Logging
 
 #### Added

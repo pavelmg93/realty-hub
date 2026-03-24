@@ -20,7 +20,7 @@ import { StatusBadge } from "@/components/ui/StatusBadge";
 import { TranslateButton } from "@/components/ui/TranslateButton";
 import DynamicListingMap from "@/components/map/DynamicListingMap";
 import DocumentManager from "@/components/documents/DocumentManager";
-import { Link2, Archive, Share2 } from "lucide-react";
+import { Link2, Share2 } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { getFieldValueLabel } from "@/lib/i18n";
 
@@ -242,15 +242,6 @@ export default function ListingViewPage() {
     });
   };
 
-  const handleArchive = async () => {
-    const res = await fetch(`/api/listings/${listing.id}/archive`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ archive: true }),
-    });
-    if (res.ok) router.push("/dashboard/listings");
-  };
-
   const fetchConversationMessages = async (convId: number) => {
     setConversations(prev => prev.map(c =>
       c.id === convId ? { ...c, messagesLoading: true } : c
@@ -336,13 +327,6 @@ export default function ListingViewPage() {
           </button>
           <button
             type="button"
-            onClick={handleArchive}
-            className="inline-flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-lg border border-[var(--border)] text-[var(--text-primary)] hover:bg-[var(--bg-hover)]"
-          >
-            <Archive size={16} /> {t("archive")}
-          </button>
-          <button
-            type="button"
             onClick={() => setShowShareCard((v) => !v)}
             className={`inline-flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-lg border transition-colors ${showShareCard ? "border-[var(--orange)] text-[var(--orange)]" : "border-[var(--border)] text-[var(--text-primary)] hover:bg-[var(--bg-hover)]"}`}
           >
@@ -422,12 +406,6 @@ export default function ListingViewPage() {
               {t("next")} &rarr;
             </button>
           )}
-          <button
-            onClick={() => router.back()}
-            className="px-4 py-2 text-sm rounded-lg border border-[var(--border)] text-[var(--text-secondary)] hover:bg-[var(--bg-hover)] transition-colors"
-          >
-            {t("back")}
-          </button>
         </div>
       </div>
 

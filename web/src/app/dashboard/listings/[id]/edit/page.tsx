@@ -87,7 +87,7 @@ export default function EditListingPage() {
   }
 
   return (
-    <div className="max-w-3xl mx-auto">
+    <div className="max-w-3xl mx-auto px-4 sm:px-6">
       <div className="flex items-center justify-between mb-4">
         <h1 className="text-2xl font-bold text-[var(--text-primary)] bg-transparent select-text">
           {t("editListing")} #{listing.id}
