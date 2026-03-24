@@ -16,7 +16,7 @@
 
 ## Session Scope (3 issues)
 
-* [ ] **[REA-79] P0 ESCALATED: Map mode — width, height, header, mobile viewport**
+* [x] **[REA-79] P0 ESCALATED: Map mode — width, height, header, mobile viewport**
   - Map must use `max-w-3xl mx-auto` like grid (not full-width)
   - Header ("Listings Feed" + city selector) must stay visible in map mode
   - Use `100dvh` not `100vh` for mobile browser chrome
@@ -24,12 +24,12 @@
   - Update `layout-constants.ts` with new MAP_HEIGHT using `min()` and `dvh`
   - **MUST grep before coding. MUST screenshot-verify before marking Done.**
 
-* [ ] **[REA-80] Bug: Listing detail Leaflet map overlaps FIDT header**
+* [x] **[REA-80] Bug: Listing detail Leaflet map overlaps FIDT header**
   - Map in listing view should be fixed height (`h-48` or `h-56`), not viewport-relative
   - Container: `overflow-hidden rounded-lg z-0`
   - Must not use position absolute/fixed
 
-* [ ] **[REA-81] Feed and My Listings separate stored view mode**
+* [x] **[REA-81] Feed and My Listings separate stored view mode**
   - Split `realtyhub_view_mode` → `realtyhub_feed_view_mode` + `realtyhub_listings_view_mode`
   - Trivial 2-file change
 

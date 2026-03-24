@@ -526,7 +526,7 @@ export default function ListingViewPage() {
 
       {/* Map — inline, always visible if lat/lng exist */}
       {listing.latitude && listing.longitude && (
-        <div className="mb-6">
+        <div className="mb-6 overflow-hidden rounded-lg z-0">
           <DynamicListingMap
             latitude={listing.latitude}
             longitude={listing.longitude}

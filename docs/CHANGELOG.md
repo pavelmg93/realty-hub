@@ -6,6 +6,15 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Session 28 — 2026-03-24 — Map Mode Fix (5th attempt), Detail Map, Separate View Storage
+
+#### Changed
+- **REA-79: Map mode layout fully fixed** — Outer wrapper now always `px-4 sm:px-6 max-w-3xl mx-auto` in both feed and listings (was empty string in map mode, causing full-width). Header ("Listings Feed" / "My Listings" + controls) now always visible regardless of view mode (was hidden in map mode). Toolbar: padding now comes from outer div, map mode only adds `h-12`. `MAP_HEIGHT` updated to `min(calc(100dvh - 176px), 500px)` — uses `100dvh` for mobile browser chrome, capped at 500px on desktop.
+- **REA-80: Listing detail map overlap fixed** — Map wrapper div in `view/page.tsx` now has `overflow-hidden rounded-lg z-0` to prevent Leaflet controls from bleeding over the sticky FIDT header.
+- **REA-81: Separate localStorage keys for feed vs listings view mode** — Feed uses `realtyhub_feed_view_mode`, Listings uses `realtyhub_listings_view_mode`. Switching view mode in one page no longer affects the other.
+
+---
+
 ### Session 27b — 2026-03-24 — Visual Regressions, Navigation, Archive Removal
 
 #### Changed

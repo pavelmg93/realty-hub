@@ -49,7 +49,7 @@ export default function FeedPage() {
   // Restore view mode from localStorage
   useEffect(() => {
     try {
-      const stored = localStorage.getItem("realtyhub_view_mode");
+      const stored = localStorage.getItem("realtyhub_feed_view_mode");
       if (stored) {
         const { viewMode: vm, cols: c } = JSON.parse(stored);
         if (vm === "grid" || vm === "map") setViewMode(vm);
@@ -61,7 +61,7 @@ export default function FeedPage() {
   // Persist view mode to localStorage
   useEffect(() => {
     try {
-      localStorage.setItem("realtyhub_view_mode", JSON.stringify({ viewMode, cols }));
+      localStorage.setItem("realtyhub_feed_view_mode", JSON.stringify({ viewMode, cols }));
     } catch {}
   }, [viewMode, cols]);
 
@@ -126,27 +126,25 @@ export default function FeedPage() {
   const CITIES = ["Nha Trang", "Hà Nội", "TP.HCM", "Đà Nẵng"];
 
   return (
-    <div className={viewMode === "map" ? "" : "px-4 sm:px-6 py-4 max-w-3xl mx-auto"}>
-      {/* Header + city selector — hidden in map mode */}
-      {viewMode !== "map" && (
-        <div className="flex items-center justify-between mb-4">
-          <h1 className="text-lg font-semibold text-[var(--text-primary)]">
-            {t("listingsFeed")}
-          </h1>
-          <select
-            value={city}
-            onChange={(e) => setCity(e.target.value)}
-            className="text-sm rounded-lg border border-[var(--border)] bg-[var(--bg-surface)] text-[var(--text-primary)] px-2 py-1.5 focus:outline-none focus:border-[var(--orange)]"
-          >
-            {CITIES.map((c) => (
-              <option key={c} value={c}>{c}</option>
-            ))}
-          </select>
-        </div>
-      )}
+    <div className={`px-4 sm:px-6 max-w-3xl mx-auto${viewMode === "grid" ? " py-4" : ""}`}>
+      {/* Header + city selector */}
+      <div className="flex items-center justify-between mb-4">
+        <h1 className="text-lg font-semibold text-[var(--text-primary)]">
+          {t("listingsFeed")}
+        </h1>
+        <select
+          value={city}
+          onChange={(e) => setCity(e.target.value)}
+          className="text-sm rounded-lg border border-[var(--border)] bg-[var(--bg-surface)] text-[var(--text-primary)] px-2 py-1.5 focus:outline-none focus:border-[var(--orange)]"
+        >
+          {CITIES.map((c) => (
+            <option key={c} value={c}>{c}</option>
+          ))}
+        </select>
+      </div>
 
       {/* Unified toolbar — h-12 (48px) in map mode, normal in grid mode */}
-      <div className={`flex items-center gap-2 ${viewMode === "map" ? "px-4 sm:px-6 h-12" : "mb-3"}`}>
+      <div className={`flex items-center gap-2 ${viewMode === "map" ? "h-12" : "mb-3"}`}>
         {/* Search */}
         <div className="relative flex-1">
           <svg

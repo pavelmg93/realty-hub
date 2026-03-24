@@ -14,8 +14,10 @@ export const LAYOUT = {
   /** Max-width + centering for content containers */
   PAGE_MAX_WIDTH: 'max-w-3xl mx-auto',
   /**
-   * Map height — fills exactly the space between topbar + toolbar and bottomnav.
-   * Formula: 100vh - TOPBAR(56) - TOOLBAR(48) - BOTTOMNAV(64) - padding(16) = 100vh - 184px
+   * Map height — fills space between topbar + toolbar and bottomnav.
+   * Uses 100dvh (dynamic viewport height) to account for mobile browser chrome.
+   * Capped at 500px on desktop via min(). On mobile, 100dvh - 176px < 500px so min() picks the dvh value.
+   * Formula: min(100dvh - TOPBAR(56) - TOOLBAR(48) - BOTTOMNAV(64) - gap(8), 500px) = min(100dvh - 176px, 500px)
    */
-  MAP_HEIGHT: 'calc(100vh - 56px - 48px - 64px - 16px)',
+  MAP_HEIGHT: 'min(calc(100dvh - 176px), 500px)',
 } as const;

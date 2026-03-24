@@ -32,7 +32,7 @@ export default function ListingsPage() {
   // Restore view mode from localStorage
   useEffect(() => {
     try {
-      const stored = localStorage.getItem("realtyhub_view_mode");
+      const stored = localStorage.getItem("realtyhub_listings_view_mode");
       if (stored) {
         const { viewMode: vm, cols: c } = JSON.parse(stored);
         if (vm === "grid" || vm === "map") setViewMode(vm);
@@ -44,7 +44,7 @@ export default function ListingsPage() {
   // Persist view mode to localStorage
   useEffect(() => {
     try {
-      localStorage.setItem("realtyhub_view_mode", JSON.stringify({ viewMode, cols }));
+      localStorage.setItem("realtyhub_listings_view_mode", JSON.stringify({ viewMode, cols }));
     } catch {}
   }, [viewMode, cols]);
 
@@ -101,25 +101,23 @@ export default function ListingsPage() {
   };
 
   return (
-    <div className={viewMode === "map" ? "" : "px-4 sm:px-6 py-4 max-w-3xl mx-auto"}>
-      {/* Header — hidden in map mode */}
-      {viewMode !== "map" && (
-        <div className="flex items-center justify-between mb-6">
-          <h1 className="text-lg font-semibold text-[var(--text-primary)]">
-            {t("myListings")}
-          </h1>
-          <Link
-            href="/dashboard/listings/new"
-            className="flex items-center gap-1.5 px-4 py-2 text-sm font-medium rounded-lg text-white"
-            style={{ backgroundColor: "var(--orange)" }}
-          >
-            <Plus size={16} /> {t("addListing")}
-          </Link>
-        </div>
-      )}
+    <div className={`px-4 sm:px-6 max-w-3xl mx-auto${viewMode === "grid" ? " py-4" : ""}`}>
+      {/* Header */}
+      <div className="flex items-center justify-between mb-6">
+        <h1 className="text-lg font-semibold text-[var(--text-primary)]">
+          {t("myListings")}
+        </h1>
+        <Link
+          href="/dashboard/listings/new"
+          className="flex items-center gap-1.5 px-4 py-2 text-sm font-medium rounded-lg text-white"
+          style={{ backgroundColor: "var(--orange)" }}
+        >
+          <Plus size={16} /> {t("addListing")}
+        </Link>
+      </div>
 
       {/* Unified toolbar — h-12 (48px) in map mode */}
-      <div className={`flex items-center gap-2 ${viewMode === "map" ? "px-4 sm:px-6 h-12" : "mb-3"}`}>
+      <div className={`flex items-center gap-2 ${viewMode === "map" ? "h-12" : "mb-3"}`}>
         {/* Search */}
         <div className="relative flex-1">
           <span className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-[var(--text-muted)]">
