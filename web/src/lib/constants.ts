@@ -1,6 +1,6 @@
 export const LISTING_STATUSES = {
   just_listed: { label: "Just Listed", color: "bg-blue-100 text-blue-800" },
-  for_sale: { label: "For Sale", color: "bg-emerald-100 text-emerald-800" },
+  selling: { label: "Selling", color: "bg-emerald-100 text-emerald-800" },
   price_dropped: { label: "Price Dropped", color: "bg-green-100 text-green-800" },
   price_increased: { label: "Price Increased", color: "bg-red-100 text-red-800" },
   deposit: { label: "Deposit", color: "bg-yellow-100 text-yellow-800" },

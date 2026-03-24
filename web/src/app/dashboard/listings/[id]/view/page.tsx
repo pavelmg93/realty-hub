@@ -25,7 +25,7 @@ import { getFieldValueLabel } from "@/lib/i18n";
 
 const STATUS_FLAG_COLORS: Record<string, string | null> = {
   just_listed: "var(--info)",
-  for_sale: null,
+  selling: null,
   price_dropped: "var(--error)",
   price_increased: "var(--error)",
   deposit: "var(--status-open)",
@@ -152,20 +152,32 @@ export default function ListingViewPage() {
   useEffect(() => {
     if (!listing || !user) return;
     setMessagesLoading(true);
-    fetch(`/api/conversations?listing_id=${listing.id}`)
+    fetch(`/api/conversations?listing_id=${listing.id}`, { credentials: 'include' })
       .then(r => r.ok ? r.json() : { conversations: [] })
-      .then(d => {
-        setConversations(d.conversations || []);
+      .then(async (d) => {
+        const convs: ConversationWithMessages[] = d.conversations || [];
+        setConversations(convs);
         // Auto-expand first conversation (most recent) and immediately fetch its messages
-        if (d.conversations?.length > 0) {
-          const firstId = d.conversations[0].id;
+        if (convs.length > 0) {
+          const firstId = convs[0].id;
           setExpandedConvId(firstId);
-          fetchConversationMessages(firstId);
+          // Fetch messages for the first conversation immediately
+          try {
+            const msgRes = await fetch(`/api/conversations/${firstId}/messages`, { credentials: 'include' });
+            if (msgRes.ok) {
+              const msgData = await msgRes.json();
+              setConversations(prev => prev.map(c =>
+                c.id === firstId ? { ...c, messages: msgData.messages, messagesLoading: false } : c
+              ));
+            }
+          } catch {
+            // ignore
+          }
         }
       })
       .catch(() => setConversations([]))
       .finally(() => setMessagesLoading(false));
-  }, [listing, user]);
+  }, [listing?.id, user?.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Handle URL hash — scroll to messages section
   useEffect(() => {
@@ -332,11 +344,27 @@ export default function ListingViewPage() {
           body: JSON.stringify({ body: body.trim(), listing_id: listing.id }),
         });
         // Reload conversations
-        const convsRes = await fetch(`/api/conversations?listing_id=${listing.id}`);
+        const convsRes = await fetch(`/api/conversations?listing_id=${listing.id}`, { credentials: 'include' });
         if (convsRes.ok) {
           const d = await convsRes.json();
-          setConversations(d.conversations || []);
-          if (d.conversations?.length > 0) setExpandedConvId(d.conversations[0].id);
+          const convs: ConversationWithMessages[] = d.conversations || [];
+          setConversations(convs);
+          if (convs.length > 0) {
+            const firstId = convs[0].id;
+            setExpandedConvId(firstId);
+            // Fetch messages for the newly created conversation
+            try {
+              const msgRes = await fetch(`/api/conversations/${firstId}/messages`, { credentials: 'include' });
+              if (msgRes.ok) {
+                const msgData = await msgRes.json();
+                setConversations(prev => prev.map(c =>
+                  c.id === firstId ? { ...c, messages: msgData.messages, messagesLoading: false } : c
+                ));
+              }
+            } catch {
+              // ignore
+            }
+          }
         }
       }
     } finally {
@@ -689,76 +717,60 @@ export default function ListingViewPage() {
           )
         ) : (
           // CASE A: Non-owner sees single thread or "start conversation"
-          conversations.length === 0 ? (
-            <div className="p-5">
-              {/* Agent info bar */}
-              {listing.agent_id && (
-                <div className="flex items-center gap-3 mb-4 pb-4 border-b border-[var(--border)]">
-                  {listing.owner_avatar_url ? (
-                    <img src={`/api/files/${listing.owner_avatar_url}`} alt="" className="w-9 h-9 rounded-full object-cover shrink-0" />
-                  ) : (
-                    <div className="w-9 h-9 rounded-full flex items-center justify-center font-bold text-white text-xs shrink-0" style={{ backgroundColor: "var(--orange)" }}>
-                      {(listing.owner_first_name || listing.owner_username || "?").slice(0, 2).toUpperCase()}
-                    </div>
-                  )}
-                  <div className="min-w-0">
-                    <p className="text-sm font-medium text-[var(--text-primary)]">
-                      {[listing.owner_first_name, listing.owner_last_name].filter(Boolean).join(" ") || listing.owner_username}
-                    </p>
-                    {listing.owner_phone && <p className="text-xs text-[var(--text-muted)]">{listing.owner_phone}</p>}
+          <div className="p-5">
+            {/* Agent info bar — always shown (REA-90) */}
+            {listing.agent_id && (
+              <div className="flex items-center gap-3 mb-4 pb-4 border-b border-[var(--border)]">
+                {listing.owner_avatar_url ? (
+                  <img src={`/api/files/${listing.owner_avatar_url}`} alt="" className="w-9 h-9 rounded-full object-cover shrink-0" />
+                ) : (
+                  <div className="w-9 h-9 rounded-full flex items-center justify-center font-bold text-white text-xs shrink-0" style={{ backgroundColor: "var(--orange)" }}>
+                    {(listing.owner_first_name || listing.owner_username || "?").slice(0, 2).toUpperCase()}
                   </div>
+                )}
+                <div className="min-w-0">
+                  <p className="text-sm font-medium text-[var(--text-primary)]">
+                    {[listing.owner_first_name, listing.owner_last_name].filter(Boolean).join(" ") || listing.owner_username}
+                  </p>
+                  {listing.owner_phone && <p className="text-xs text-[var(--text-muted)]">{listing.owner_phone}</p>}
                 </div>
-              )}
-              <p className="text-sm text-[var(--text-muted)] mb-3">{t("askAboutListing")}</p>
-              <InlineMessageInput
-                onSend={handleStartConversation}
-                sending={sendingMessage}
-                placeholder={t("typeFirstMessage")}
-              />
-            </div>
-          ) : (
-            <div className="p-5">
-              {/* Agent info bar */}
-              {listing.agent_id && (
-                <div className="flex items-center gap-3 mb-4 pb-4 border-b border-[var(--border)]">
-                  {listing.owner_avatar_url ? (
-                    <img src={`/api/files/${listing.owner_avatar_url}`} alt="" className="w-9 h-9 rounded-full object-cover shrink-0" />
-                  ) : (
-                    <div className="w-9 h-9 rounded-full flex items-center justify-center font-bold text-white text-xs shrink-0" style={{ backgroundColor: "var(--orange)" }}>
-                      {(listing.owner_first_name || listing.owner_username || "?").slice(0, 2).toUpperCase()}
-                    </div>
-                  )}
-                  <div className="min-w-0">
-                    <p className="text-sm font-medium text-[var(--text-primary)]">
-                      {[listing.owner_first_name, listing.owner_last_name].filter(Boolean).join(" ") || listing.owner_username}
-                    </p>
-                    {listing.owner_phone && <p className="text-xs text-[var(--text-muted)]">{listing.owner_phone}</p>}
-                  </div>
-                </div>
-              )}
-              <div className="max-h-60 overflow-y-auto space-y-2 mb-3">
-                {(conversations[0].messages || []).length === 0 && !conversations[0].messagesLoading ? (
-                  // Load messages for first conversation
-                  (() => { if (!conversations[0].messages && !conversations[0].messagesLoading) fetchConversationMessages(conversations[0].id); return null; })()
-                ) : null}
-                {conversations[0].messagesLoading ? (
-                  <div className="text-sm text-center text-[var(--text-muted)] py-2">{t("loading")}</div>
-                ) : (conversations[0].messages || []).map((msg) => (
-                  <div key={msg.id} className={`flex ${msg.sender_id === user?.id ? 'justify-end' : 'justify-start'}`}>
-                    <div className={`max-w-[80%] rounded-lg px-3 py-1.5 text-sm ${msg.sender_id === user?.id ? 'text-white' : 'bg-[var(--bg-elevated)] text-[var(--text-primary)]'}`}
-                      style={msg.sender_id === user?.id ? { backgroundColor: "var(--orange)" } : {}}>
-                      {msg.body}
-                    </div>
-                  </div>
-                ))}
               </div>
-              <InlineMessageInput
-                onSend={(body) => handleSendMessage(conversations[0].id, body)}
-                sending={sendingMessage}
-                placeholder={t("typeReply")}
-              />
-            </div>
-          )
+            )}
+            {conversations.length === 0 ? (
+              // No existing conversation — show prompt to start one
+              <>
+                <p className="text-sm text-[var(--text-muted)] mb-3">{t("askAboutListing")}</p>
+                <InlineMessageInput
+                  onSend={handleStartConversation}
+                  sending={sendingMessage}
+                  placeholder={t("typeFirstMessage")}
+                />
+              </>
+            ) : (
+              // Existing conversation — show messages
+              <>
+                <div className="max-h-60 overflow-y-auto space-y-2 mb-3">
+                  {conversations[0].messagesLoading ? (
+                    <div className="text-sm text-center text-[var(--text-muted)] py-2">{t("loading")}</div>
+                  ) : (conversations[0].messages || []).length === 0 ? (
+                    <p className="text-xs text-[var(--text-muted)] text-center py-2">{t("noMessagesThread")}</p>
+                  ) : (conversations[0].messages || []).map((msg) => (
+                    <div key={msg.id} className={`flex ${msg.sender_id === user?.id ? 'justify-end' : 'justify-start'}`}>
+                      <div className={`max-w-[80%] rounded-lg px-3 py-1.5 text-sm ${msg.sender_id === user?.id ? 'text-white' : 'bg-[var(--bg-elevated)] text-[var(--text-primary)]'}`}
+                        style={msg.sender_id === user?.id ? { backgroundColor: "var(--orange)" } : {}}>
+                        {msg.body}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                <InlineMessageInput
+                  onSend={(body) => handleSendMessage(conversations[0].id, body)}
+                  sending={sendingMessage}
+                  placeholder={t("typeReply")}
+                />
+              </>
+            )}
+          </div>
         )}
       </div>
     </div>

@@ -1,0 +1,171 @@
+{
+  "name": "Listing",
+  "type": "object",
+  "properties": {
+    "title": {
+      "type": "string",
+      "description": "Property listing title"
+    },
+    "property_type": {
+      "type": "string",
+      "enum": [
+        "apartment",
+        "house",
+        "villa",
+        "townhouse",
+        "land",
+        "commercial",
+        "shophouse",
+        "penthouse"
+      ],
+      "description": "Type of property"
+    },
+    "transaction_status": {
+      "type": "string",
+      "enum": [
+        "Open",
+        "In Negotiations",
+        "Closing",
+        "Sold",
+        "Not For Sale"
+      ],
+      "default": "Open",
+      "description": "Current transaction status"
+    },
+    "is_archived": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether the listing is archived"
+    },
+    "price": {
+      "type": "number",
+      "description": "Price in USD"
+    },
+    "price_vnd": {
+      "type": "number",
+      "description": "Price in VND (billion)"
+    },
+    "area_sqm": {
+      "type": "number",
+      "description": "Total area in square meters"
+    },
+    "usable_area_sqm": {
+      "type": "number",
+      "description": "Usable area in square meters"
+    },
+    "bedrooms": {
+      "type": "number",
+      "description": "Number of bedrooms"
+    },
+    "bathrooms": {
+      "type": "number",
+      "description": "Number of bathrooms"
+    },
+    "floors": {
+      "type": "number",
+      "description": "Number of floors"
+    },
+    "district": {
+      "type": "string",
+      "description": "District or ward in Nha Trang"
+    },
+    "address": {
+      "type": "string",
+      "description": "Full address"
+    },
+    "description": {
+      "type": "string",
+      "description": "Detailed property description"
+    },
+    "photos": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Array of photo URLs"
+    },
+    "year_built": {
+      "type": "number",
+      "description": "Year the property was built"
+    },
+    "direction": {
+      "type": "string",
+      "enum": [
+        "North",
+        "South",
+        "East",
+        "West",
+        "Northeast",
+        "Northwest",
+        "Southeast",
+        "Southwest"
+      ],
+      "description": "Main facing direction"
+    },
+    "legal_status": {
+      "type": "string",
+      "enum": [
+        "Red Book",
+        "Pink Book",
+        "Sales Contract",
+        "Pending",
+        "Other"
+      ],
+      "description": "Legal documentation status"
+    },
+    "furnishing": {
+      "type": "string",
+      "enum": [
+        "Fully Furnished",
+        "Partially Furnished",
+        "Unfurnished"
+      ],
+      "description": "Furnishing level"
+    },
+    "amenities": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "List of amenities"
+    },
+    "frontage_m": {
+      "type": "number",
+      "description": "Frontage width in meters"
+    },
+    "road_width_m": {
+      "type": "number",
+      "description": "Access road width in meters"
+    },
+    "agent_name": {
+      "type": "string",
+      "description": "Listing agent's display name"
+    },
+    "agent_email": {
+      "type": "string",
+      "description": "Listing agent's email"
+    },
+    "agent_phone": {
+      "type": "string",
+      "description": "Listing agent's phone number"
+    },
+    "seller_name": {
+      "type": "string",
+      "description": "Property owner/seller name"
+    },
+    "commission_percent": {
+      "type": "number",
+      "description": "Commission percentage"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Internal notes for agents"
+    }
+  },
+  "required": [
+    "title",
+    "property_type",
+    "price",
+    "district"
+  ]
+}

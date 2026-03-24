@@ -1,58 +1,59 @@
-# Session 29 — UI Polish Batch
+# Session 30 — Messages Fix + Status System + Polish
 
 **Date:** 2026-03-24
 
 **For each task, run `get_issue REA-XX` via Linear MCP to read the full spec before coding.**
 
-## Step Zero — Do this FIRST
-
-* [x] **[REA-86] CLAUDE.md: fix end-of-session flow, remove session numbers, remove deploy instructions**
+**Execution mode:** Launch subagents for Clusters A, B, C in parallel. Run Cluster D sequential after all complete.
 
 ---
 
 ## Parallelization Guide
 
-The remaining 8 issues fall into 4 independent clusters. Subagents can work in parallel across different clusters. Do NOT parallelize issues within the same cluster.
+```
+Cluster A (Messages — P0):      REA-87, REA-90, REA-89  (listing detail + message components)
+Cluster B (Status system):      REA-73                   (DB migration + constants + cards)
+Cluster C (UX polish):          REA-88, REA-75           (global CSS + navigation layer)
+Cluster D (Infra — sequential): REA-63                   (scripts only, no web code)
+```
 
-```
-Cluster A (Card components):    REA-83, REA-84
-Cluster B (Listing detail):     REA-80, REA-85
-Cluster C (Edit/New form):      REA-82, REA-72
-Cluster D (Messages + i18n):    REA-71, REA-15
-```
+⚠️ Cluster A and B both touch listing detail view — run B AFTER A completes, or have B only touch constants/DB/cards (not the view page message section).
 
 ---
 
-## Session Scope (8 issues + step zero)
+## Session Scope (10 issues)
 
-### Cluster A — Card components
-* [x] **[REA-83] Card/view polish: duplicate flags, listing ID removal, status on view page, i18n flags**
-* [x] **[REA-84] Message button: icon-only + agent info in embedded message section**
+### Cluster A — Messages (P0 — do first)
+* [x] **[REA-87] P0: Embedded messages in listing detail don't load existing conversations** *(grep before coding)*
+* [x] **[REA-90] Embedded messages: inconsistent agent info display across states**
+* [x] **[REA-89] Messages: show full two-line title in conversation header and inquiries list**
 
-### Cluster B — Listing detail + header
-* [x] **[REA-80] REOPENED: Listing detail Leaflet map overlaps FIDT header** *(grep before coding — failed once already)*
-* [x] **[REA-85] Map mode header spacing + FIDT logo centering**
+### Cluster B — Status system
+* [x] **[REA-73] Listing status: rename For Sale → Selling, flag colors, auto-revert just_listed, feed visibility** *(DB migration — test carefully)*
 
-### Cluster C — Edit/New form
-* [x] **[REA-82] Edit listing page missing left/right margins**
-* [x] **[REA-72] Add/Edit form fixes: labels, sections, ward seeding, translations, margins**
+### Cluster C — UX polish
+* [x] **[REA-88] UX: cursor pointer on all clickable elements (global audit)**
+* [x] **[REA-75] Navigation: scroll position restoration on back**
 
-### Cluster D — Messages + i18n
-* [x] **[REA-71] Bug: embedded messages show "No messages yet" despite messages existing**
-* [x] **[REA-15] Vietnamese UI translations: i18n pass (recurring)**
+### Cluster D — Infra
+* [x] **[REA-63] scripts/sync-db.sh — production → local DB sync**
+
+### Remaining quick wins (if time allows)
+* [ ] **[REA-13] Feed: full-text search with Vietnamese diacritics support**
+* [ ] **[REA-14] Listing export: share card image + copy text v1**
+* [ ] **[REA-12] Gemini parse: image/screenshot OCR parsing**
 
 ---
 
 ## Execution order
 
-1. **REA-86 first** (CLAUDE.md cleanup — must land before any other work)
-2. Clusters A + B + C in parallel (or sequential if single-agent)
-3. REA-71 (messages bug)
-4. REA-15 LAST (i18n sweep catches all new strings from above)
+1. **Cluster A first** (messages P0 — REA-87 → REA-90 → REA-89, sequential within cluster)
+2. **Cluster B + C in parallel** after A completes (or alongside if subagents)
+3. **Cluster D** anytime — zero code overlap
+4. **Remaining quick wins** only if clusters A-D complete cleanly
 
 ## NOT in scope
-
-- REA-73: Status system rename (cross-cutting DB migration, deferred to S30)
-- REA-75: Scroll position restoration (deferred)
-- REA-13: Full-text search (feature, not polish)
-- REA-63: DB sync script (infra, manual — Pavel will prioritize after S29)
+- REA-8: Create pilot accounts (manual — needs names from FIDT)
+- REA-18: GCS migration (deferred)
+- REA-20: Notifications (deferred)
+- REA-21: API rate limiting (deferred)

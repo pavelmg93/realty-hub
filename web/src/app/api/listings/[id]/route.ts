@@ -4,6 +4,16 @@ import { getAuthFromCookies } from "@/lib/auth";
 import { listingSchema } from "@/lib/validation";
 import { generateTitleStandardized } from "@/lib/constants";
 
+/** Auto-revert just_listed → selling after 7 days (read-time check) */
+function resolveStatus(status: string, createdAt: Date | string): string {
+  if (status === "just_listed") {
+    const age = Date.now() - new Date(createdAt).getTime();
+    const sevenDays = 7 * 24 * 60 * 60 * 1000;
+    if (age > sevenDays) return "selling";
+  }
+  return status;
+}
+
 export async function GET(
   _request: NextRequest,
   { params }: { params: Promise<{ id: string }> },
@@ -29,6 +39,7 @@ export async function GET(
       `SELECT pl.*,
         a.username AS owner_username,
         a.first_name AS owner_first_name,
+        a.last_name AS owner_last_name,
         a.phone AS owner_phone,
         a.email AS owner_email,
         a.avatar_url AS owner_avatar_url,
@@ -51,7 +62,10 @@ export async function GET(
       );
     }
 
-    return NextResponse.json({ listing: result.rows[0] });
+    const row = result.rows[0];
+    return NextResponse.json({
+      listing: { ...row, status: resolveStatus(row.status, row.created_at) },
+    });
   } catch (error) {
     console.error("Listing GET error:", error);
     return NextResponse.json(
@@ -142,7 +156,7 @@ export async function PUT(
         data.access_road ?? null,
         data.furnished ?? null,
         data.description ?? null,
-        data.status ?? "for_sale",
+        data.status ?? "selling",
         data.freestyle_text ?? null,
         data.legal_status ?? null,
         data.num_bathrooms ?? null,

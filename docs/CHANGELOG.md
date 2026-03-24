@@ -6,6 +6,23 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Session 30 — 2026-03-24 — Messages Fix + Status System + Polish
+
+#### Fixed
+- **REA-87 (P0): Embedded messages loading** — Fixed three root causes: render-time side-effect calling `fetchConversationMessages` inside JSX, fire-and-forget `await` in useEffect, and missing message fetch after new conversation creation. Existing messages now show in listing detail for both owner and non-owner views.
+- **REA-90: Agent info consistency in embedded messages** — Merged conditional branches so agent info bar renders unconditionally above the message area in all states.
+- **REA-89: Two-line title in message views** — Added `listing_street` to both conversation API routes and `Conversation` type. Conversation thread header and inquiries list now show `street · title_standardized`.
+
+#### Changed
+- **REA-73: Status system overhaul** — Renamed `for_sale` → `selling` across DB (migration 019), TypeScript types, i18n, constants, validation, StatusBadge, all card components. Auto-revert `just_listed` → `selling` after 7 days at read-time in 3 API routes. Feed now hides `deposit`/`sold`/`not_for_sale` unless viewer is owner or has favorited. New listings default to `just_listed`.
+- **REA-88: Global cursor pointer** — Added `button, [role="button"], a { cursor: pointer; }` to globals.css.
+- **REA-75: Navigation state** — Back button navigates to correct source page (`?from=` param). Scroll position saved to sessionStorage before listing detail navigation, restored on return. Grid mode persistence confirmed in place.
+
+#### Added
+- **REA-63: `scripts/sync-db.sh`** — Safe one-command PRODUCTION → LOCAL DB sync. SSH-pipes pg_dump directly to local container restore. Hardcoded target (cannot be pointed at production), container pre-check, confirmation prompt.
+
+---
+
 ### Session 29 — 2026-03-24 — UI Polish Batch
 
 #### Changed

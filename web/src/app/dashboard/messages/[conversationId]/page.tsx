@@ -166,12 +166,24 @@ export default function ConversationPage() {
             </div>
           )}
           <div className="flex-1 min-w-0">
-            <p className="text-sm font-medium text-[var(--text-primary)] truncate">
-              {conversation.listing_title_standardized ||
-                conversation.listing_address_raw ||
-                conversation.listing_ward ||
-                `#${conversation.listing_id}`}
-            </p>
+            {/* Two-line title per ADR-005: line 1 = street, line 2 = title_standardized */}
+            {conversation.listing_street ? (
+              <>
+                <p className="text-sm font-medium text-[var(--text-primary)] truncate">
+                  {conversation.listing_street}
+                </p>
+                <p className="text-sm font-medium text-[var(--text-primary)] truncate">
+                  {conversation.listing_title_standardized || `#${conversation.listing_id}`}
+                </p>
+              </>
+            ) : (
+              <p className="text-sm font-medium text-[var(--text-primary)] truncate">
+                {conversation.listing_title_standardized ||
+                  conversation.listing_address_raw ||
+                  conversation.listing_ward ||
+                  `#${conversation.listing_id}`}
+              </p>
+            )}
             <p className="text-xs text-[var(--text-muted)] truncate">
               {[
                 conversation.listing_area_m2 ? `${conversation.listing_area_m2}m²` : null,

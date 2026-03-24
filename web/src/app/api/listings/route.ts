@@ -5,6 +5,16 @@ import { listingSchema } from "@/lib/validation";
 import { generateTitleStandardized } from "@/lib/constants";
 import crypto from "crypto";
 
+/** Auto-revert just_listed → selling after 7 days (read-time check) */
+function resolveStatus(status: string, createdAt: Date | string): string {
+  if (status === "just_listed") {
+    const age = Date.now() - new Date(createdAt).getTime();
+    const sevenDays = 7 * 24 * 60 * 60 * 1000;
+    if (age > sevenDays) return "selling";
+  }
+  return status;
+}
+
 const LISTING_FILTERS: {
   key: string;
   column: string;
@@ -116,7 +126,11 @@ export async function GET(request: NextRequest) {
       params
     );
 
-    return NextResponse.json({ listings: result.rows });
+    const listings = result.rows.map((row) => ({
+      ...row,
+      status: resolveStatus(row.status, row.created_at),
+    }));
+    return NextResponse.json({ listings });
   } catch (error) {
     console.error("Listings GET error:", error);
     return NextResponse.json(
@@ -199,7 +213,7 @@ export async function POST(request: NextRequest) {
         data.access_road ?? null,
         data.furnished ?? null,
         data.description ?? null,
-        data.status ?? "for_sale",
+        data.status ?? "just_listed",
         data.freestyle_text ?? null,
         data.legal_status ?? null,
         data.num_bathrooms ?? null,

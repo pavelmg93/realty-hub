@@ -1,0 +1,22 @@
+{
+  "name": "FavoriteAgent",
+  "type": "object",
+  "properties": {
+    "favorited_email": {
+      "type": "string",
+      "description": "Email of the favorited agent"
+    },
+    "favorited_name": {
+      "type": "string",
+      "description": "Display name of the favorited agent"
+    },
+    "agent_email": {
+      "type": "string",
+      "description": "Email of the agent who favorited"
+    }
+  },
+  "required": [
+    "favorited_email",
+    "agent_email"
+  ]
+}

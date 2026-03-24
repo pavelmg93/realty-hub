@@ -55,14 +55,16 @@ export default function MessagesPage() {
         const label =
           c.listing_id == null
             ? t("generalChat")
-            : [
-                c.listing_property_type ? getFieldValueLabel("property_type", c.listing_property_type, lang) : null,
-                c.listing_ward,
-                c.listing_price_vnd ? formatPrice(c.listing_price_vnd) : null,
-                c.listing_area_m2 ? `${c.listing_area_m2}m²` : null,
-              ]
-                .filter(Boolean)
-                .join(" · ");
+            : c.listing_street
+              ? [c.listing_street, c.listing_title_standardized].filter(Boolean).join(" · ")
+              : [
+                  c.listing_property_type ? getFieldValueLabel("property_type", c.listing_property_type, lang) : null,
+                  c.listing_ward,
+                  c.listing_price_vnd ? formatPrice(c.listing_price_vnd) : null,
+                  c.listing_area_m2 ? `${c.listing_area_m2}m²` : null,
+                ]
+                  .filter(Boolean)
+                  .join(" · ");
         const key = c.listing_id ?? "general";
         const existing = byListing.get(key);
         if (existing) existing.conversations.push(c);
@@ -229,16 +231,18 @@ export default function MessagesPage() {
                         <div className="flex items-center justify-between">
                           <span className="text-sm text-[var(--text-secondary)]">
                             {groupBy === "property"
-                              ? (c.other_agent_name ?? c.other_agent_username ?? t("agent"))
-                              : (() => {
-                                  return [
-                                    c.listing_property_type ? getFieldValueLabel("property_type", c.listing_property_type, lang) : null,
-                                    c.listing_ward,
-                                    c.listing_price_vnd ? formatPrice(c.listing_price_vnd) : null,
-                                  ]
-                                    .filter(Boolean)
-                                    .join(" · ");
-                                })()}
+                              ? (c.other_agent_first_name ?? c.other_agent_name ?? c.other_agent_username ?? t("agent"))
+                              : c.listing_id == null
+                                ? t("generalChat")
+                                : c.listing_street
+                                  ? [c.listing_street, c.listing_title_standardized].filter(Boolean).join(" · ")
+                                  : [
+                                      c.listing_property_type ? getFieldValueLabel("property_type", c.listing_property_type, lang) : null,
+                                      c.listing_ward,
+                                      c.listing_price_vnd ? formatPrice(c.listing_price_vnd) : null,
+                                    ]
+                                      .filter(Boolean)
+                                      .join(" · ")}
                           </span>
                           {(c.unread_count ?? 0) > 0 && (
                             <span

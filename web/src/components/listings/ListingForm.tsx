@@ -45,7 +45,7 @@ const EMPTY_LISTING: ListingInput = {
   access_road: null,
   furnished: null,
   description: null,
-  status: "for_sale",
+  status: "just_listed",
   freestyle_text: null,
   legal_status: null,
   num_bathrooms: null,

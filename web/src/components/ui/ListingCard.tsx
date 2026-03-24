@@ -20,14 +20,16 @@ interface ListingCardProps {
   viewSearch?: string;
   onMessage?: () => void;
   onViewMessages?: () => void;
+  /** Called before navigating to listing detail (e.g. to save scroll position) */
+  onBeforeNavigate?: () => void;
 }
 
-// Corner flag colors per status (spec REA-69):
+// Corner flag colors per status (spec REA-69/73):
 // Blue=Just Listed, Red=Price Raised/Dropped, Green=Deposit/Sold, Gray=Not For Sale
-// Selling (for_sale) has NO flag
+// Selling has NO flag
 const STATUS_FLAG_COLORS: Record<string, string | null> = {
   just_listed: "var(--info)",
-  for_sale: null,
+  selling: null,
   price_dropped: "var(--error)",
   price_increased: "var(--error)",
   deposit: "var(--status-open)",
@@ -83,6 +85,7 @@ export function ListingCard({
   viewSearch = "",
   onMessage,
   onViewMessages,
+  onBeforeNavigate,
 }: ListingCardProps) {
   const { t } = useLanguage();
   const photoUrl = listing.primary_photo
@@ -141,6 +144,7 @@ export function ListingCard({
     return (
       <Link
         href={`/dashboard/listings/${listing.id}/view${viewSearch}`}
+        onClick={onBeforeNavigate}
         className={`flex h-[180px] sm:h-[200px] rounded-xl overflow-hidden border transition-shadow hover:shadow-[var(--shadow-elevated)] ${isOwner ? "border-l-4" : ""}`}
         style={{
           backgroundColor: "var(--bg-surface)",
@@ -235,7 +239,7 @@ export function ListingCard({
         boxShadow: "var(--shadow-card)",
       }}
     >
-      <Link href={`/dashboard/listings/${listing.id}/view${viewSearch}`}>
+      <Link href={`/dashboard/listings/${listing.id}/view${viewSearch}`} onClick={onBeforeNavigate}>
         <div className="relative w-full h-36 bg-[var(--bg-elevated)]">
           {photoUrl ? (
             <Image

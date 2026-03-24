@@ -1,0 +1,42 @@
+{
+  "name": "Seller",
+  "type": "object",
+  "properties": {
+    "full_name": {
+      "type": "string",
+      "description": "Seller's full name"
+    },
+    "phone": {
+      "type": "string",
+      "description": "Phone number"
+    },
+    "email": {
+      "type": "string",
+      "description": "Email address"
+    },
+    "address": {
+      "type": "string",
+      "description": "Seller's address"
+    },
+    "properties_description": {
+      "type": "string",
+      "description": "Description of properties they want to sell"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Additional notes"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "Active",
+        "Inactive",
+        "Closed"
+      ],
+      "default": "Active"
+    }
+  },
+  "required": [
+    "full_name"
+  ]
+}

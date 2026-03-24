@@ -66,7 +66,7 @@ export const listingSchema = z.object({
     z
       .enum([
         "just_listed",
-        "for_sale",
+        "selling",
         "price_dropped",
         "price_increased",
         "deposit",
@@ -74,7 +74,7 @@ export const listingSchema = z.object({
         "not_for_sale",
       ])
       .optional()
-      .default("for_sale"),
+      .default("just_listed"),
   ),
   freestyle_text: optStr,
   legal_status: optStr,

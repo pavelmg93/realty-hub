@@ -225,3 +225,6 @@ backups/cron.log
 
 # External templates and reference material
 base44-template/
+
+# Claude sub-agents stuff
+.claude/worktrees/

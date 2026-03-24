@@ -2,6 +2,16 @@ import { NextRequest, NextResponse } from "next/server";
 import pool from "@/lib/db";
 import { getAuthFromCookies } from "@/lib/auth";
 
+/** Auto-revert just_listed → selling after 7 days (read-time check) */
+function resolveStatus(status: string, createdAt: Date | string): string {
+  if (status === "just_listed") {
+    const age = Date.now() - new Date(createdAt).getTime();
+    const sevenDays = 7 * 24 * 60 * 60 * 1000;
+    if (age > sevenDays) return "selling";
+  }
+  return status;
+}
+
 export async function GET(request: NextRequest) {
   try {
     const auth = await getAuthFromCookies();
@@ -131,8 +141,8 @@ export async function GET(request: NextRequest) {
       paramIndex++;
     }
 
-    // P6: Hide sold/not_for_sale unless favorited by current agent
-    conditions.push(`(pl.status NOT IN ('sold', 'not_for_sale') OR EXISTS(SELECT 1 FROM listing_favorites f WHERE f.listing_id = pl.id AND f.agent_id = $${paramIndex}))`);
+    // P6: Hide deposit/sold/not_for_sale unless current agent is owner or has favorited
+    conditions.push(`(pl.status NOT IN ('deposit', 'sold', 'not_for_sale') OR pl.agent_id = $${paramIndex} OR EXISTS(SELECT 1 FROM listing_favorites f WHERE f.listing_id = pl.id AND f.agent_id = $${paramIndex}))`);
     params.push(auth.userId);
     paramIndex++;
 
@@ -182,8 +192,12 @@ export async function GET(request: NextRequest) {
       params,
     );
 
+    const listings = result.rows.map((row) => ({
+      ...row,
+      status: resolveStatus(row.status, row.created_at),
+    }));
     return NextResponse.json({
-      listings: result.rows,
+      listings,
       pagination: {
         page,
         limit,

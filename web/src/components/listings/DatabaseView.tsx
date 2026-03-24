@@ -256,7 +256,7 @@ const NEW_WARD_OPTIONS: Record<string, string> = {
 
 const STATUS_LABEL_KEYS: Record<string, string> = {
   just_listed: "justListed",
-  for_sale: "forSale",
+  selling: "selling",
   price_dropped: "priceDropped",
   price_increased: "priceIncreased",
   deposit: "deposit",
@@ -433,7 +433,7 @@ export default function DatabaseView({ data, onChange, isEdit = false }: Props) 
               label={t("listingStatus")}
               value={data.status}
               options={statusOptions}
-              onChange={(v) => set("status", v ?? "for_sale")}
+              onChange={(v) => set("status", v ?? "selling")}
             />
           </div>
         </>

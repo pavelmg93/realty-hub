@@ -154,6 +154,7 @@ export interface Conversation {
   other_agent_avatar_url?: string | null;
   listing_property_type?: string;
   listing_ward?: string;
+  listing_street?: string | null;
   listing_address_raw?: string | null;
   listing_title_standardized?: string | null;
   listing_price_vnd?: number;
@@ -178,7 +179,7 @@ export interface Message {
 
 export type ListingStatus =
   | "just_listed"
-  | "for_sale"
+  | "selling"
   | "price_dropped"
   | "price_increased"
   | "deposit"

@@ -9,12 +9,12 @@ import { useRouter } from "next/navigation";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { Heart, MapPin, User, Phone } from "lucide-react";
 
-// Corner flag colors (spec REA-69):
+// Corner flag colors (spec REA-69/73):
 // Blue=Just Listed, Red=Price Raised/Dropped, Green=Deposit/Sold, Gray=Not For Sale
-// Selling (for_sale) has NO flag
+// Selling has NO flag
 const STATUS_FLAG_COLORS: Record<string, string | null> = {
   just_listed: "var(--info)",
-  for_sale: null,
+  selling: null,
   price_dropped: "var(--error)",
   price_increased: "var(--error)",
   deposit: "var(--status-open)",
@@ -53,6 +53,8 @@ interface Props {
   cols?: 1 | 2;
   onReactivate?: (id: number) => void;
   onDelete?: (id: number) => void;
+  /** Called before navigating to listing detail (e.g. to save scroll position) */
+  onBeforeNavigate?: () => void;
 }
 
 export default function ListingCard({
@@ -62,6 +64,7 @@ export default function ListingCard({
   cols = 2,
   onReactivate,
   onDelete,
+  onBeforeNavigate,
 }: Props) {
   const { t } = useLanguage();
   const router = useRouter();
@@ -110,6 +113,7 @@ export default function ListingCard({
     return (
       <Link
         href={`/dashboard/listings/${listing.id}/view?from=listings`}
+        onClick={onBeforeNavigate}
         className={`flex h-[180px] sm:h-[200px] rounded-xl overflow-hidden border transition-shadow hover:shadow-[var(--shadow-elevated)] ${isOwner ? "border-l-4" : ""}`}
         style={{
           backgroundColor: "var(--bg-surface)",
@@ -211,6 +215,7 @@ export default function ListingCard({
   return (
     <Link
       href={`/dashboard/listings/${listing.id}/view?from=listings`}
+      onClick={onBeforeNavigate}
       className={`block rounded-xl overflow-hidden border transition-shadow hover:shadow-[var(--shadow-elevated)] ${isOwner ? "border-l-4" : ""}`}
       style={{
         backgroundColor: "var(--bg-surface)",

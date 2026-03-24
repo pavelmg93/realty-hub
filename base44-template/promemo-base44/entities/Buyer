@@ -1,0 +1,70 @@
+{
+  "name": "Buyer",
+  "type": "object",
+  "properties": {
+    "full_name": {
+      "type": "string",
+      "description": "Buyer's full name"
+    },
+    "phone": {
+      "type": "string",
+      "description": "Phone number"
+    },
+    "email": {
+      "type": "string",
+      "description": "Email address"
+    },
+    "budget_min": {
+      "type": "number",
+      "description": "Minimum budget in USD"
+    },
+    "budget_max": {
+      "type": "number",
+      "description": "Maximum budget in USD"
+    },
+    "preferred_types": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Preferred property types"
+    },
+    "preferred_districts": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Preferred districts"
+    },
+    "min_bedrooms": {
+      "type": "number",
+      "description": "Minimum bedrooms required"
+    },
+    "min_area_sqm": {
+      "type": "number",
+      "description": "Minimum area required"
+    },
+    "requirements": {
+      "type": "string",
+      "description": "Detailed requirements and preferences"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Additional notes"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "Searching",
+        "Viewing",
+        "Negotiating",
+        "Closed",
+        "Inactive"
+      ],
+      "default": "Searching"
+    }
+  },
+  "required": [
+    "full_name"
+  ]
+}

@@ -1,7 +1,7 @@
 "use client";
 
 import { useAuth } from "@/hooks/useAuth";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { TopBar } from "@/components/ui/TopBar";
 import { BottomNav } from "@/components/ui/BottomNav";
@@ -14,6 +14,7 @@ export default function DashboardLayout({
   const { user, isLoading, logout } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
+  const searchParams = useSearchParams();
   const [unreadCount, setUnreadCount] = useState(0);
 
   useEffect(() => {
@@ -40,7 +41,8 @@ export default function DashboardLayout({
     }
   }, [user, isLoading, router]);
 
-  const { back, backHref, title } = getTopBarNav(pathname);
+  const fromParam = searchParams.get("from");
+  const { back, backHref, title } = getTopBarNav(pathname, fromParam);
 
   if (isLoading || !user) {
     return (
@@ -67,7 +69,7 @@ export default function DashboardLayout({
   );
 }
 
-function getTopBarNav(pathname: string | null): {
+function getTopBarNav(pathname: string | null, fromParam?: string | null): {
   back: boolean;
   backHref?: string;
   title?: string;
@@ -77,7 +79,11 @@ function getTopBarNav(pathname: string | null): {
   if (segments.length === 0) return { back: false };
   if (segments[0] === "messages" && segments[1]) return { back: true, backHref: "/dashboard/messages" };
   if (segments[0] === "listings") {
-    if (segments[1] && segments[2] === "view") return { back: true, backHref: "/dashboard/listings" };
+    if (segments[1] && segments[2] === "view") {
+      // Respect ?from= param: navigate back to feed or listings
+      const backDest = fromParam === "feed" ? "/dashboard/feed" : "/dashboard/listings";
+      return { back: true, backHref: backDest };
+    }
     if (segments[1] && segments[2] === "edit") return { back: true, backHref: `/dashboard/listings/${segments[1]}/view` };
     if (segments[1] && !segments[2]) return { back: true, backHref: "/dashboard/listings" };
   }

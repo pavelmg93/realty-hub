@@ -5,7 +5,7 @@ import type { TranslationKey } from "@/lib/i18n";
 
 type Status =
   | "just_listed"
-  | "for_sale"
+  | "selling"
   | "price_dropped"
   | "price_increased"
   | "deposit"
@@ -17,11 +17,11 @@ const STATUS_MAP: Record<
   { color: string; key: TranslationKey }
 > = {
   just_listed: { color: "var(--info)", key: "justListed" },
-  for_sale: { color: "var(--status-open)", key: "forSale" },
-  price_dropped: { color: "var(--status-open)", key: "priceDropped" },
-  price_increased: { color: "var(--status-open)", key: "priceIncreased" },
-  deposit: { color: "var(--status-pending)", key: "deposit" },
-  sold: { color: "var(--status-sold)", key: "sold" },
+  selling: { color: "var(--status-open)", key: "selling" },
+  price_dropped: { color: "var(--error)", key: "priceDropped" },
+  price_increased: { color: "var(--error)", key: "priceIncreased" },
+  deposit: { color: "var(--status-open)", key: "deposit" },
+  sold: { color: "var(--status-open)", key: "sold" },
   not_for_sale: { color: "var(--status-nfs)", key: "notForSale" },
 };
 
@@ -33,8 +33,8 @@ export function StatusBadge({
   size?: "sm" | "md";
 }) {
   const { t } = useLanguage();
-  // Don't show badge for "for_sale" (default status)
-  if (status === "for_sale") return null;
+  // Don't show badge for "selling" (default status)
+  if (status === "selling") return null;
   const cfg = STATUS_MAP[status as Status];
   if (!cfg) return null;
   return (

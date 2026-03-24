@@ -45,6 +45,7 @@ export default function FeedPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [city, setCity] = useState("Nha Trang");
   const searchDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const restoreScrollRef = useRef<number | null>(null);
 
   // Restore view mode from localStorage
   useEffect(() => {
@@ -64,6 +65,17 @@ export default function FeedPage() {
       localStorage.setItem("realtyhub_feed_view_mode", JSON.stringify({ viewMode, cols }));
     } catch {}
   }, [viewMode, cols]);
+
+  // Read saved scroll on mount — apply after data loads
+  useEffect(() => {
+    try {
+      const savedY = sessionStorage.getItem("realtyhub_scroll_feed");
+      if (savedY) {
+        sessionStorage.removeItem("realtyhub_scroll_feed");
+        restoreScrollRef.current = parseInt(savedY, 10);
+      }
+    } catch {}
+  }, []);
 
   useEffect(() => {
     fetch("/api/agents")
@@ -106,6 +118,17 @@ export default function FeedPage() {
     fetchFeed();
   }, [fetchFeed]);
 
+  // Apply saved scroll position after data finishes loading
+  useEffect(() => {
+    if (!loading && restoreScrollRef.current !== null) {
+      const y = restoreScrollRef.current;
+      restoreScrollRef.current = null;
+      requestAnimationFrame(() => {
+        window.scrollTo({ top: y, behavior: "instant" });
+      });
+    }
+  }, [loading]);
+
   // Debounce search — when searchQuery changes, wait 300ms then fetch
   const handleSearchChange = (value: string) => {
     setSearchQuery(value);
@@ -115,8 +138,16 @@ export default function FeedPage() {
     }, 300);
   };
 
+  // Save scroll position before navigating to listing detail
+  const saveScrollAndNavigate = (url: string) => {
+    try {
+      sessionStorage.setItem("realtyhub_scroll_feed", String(window.scrollY));
+    } catch {}
+    router.push(url);
+  };
+
   const handleMessage = (listing: Listing) => {
-    router.push(`/dashboard/listings/${listing.id}/view?from=feed#messages`);
+    saveScrollAndNavigate(`/dashboard/listings/${listing.id}/view?from=feed#messages`);
   };
 
   const handleApplyFilters = () => fetchFeed(1);
@@ -225,7 +256,7 @@ export default function FeedPage() {
         <div className="overflow-hidden">
           <DynamicFeedMap
             listings={listings}
-            onListingClick={(l) => router.push(`/dashboard/listings/${l.id}/view?from=feed`)}
+            onListingClick={(l) => saveScrollAndNavigate(`/dashboard/listings/${l.id}/view?from=feed`)}
             height={LAYOUT.MAP_HEIGHT}
           />
         </div>
@@ -274,7 +305,12 @@ export default function FeedPage() {
                 viewSearch="?from=feed"
                 onMessage={() => handleMessage(listing)}
                 onViewMessages={() => {
-                  router.push(`/dashboard/listings/${listing.id}/view?from=feed#messages`);
+                  saveScrollAndNavigate(`/dashboard/listings/${listing.id}/view?from=feed#messages`);
+                }}
+                onBeforeNavigate={() => {
+                  try {
+                    sessionStorage.setItem("realtyhub_scroll_feed", String(window.scrollY));
+                  } catch {}
                 }}
               />
             ))}

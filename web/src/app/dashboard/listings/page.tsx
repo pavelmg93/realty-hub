@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Listing } from "@/lib/types";
@@ -28,6 +28,7 @@ export default function ListingsPage() {
   const [viewMode, setViewMode] = useState<ViewMode>("grid");
   const [cols, setCols] = useState<GridCols>(2);
   const [searchQuery, setSearchQuery] = useState("");
+  const restoreScrollRef = useRef<number | null>(null);
 
   // Restore view mode from localStorage
   useEffect(() => {
@@ -47,6 +48,17 @@ export default function ListingsPage() {
       localStorage.setItem("realtyhub_listings_view_mode", JSON.stringify({ viewMode, cols }));
     } catch {}
   }, [viewMode, cols]);
+
+  // Read saved scroll on mount — apply after data loads
+  useEffect(() => {
+    try {
+      const savedY = sessionStorage.getItem("realtyhub_scroll_listings");
+      if (savedY) {
+        sessionStorage.removeItem("realtyhub_scroll_listings");
+        restoreScrollRef.current = parseInt(savedY, 10);
+      }
+    } catch {}
+  }, []);
 
   const fetchListings = useCallback(async (q?: string) => {
     setLoading(true);
@@ -77,6 +89,17 @@ export default function ListingsPage() {
   useEffect(() => {
     fetchListings();
   }, [fetchListings]);
+
+  // Apply saved scroll position after data finishes loading
+  useEffect(() => {
+    if (!loading && restoreScrollRef.current !== null) {
+      const y = restoreScrollRef.current;
+      restoreScrollRef.current = null;
+      requestAnimationFrame(() => {
+        window.scrollTo({ top: y, behavior: "instant" });
+      });
+    }
+  }, [loading]);
 
   const handleSearchChange = (value: string) => {
     setSearchQuery(value);
@@ -203,7 +226,12 @@ export default function ListingsPage() {
         <div className="overflow-hidden">
           <DynamicFeedMap
             listings={listings}
-            onListingClick={(l) => router.push(`/dashboard/listings/${l.id}/view?from=listings`)}
+            onListingClick={(l) => {
+              try {
+                sessionStorage.setItem("realtyhub_scroll_listings", String(window.scrollY));
+              } catch {}
+              router.push(`/dashboard/listings/${l.id}/view?from=listings`);
+            }}
             height={LAYOUT.MAP_HEIGHT}
           />
         </div>
@@ -222,6 +250,11 @@ export default function ListingsPage() {
               cols={cols}
               onReactivate={handleReactivate}
               onDelete={handleDelete}
+              onBeforeNavigate={() => {
+                try {
+                  sessionStorage.setItem("realtyhub_scroll_listings", String(window.scrollY));
+                } catch {}
+              }}
             />
           ))}
         </div>

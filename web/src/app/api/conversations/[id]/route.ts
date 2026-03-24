@@ -34,6 +34,7 @@ export async function GET(
         CASE WHEN c.agent_1_id = $1 THEN c.agent_2_id ELSE c.agent_1_id END AS other_agent_id,
         pl.property_type AS listing_property_type,
         pl.ward AS listing_ward,
+        pl.street AS listing_street,
         pl.address_raw AS listing_address_raw,
         pl.title_standardized AS listing_title_standardized,
         pl.price_vnd AS listing_price_vnd,
