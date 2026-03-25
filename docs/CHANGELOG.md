@@ -6,6 +6,18 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Session 32 — 2026-03-25 — UI Polish (Toolbar, Cards, Map Popups)
+
+#### Fixed
+- **REA-95: Grid 1w/2w toggle always visible** — Removed conditional that hid GridToggle when in map mode. Toolbar strip (Search, Filter, Grid toggles, Map) now stays consistent in both feed and listings pages.
+- **REA-94: Map popup two-line title** — Map popups now use standardized two-line title (street + title_standardized per ADR-005) instead of old `property_type - price` format. Price and area shown on a separate line.
+
+#### Changed
+- **REA-99: 1-wide card larger fonts** — Photo area widened from 33% to 40%, title bumped from `text-sm` to `text-base`, metadata from `text-xs` to `text-sm`, icon sizes increased, photo count badge added. Applied to both feed ListingCard and listings ListingCard. Card height now auto-sizes instead of fixed 180px.
+- **REA-92: Docs cleanup** — Already completed in Session 31 (Next.js 15→16 references, Suspense rule).
+
+---
+
 ### Session 30b — 2026-03-24 — REA-87 Root Cause Fix (Conversations API)
 
 #### Fixed

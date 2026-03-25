@@ -114,22 +114,22 @@ export default function ListingCard({
       <Link
         href={`/dashboard/listings/${listing.id}/view?from=listings`}
         onClick={onBeforeNavigate}
-        className={`flex h-[180px] sm:h-[200px] rounded-xl overflow-hidden border transition-shadow hover:shadow-[var(--shadow-elevated)] ${isOwner ? "border-l-4" : ""}`}
+        className={`flex rounded-xl overflow-hidden border transition-shadow hover:shadow-[var(--shadow-elevated)] ${isOwner ? "border-l-4" : ""}`}
         style={{
           backgroundColor: "var(--bg-surface)",
           borderColor: "var(--border)",
           ...(isOwner ? { borderLeftColor: "var(--orange)" } : {}),
         }}
       >
-        {/* Left: photo + status flag */}
-        <div className="w-1/3 relative h-full shrink-0 overflow-hidden bg-[var(--bg-elevated)]">
+        {/* Left: photo + status flag — 40% width for bigger thumbnail */}
+        <div className="w-2/5 relative shrink-0 overflow-hidden bg-[var(--bg-elevated)]" style={{ minHeight: "160px" }}>
           {photoUrl ? (
             <Image
               src={photoUrl}
               alt={line1 || "listing"}
               fill
               className="object-cover"
-              sizes="33vw"
+              sizes="40vw"
             />
           ) : (
             <div className="w-full h-full flex items-center justify-center text-[var(--text-muted)]">
@@ -142,27 +142,27 @@ export default function ListingCard({
         </div>
 
         {/* Right: details */}
-        <div className="w-2/3 p-3 flex flex-col justify-between relative overflow-hidden">
+        <div className="w-3/5 p-3 flex flex-col justify-between relative overflow-hidden">
           <div className="min-w-0">
-            {/* Title lines — both same color (ADR-005) */}
-            <p className="text-base font-bold text-[var(--text-primary)] truncate leading-tight">{line1}</p>
-            <p className="text-base font-bold text-[var(--text-primary)] truncate leading-tight">{line2}</p>
-            <div className="mt-1.5 space-y-0.5">
+            {/* Title lines — larger font for 1-wide (ADR-005) */}
+            <p className="text-base font-bold text-[var(--text-primary)] truncate leading-snug">{line1}</p>
+            <p className="text-base font-bold text-[var(--text-primary)] truncate leading-snug">{line2}</p>
+            <div className="mt-2 space-y-1">
               {listing.ward && (
-                <div className="flex items-center gap-1 text-sm text-[var(--text-secondary)]">
-                  <MapPin size={12} className="shrink-0" />
+                <div className="flex items-center gap-1.5 text-sm text-[var(--text-secondary)]">
+                  <MapPin size={13} className="shrink-0" />
                   <span className="truncate">{listing.ward}</span>
                 </div>
               )}
               {agentName && (
-                <div className="flex items-center gap-1 text-sm text-[var(--text-secondary)]">
-                  <User size={12} className="shrink-0" />
+                <div className="flex items-center gap-1.5 text-sm text-[var(--text-secondary)]">
+                  <User size={13} className="shrink-0" />
                   <span className="truncate">{agentName}</span>
                 </div>
               )}
               {listing.owner_phone && (
-                <div className="flex items-center gap-1 text-sm text-[var(--text-secondary)]">
-                  <Phone size={12} className="shrink-0" />
+                <div className="flex items-center gap-1.5 text-sm text-[var(--text-secondary)]">
+                  <Phone size={13} className="shrink-0" />
                   <a
                     href={`tel:${listing.owner_phone}`}
                     onClick={(e) => e.stopPropagation()}

@@ -216,10 +216,8 @@ export default function FeedPage() {
           <Filter size={16} /> {t("filter")}
         </button>
 
-        {/* Grid toggle */}
-        {viewMode === "grid" && (
-          <GridToggle value={cols} onChange={setCols} />
-        )}
+        {/* Grid toggle — always visible so user can pre-select layout */}
+        <GridToggle value={cols} onChange={setCols} />
 
         {/* Map toggle */}
         <button

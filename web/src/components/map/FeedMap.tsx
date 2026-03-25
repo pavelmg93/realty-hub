@@ -4,9 +4,8 @@ import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import { Listing } from "@/lib/types";
-import { formatPrice } from "@/lib/constants";
+import { formatPrice, generateTitleStandardized } from "@/lib/constants";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { getPropertyTypeKey } from "@/lib/i18n";
 
 // Fix Leaflet default icon
 const defaultIcon = L.icon({
@@ -60,8 +59,8 @@ export default function FeedMap({
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         />
         {mappableListings.map((listing) => {
-          const propKey = getPropertyTypeKey(listing.property_type ?? undefined);
-          const label = propKey ? t(propKey) : (listing.property_type ?? "");
+          const line1 = listing.street || "";
+          const line2 = listing.title_standardized || generateTitleStandardized(listing);
 
           return (
             <Marker
@@ -69,7 +68,7 @@ export default function FeedMap({
               position={[listing.latitude!, listing.longitude!]}
             >
               <Popup>
-                <div className="min-w-[200px]">
+                <div className="min-w-[200px] max-w-[260px]">
                   {listing.primary_photo && (
                     <img
                       src={`/api/files/${listing.primary_photo}`}
@@ -77,20 +76,20 @@ export default function FeedMap({
                       className="w-full h-24 object-cover rounded mb-2"
                     />
                   )}
-                  <p className="font-bold text-sm">
-                    {label} - {formatPrice(listing.price_vnd)}
-                  </p>
-                  {listing.area_m2 && (
-                    <p className="text-xs text-[var(--text-muted)]">
-                      {listing.area_m2}m²
-                      {listing.num_bedrooms
-                        ? ` | ${listing.num_bedrooms} ${t("bed")}`
-                        : ""}
-                    </p>
+                  {/* Two-line title (ADR-005) */}
+                  {line1 && (
+                    <p className="font-bold text-sm leading-tight truncate">{line1}</p>
                   )}
+                  <p className="font-bold text-sm leading-tight truncate">{line2}</p>
+                  {/* Price + area */}
                   <p className="text-xs text-[var(--text-muted)] mt-1">
-                    {[listing.street, listing.ward].filter(Boolean).join(", ")}
+                    {formatPrice(listing.price_vnd)}
+                    {listing.area_m2 ? ` · ${listing.area_m2}m²` : ""}
+                    {listing.num_bedrooms ? ` · ${listing.num_bedrooms} ${t("bed")}` : ""}
                   </p>
+                  {listing.ward && (
+                    <p className="text-xs text-[var(--text-muted)]">{listing.ward}</p>
+                  )}
                   {onListingClick && (
                     <button
                       onClick={() => onListingClick(listing)}

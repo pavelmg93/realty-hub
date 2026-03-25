@@ -139,28 +139,28 @@ export function ListingCard({
   const line1 = listing.street || "";
   const line2 = listing.title_standardized || generateTitleStandardized(listing);
 
-  // ── 1-wide: horizontal card ──
+  // ── 1-wide: horizontal card (larger fonts, maximize space) ──
   if (cols === 1) {
     return (
       <Link
         href={`/dashboard/listings/${listing.id}/view${viewSearch}`}
         onClick={onBeforeNavigate}
-        className={`flex h-[180px] sm:h-[200px] rounded-xl overflow-hidden border transition-shadow hover:shadow-[var(--shadow-elevated)] ${isOwner ? "border-l-4" : ""}`}
+        className={`flex rounded-xl overflow-hidden border transition-shadow hover:shadow-[var(--shadow-elevated)] ${isOwner ? "border-l-4" : ""}`}
         style={{
           backgroundColor: "var(--bg-surface)",
           borderColor: "var(--border)",
           ...(isOwner ? { borderLeftColor: "var(--orange)" } : {}),
         }}
       >
-        {/* Left: photo + status flag */}
-        <div className="w-1/3 relative h-full shrink-0 overflow-hidden bg-[var(--bg-elevated)]">
+        {/* Left: photo + status flag — 40% width for bigger thumbnail */}
+        <div className="w-2/5 relative shrink-0 overflow-hidden bg-[var(--bg-elevated)]" style={{ minHeight: "160px" }}>
           {photoUrl ? (
             <Image
               src={photoUrl}
               alt={line1 || "listing"}
               fill
               className="object-cover"
-              sizes="33vw"
+              sizes="40vw"
             />
           ) : (
             <div className="w-full h-full flex items-center justify-center text-[var(--text-muted)]">
@@ -168,37 +168,45 @@ export function ListingCard({
             </div>
           )}
           <StatusFlag status={listing.status} />
+          {photoCount > 1 && (
+            <div
+              className="absolute bottom-2 right-2 text-white text-[10px] px-1.5 py-0.5 rounded"
+              style={{ backgroundColor: "rgba(0,0,0,0.6)" }}
+            >
+              1/{photoCount}
+            </div>
+          )}
         </div>
 
         {/* Right: details */}
-        <div className="w-2/3 p-3 flex flex-col justify-between relative overflow-hidden">
+        <div className="w-3/5 p-3 flex flex-col justify-between relative overflow-hidden">
           <div className="min-w-0">
-            {/* Title lines — both same color (ADR-005) */}
-            <p className="text-sm font-bold text-[var(--text-primary)] truncate leading-tight">
+            {/* Title lines — larger font for 1-wide (ADR-005) */}
+            <p className="text-base font-bold text-[var(--text-primary)] truncate leading-snug">
               {line1}
             </p>
-            <p className="text-sm font-bold text-[var(--text-primary)] truncate leading-tight">
+            <p className="text-base font-bold text-[var(--text-primary)] truncate leading-snug">
               {line2}
             </p>
-            {/* Metadata */}
-            <div className="mt-1.5 space-y-0.5">
+            {/* Metadata — larger for 1-wide */}
+            <div className="mt-2 space-y-1">
               {listing.ward && (
-                <div className="flex items-center gap-1 text-xs text-[var(--text-secondary)]">
-                  <MapPin size={11} className="shrink-0" />
+                <div className="flex items-center gap-1.5 text-sm text-[var(--text-secondary)]">
+                  <MapPin size={13} className="shrink-0" />
                   <span className="truncate">{listing.ward}</span>
                 </div>
               )}
               {(listing.owner_first_name || listing.owner_last_name) && (
-                <div className="flex items-center gap-1 text-xs text-[var(--text-secondary)]">
-                  <User size={11} className="shrink-0" />
+                <div className="flex items-center gap-1.5 text-sm text-[var(--text-secondary)]">
+                  <User size={13} className="shrink-0" />
                   <span className="truncate">
                     {[listing.owner_first_name, listing.owner_last_name].filter(Boolean).join(" ")}
                   </span>
                 </div>
               )}
               {listing.owner_phone && (
-                <div className="flex items-center gap-1 text-xs text-[var(--text-secondary)]">
-                  <Phone size={11} className="shrink-0" />
+                <div className="flex items-center gap-1.5 text-sm text-[var(--text-secondary)]">
+                  <Phone size={13} className="shrink-0" />
                   <a
                     href={`tel:${listing.owner_phone}`}
                     onClick={(e) => e.stopPropagation()}
@@ -219,7 +227,7 @@ export function ListingCard({
             aria-label={isFavorited ? "Remove from favorites" : "Add to favorites"}
           >
             <Heart
-              size={16}
+              size={18}
               className={`transition-colors ${isFavorited ? "fill-red-500 text-red-500" : ""}`}
             />
           </button>
