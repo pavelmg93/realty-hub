@@ -6,6 +6,17 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Session 35 — 2026-03-25 — API Rate Limiting, Notification System
+
+#### Added
+- **REA-21: API rate limiting** — In-memory sliding window rate limiter (`web/src/lib/rate-limit.ts`) with per-route configs: default 60/min, auth 10/min, AI 10/min, uploads 30/min. Middleware expanded to cover `/api/*` routes, returns 429 with `Retry-After` header, sets `X-RateLimit-Remaining` on all responses.
+- **REA-20: Notification system** — Migration 021 creates `notifications` table with partial indexes for unread queries. `GET/POST /api/notifications` for listing and marking read. Helper library (`web/src/lib/notifications.ts`) with fire-and-forget `notifyNewMessage()` and `notifyNewListing()`. Bell icon with unread badge in TopBar (polled every 30s). Full notifications page at `/dashboard/notifications` with type icons, read/unread states, time-ago formatting, mark-all-read.
+
+#### Skipped
+- **REA-18: GCS photo migration** — Requires GCS bucket creation and service account credentials; deferred to infrastructure setup session.
+
+---
+
 ### Session 34 — 2026-03-25 — My Store, Share Card, Screenshot OCR
 
 #### Added

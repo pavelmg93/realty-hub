@@ -3,6 +3,7 @@ import pool from "@/lib/db";
 import { getAuthFromCookies } from "@/lib/auth";
 import { listingSchema } from "@/lib/validation";
 import { generateTitleStandardized } from "@/lib/constants";
+import { notifyNewListing } from "@/lib/notifications";
 import crypto from "crypto";
 
 /** Auto-revert just_listed → selling after 7 days (read-time check) */
@@ -254,7 +255,11 @@ export async function POST(request: NextRequest) {
       ],
     );
 
-    return NextResponse.json({ listing: result.rows[0] }, { status: 201 });
+    // Notify other agents about the new listing (fire-and-forget)
+    const newListing = result.rows[0];
+    void notifyNewListing(newListing.id, newListing.street, newListing.ward, auth.userId);
+
+    return NextResponse.json({ listing: newListing }, { status: 201 });
   } catch (error) {
     console.error("Listings POST error:", error);
     return NextResponse.json(

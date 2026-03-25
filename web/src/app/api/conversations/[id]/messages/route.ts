@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import pool from "@/lib/db";
 import { getAuthFromCookies } from "@/lib/auth";
 import { messageSchema } from "@/lib/validation";
+import { notifyNewMessage } from "@/lib/notifications";
 
 export async function GET(
   _request: NextRequest,
@@ -129,6 +130,13 @@ export async function POST(
       `UPDATE conversations SET updated_at = NOW() WHERE id = $1`,
       [conversationId],
     );
+
+    // Notify the other party (fire-and-forget)
+    const recipientId = auth.userId === agent_1_id ? agent_2_id : agent_1_id;
+    const senderResult = await pool.query("SELECT first_name FROM agents WHERE id = $1", [auth.userId]);
+    const senderName = senderResult.rows[0]?.first_name || "Someone";
+    const listingId = listing_id ?? convo.rows[0].listing_id;
+    void notifyNewMessage(recipientId, senderName, listingId ?? 0, conversationId);
 
     return NextResponse.json({ message: result.rows[0] }, { status: 201 });
   } catch (error) {

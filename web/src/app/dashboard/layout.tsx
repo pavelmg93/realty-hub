@@ -28,22 +28,30 @@ function DashboardLayoutInner({
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const [unreadCount, setUnreadCount] = useState(0);
+  const [notifCount, setNotifCount] = useState(0);
 
   useEffect(() => {
     if (!user) return;
-    const fetchUnread = async () => {
+    const fetchCounts = async () => {
       try {
-        const res = await fetch("/api/messages/unread-count");
-        if (res.ok) {
-          const { count } = await res.json();
+        const [msgRes, notifRes] = await Promise.all([
+          fetch("/api/messages/unread-count"),
+          fetch("/api/notifications?unread=true&limit=1"),
+        ]);
+        if (msgRes.ok) {
+          const { count } = await msgRes.json();
           setUnreadCount(count);
+        }
+        if (notifRes.ok) {
+          const { unread_count } = await notifRes.json();
+          setNotifCount(unread_count);
         }
       } catch {
         // ignore
       }
     };
-    fetchUnread();
-    const interval = setInterval(fetchUnread, 30000);
+    fetchCounts();
+    const interval = setInterval(fetchCounts, 30000);
     return () => clearInterval(interval);
   }, [user]);
 
@@ -74,7 +82,7 @@ function DashboardLayoutInner({
       className="min-h-screen flex flex-col"
       style={{ backgroundColor: "var(--bg-base)" }}
     >
-      <TopBar back={back} backHref={backHref} title={title} />
+      <TopBar back={back} backHref={backHref} title={title} notificationCount={notifCount} />
       <main className="flex-1 pt-14 pb-16">{children}</main>
       <BottomNav unreadCount={unreadCount} />
     </div>
@@ -92,7 +100,7 @@ function getTopBarNav(pathname: string | null, fromParam?: string | null): {
   if (segments[0] === "messages" && segments[1]) return { back: true, backHref: "/dashboard/messages" };
   if (segments[0] === "listings") {
     if (segments[1] && segments[2] === "view") {
-      const backDest = fromParam === "feed" ? "/dashboard/feed" : "/dashboard/listings";
+      const backDest = fromParam === "feed" ? "/dashboard/feed" : fromParam === "store" ? "/dashboard/store" : "/dashboard/listings";
       return { back: true, backHref: backDest };
     }
     if (segments[1] && segments[2] === "edit") return { back: true, backHref: `/dashboard/listings/${segments[1]}/view` };
@@ -101,5 +109,6 @@ function getTopBarNav(pathname: string | null, fromParam?: string | null): {
   if (segments[0] === "crm" && segments[1] === "person" && segments[2])
     return { back: true, backHref: "/dashboard/crm" };
   if (segments[0] === "agents" && segments[1]) return { back: true, backHref: "/dashboard/crm" };
+  if (segments[0] === "notifications") return { back: true, backHref: "/dashboard/feed" };
   return { back: false };
 }

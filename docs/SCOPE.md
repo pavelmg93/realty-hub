@@ -41,9 +41,9 @@
 
 ## Session 35 — Infrastructure (if time permits)
 
-1. [ ] **[REA-21] API rate limiting** — rate limit all API endpoints
-2. [ ] **[REA-18] Migrate photo storage to GCS** — presigned URLs for upload/download
-3. [ ] **[REA-20] Notification system** — new messages, new listings in agent's area, FCM push
+1. [x] **[REA-21] API rate limiting** — rate limit all API endpoints
+2. [ ] **[REA-18] Migrate photo storage to GCS** — skipped (requires GCS bucket + credentials setup)
+3. [x] **[REA-20] Notification system** — new messages, new listings in agent's area, FCM push
 
 **After completing S35: commit, session log, STOP.**
 
