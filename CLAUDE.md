@@ -54,7 +54,7 @@ CLAUDE.md                     <- This file
 ## Tech Stack
 
 **Web app:**
-- Next.js 15, React 19, TypeScript, Tailwind v4
+- Next.js 16, React 19, TypeScript, Tailwind v4
 - PostgreSQL via raw `pg` Pool — **no ORM**
 - bcrypt + JWT in httpOnly cookie — login only, **no public signup**
 - react-leaflet + Leaflet for maps (OSM / Nominatim)
@@ -307,6 +307,7 @@ Claude Code has access to Linear via MCP (cloud integration, no local setup need
 - **Map height:** Always uses `LAYOUT.MAP_HEIGHT` — must fit between topbar and bottomnav.
 - **Two-line title (ADR-005):** Line 1 = `listing.street`. Line 2 = `listing.title_standardized || generateTitleStandardized(listing)`. Both lines SAME size/weight/color. No `address_raw`, no ward, no fallback concatenation.
 - **Dark theme only** — no light mode variants needed.
+- **Suspense boundary (Next.js 16):** Any component using `useSearchParams()` must be wrapped in `<Suspense>`. This applies to `layout.tsx`, `crm/page.tsx`, `view/page.tsx`, and `messages/new/page.tsx`. Failing to wrap causes a build error.
 - **Script permissions:** All new `.sh` files must have execute permission: `git update-index --chmod=+x scripts/new-script.sh`
 
 ## Script Permissions

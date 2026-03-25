@@ -361,4 +361,4 @@ Recommendation: call it 'Inquiries' in the nav (matches mockups). [cite_start]In
 ---
 
 [cite_start]**ProMemo Demo Roadmap · fidt.vn / Wealth Realty · github: fidt-vn-re** [cite: 164]
-[cite_start]**Stack:** Next.js 15 · PostgreSQL · Leaflet/OSM · Gemini 1.5 Flash · Railway · Cloudflare R2 [cite: 165]
+[cite_start]**Stack:** Next.js 16 · PostgreSQL · Leaflet/OSM · Gemini 1.5 Flash · Railway · Cloudflare R2 [cite: 165]

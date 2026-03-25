@@ -22,7 +22,7 @@ Agents share listings, message each other, and manage buyers, sellers, and deals
 
 | Layer | Technology |
 |---|---|
-| Frontend | Next.js 15, React 19, TypeScript, Tailwind v4 |
+| Frontend | Next.js 16.1.6, React 19, TypeScript, Tailwind v4 |
 | Database | PostgreSQL 16 + pgvector (raw `pg` pool, no ORM) |
 | Auth | bcrypt + JWT in httpOnly cookie |
 | Maps | react-leaflet + OpenStreetMap + Nominatim |

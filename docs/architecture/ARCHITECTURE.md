@@ -122,7 +122,6 @@ RE Nha Trang is a pipeline-based system with four stages: **Ingestion**, **Parsi
 **Tech**: Next.js 16 (App Router), React 19, TypeScript, Tailwind CSS v4.
 **Auth**: Login-only with bcrypt + JWT (httpOnly cookie "realtyhub_token").
   No public signup — accounts created via scripts/create_agent.sh.
-**Version**: Next.js 15 (App Router)
 **Database**: Raw pg Pool with SQL (no ORM, avoids migration conflicts).
 **Features (implemented)**:
 - Agent signup/login with JWT auth

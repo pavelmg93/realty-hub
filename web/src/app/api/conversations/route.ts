@@ -25,8 +25,8 @@ export async function GET(request: NextRequest) {
         if (!isNaN(otherAgentId)) {
           params.push(otherAgentId);
           const otherParam = params.length;
-          // OR: match by listing_id OR by other participant being the specified agent
-          whereClause += ` AND (c.listing_id = $${listingParam} OR c.agent_1_id = $${otherParam} OR c.agent_2_id = $${otherParam})`;
+          // Match by listing_id; also include legacy conversations (no listing_id) with the listing owner
+          whereClause += ` AND (c.listing_id = $${listingParam} OR (c.listing_id IS NULL AND (c.agent_1_id = $${otherParam} OR c.agent_2_id = $${otherParam})))`;
         } else {
           whereClause += ` AND c.listing_id = $${listingParam}`;
         }

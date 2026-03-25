@@ -11,6 +11,9 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 #### Fixed
 - **REA-87 (P0 — 3rd attempt): Embedded messages not loading** — Identified true root cause: conversations API filtered strictly by `listing_id`, missing conversations created without `listing_id` set (e.g., started from Messages tab before listing_id tracking). Fix: added `other_agent_id` OR-logic parameter to `GET /api/conversations`; listing detail non-owner case now passes `?listing_id=X&other_agent_id=B` to surface all conversations between the two agents regardless of how listing_id was set.
 
+#### Changed
+- **Next.js upgrade to 16.1.6** — Upgraded from Next.js 15. Required adding `<Suspense>` wrappers around all components using `useSearchParams()` (`layout.tsx`, `crm/page.tsx`, `view/page.tsx`, `messages/new/page.tsx`).
+
 ---
 
 ### Session 30 — 2026-03-24 — Messages Fix + Status System + Polish
@@ -292,7 +295,7 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ---
 
 ### Added
-- **ProMemo web app** (Next.js 15, React 19, TypeScript, Tailwind v4) at port 8888
+- **ProMemo web app** (Next.js 16, React 19, TypeScript, Tailwind v4) at port 8888
   - Agent login with bcrypt + JWT auth (httpOnly cookie). Account creation via admin script only.
   - Listing CRUD with freestyle text input and structured database view
   - Feed with 18 filter parameters, sorting, and pagination
