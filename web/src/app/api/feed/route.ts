@@ -187,7 +187,18 @@ export async function GET(request: NextRequest) {
         AND c.agent_2_id = GREATEST(pl.agent_id, $${userIdParam})
       )
       WHERE ${whereClause}
-      ORDER BY pl.${safeSort} ${safeOrder}
+      ORDER BY
+        CASE pl.status
+          WHEN 'just_listed' THEN 1
+          WHEN 'price_dropped' THEN 2
+          WHEN 'price_increased' THEN 2
+          WHEN 'selling' THEN 3
+          WHEN 'deposit' THEN 4
+          WHEN 'sold' THEN 4
+          WHEN 'not_for_sale' THEN 4
+          ELSE 5
+        END,
+        pl.${safeSort} ${safeOrder}
       LIMIT $${limitParam} OFFSET $${offsetParam}`,
       params,
     );

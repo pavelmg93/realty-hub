@@ -64,8 +64,13 @@ export async function GET(request: NextRequest) {
     let paramIndex = 2;
 
     if (q) {
-      conditions.push(`(address_raw ILIKE $${paramIndex} OR street ILIKE $${paramIndex} OR ward ILIKE $${paramIndex} OR description ILIKE $${paramIndex})`);
-      params.push(`%${q}%`);
+      conditions.push(`search_vector @@ to_tsquery('simple', unaccent($${paramIndex}))`);
+      const tsQuery = q
+        .split(/\s+/)
+        .filter(Boolean)
+        .map((w) => w + ":*")
+        .join(" & ");
+      params.push(tsQuery);
       paramIndex++;
     }
 

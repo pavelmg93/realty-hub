@@ -6,6 +6,17 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Session 33 — 2026-03-25 — Search, Feed Sorting, Google Maps
+
+#### Added
+- **REA-96: Full-text search** — Migration 020 adds `search_vector` tsvector generated column with GIN index on `parsed_listings`. Includes `immutable_unaccent()` wrapper for Vietnamese diacritics. Feed API already wired; listings API upgraded from ILIKE to tsvector. Debounced UI (300ms) already in place.
+- **REA-93: Google Maps integration** — "Open in Google Maps" link on listing detail page (visible when lat/lng exist). "Paste Google Maps link" field on add/edit form extracts lat/lng from various URL formats (`@lat,lng`, `?q=lat,lng`, `/place/lat,lng`, `ll=lat,lng`).
+
+#### Changed
+- **REA-98: Feed auto-groups by status** — Feed ORDER BY now prioritizes: just_listed (1), price_dropped/price_increased (2), selling (3), deposit/sold/not_for_sale (4). Within each group, sorted by user-selected sort field.
+
+---
+
 ### Session 32 — 2026-03-25 — UI Polish (Toolbar, Cards, Map Popups)
 
 #### Fixed

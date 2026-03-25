@@ -166,10 +166,33 @@ function SectionLabel({ children }: { children: React.ReactNode }) {
   );
 }
 
+/** Extract lat/lng from various Google Maps URL formats */
+function extractCoordsFromGoogleMapsUrl(url: string): { lat: number; lng: number } | null {
+  // Format: @12.2388,109.1967 or @12.2388,109.1967,17z
+  const atMatch = url.match(/@(-?\d+\.?\d*),(-?\d+\.?\d*)/);
+  if (atMatch) return { lat: parseFloat(atMatch[1]), lng: parseFloat(atMatch[2]) };
+
+  // Format: ?q=12.2388,109.1967 or &q=12.2388,109.1967
+  const qMatch = url.match(/[?&]q=(-?\d+\.?\d*),(-?\d+\.?\d*)/);
+  if (qMatch) return { lat: parseFloat(qMatch[1]), lng: parseFloat(qMatch[2]) };
+
+  // Format: /place/12.2388,109.1967
+  const placeMatch = url.match(/\/place\/(-?\d+\.?\d*),(-?\d+\.?\d*)/);
+  if (placeMatch) return { lat: parseFloat(placeMatch[1]), lng: parseFloat(placeMatch[2]) };
+
+  // Format: ll=12.2388,109.1967
+  const llMatch = url.match(/ll=(-?\d+\.?\d*),(-?\d+\.?\d*)/);
+  if (llMatch) return { lat: parseFloat(llMatch[1]), lng: parseFloat(llMatch[2]) };
+
+  return null;
+}
+
 function LocationPicker({ data, onChange }: { data: ListingInput; onChange: (u: Partial<ListingInput>) => void }) {
   const { t } = useLanguage();
   const [geocoding, setGeocoding] = useState(false);
   const [results, setResults] = useState<{ latitude: number; longitude: number; display_name: string }[]>([]);
+  const [gmapsLink, setGmapsLink] = useState("");
+  const [gmapsStatus, setGmapsStatus] = useState<"idle" | "success" | "error">("idle");
 
   const handleGeocode = async () => {
     const q = [data.street, data.ward].filter(Boolean).join(", ") + ", Nha Trang";
@@ -187,6 +210,19 @@ function LocationPicker({ data, onChange }: { data: ListingInput; onChange: (u: 
     }
   };
 
+  const handleGmapsLinkChange = (value: string) => {
+    setGmapsLink(value);
+    setGmapsStatus("idle");
+    if (!value.trim()) return;
+    const coords = extractCoordsFromGoogleMapsUrl(value);
+    if (coords && coords.lat >= -90 && coords.lat <= 90 && coords.lng >= -180 && coords.lng <= 180) {
+      onChange({ latitude: coords.lat, longitude: coords.lng });
+      setGmapsStatus("success");
+    } else if (value.includes("google") || value.includes("goo.gl") || value.includes("maps")) {
+      setGmapsStatus("error");
+    }
+  };
+
   return (
     <div className="mb-4">
       <div className="flex items-center gap-2 mb-2">
@@ -201,6 +237,28 @@ function LocationPicker({ data, onChange }: { data: ListingInput; onChange: (u: 
           {geocoding ? t("searching") : t("lookupAddress")}
         </button>
       </div>
+
+      {/* Google Maps link paste field */}
+      <div className="mb-3">
+        <label className="block text-xs font-medium mb-1 text-[var(--text-secondary)]">{t("pasteGoogleMapsLink")}</label>
+        <div className="relative">
+          <input
+            type="text"
+            value={gmapsLink}
+            onChange={(e) => handleGmapsLinkChange(e.target.value)}
+            placeholder="https://maps.google.com/..."
+            className="w-full rounded-lg px-3 py-2 text-sm border border-[var(--border)]"
+            style={{ backgroundColor: "var(--bg-input)", color: "var(--text-primary)" }}
+          />
+          {gmapsStatus === "success" && (
+            <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-emerald-500">{t("coordsExtracted")}</span>
+          )}
+          {gmapsStatus === "error" && (
+            <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-[var(--error)]">{t("invalidGoogleMapsLink")}</span>
+          )}
+        </div>
+      </div>
+
       {results.length > 1 && (
         <div className="mb-2 space-y-1">
           {results.map((r, i) => (

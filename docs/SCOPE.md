@@ -21,9 +21,9 @@
 
 ## Session 33 — Search + Feed Sorting (DB migration session)
 
-1. [ ] **[REA-96] Search has to work now** — tsvector + GIN index, unaccent extension, wire to /api/feed and /api/listings, debounced UI. Supersedes REA-13.
-2. [ ] **[REA-98] Feed auto-groups by flag** — just_listed first (by date), then price changes, then selling. Hide deposit/sold/not_for_sale unless favorited.
-3. [ ] **[REA-93] Google Maps link in and out** — "Open in Google Maps" button on listing detail, paste Google Maps link field on add/edit form to extract lat/lng
+1. [x] **[REA-96] Search has to work now** — tsvector + GIN index, unaccent extension, wire to /api/feed and /api/listings, debounced UI. Supersedes REA-13.
+2. [x] **[REA-98] Feed auto-groups by flag** — just_listed first (by date), then price changes, then selling. Hide deposit/sold/not_for_sale unless favorited.
+3. [x] **[REA-93] Google Maps link in and out** — "Open in Google Maps" button on listing detail, paste Google Maps link field on add/edit form to extract lat/lng
 
 **After completing S33: commit, session log, STOP.**
 

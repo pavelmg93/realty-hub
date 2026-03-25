@@ -598,13 +598,25 @@ function ListingViewPageInner() {
 
       {/* Map — inline, always visible if lat/lng exist */}
       {listing.latitude && listing.longitude && (
-        <div className="mb-6 overflow-hidden rounded-lg relative isolate">
-          <DynamicListingMap
-            latitude={listing.latitude}
-            longitude={listing.longitude}
-            height="300px"
-            popupContent={`${label(listing.property_type, PROPERTY_TYPES)} - ${formatPrice(listing.price_vnd)}`}
-          />
+        <div className="mb-6">
+          <div className="overflow-hidden rounded-lg relative isolate">
+            <DynamicListingMap
+              latitude={listing.latitude}
+              longitude={listing.longitude}
+              height="300px"
+              popupContent={`${label(listing.property_type, PROPERTY_TYPES)} - ${formatPrice(listing.price_vnd)}`}
+            />
+          </div>
+          <a
+            href={`https://www.google.com/maps?q=${listing.latitude},${listing.longitude}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="mt-2 inline-flex items-center gap-1.5 px-3 py-1.5 text-sm rounded-lg border border-[var(--border)] text-[var(--text-secondary)] hover:text-[var(--orange)] hover:border-[var(--orange)] transition-colors"
+            style={{ backgroundColor: "var(--bg-surface)" }}
+          >
+            <Link2 size={14} />
+            {t("openInGoogleMaps")}
+          </a>
         </div>
       )}
 
