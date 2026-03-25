@@ -4,6 +4,8 @@ export const translations = {
   en: {
     feed: "Feed",
     myListings: "My Listings",
+    myStore: "My Store",
+    myFavorites: "My Favorites",
     inquiries: "Inquiries",
     crm: "CRM",
     myProfile: "My Profile",
@@ -236,6 +238,7 @@ export const translations = {
     noMessagesYet: "No conversations yet",
     startMessaging: "Message an agent from the Feed",
     copyText: "Copy text",
+    downloadImage: "Download Image",
     parseFailed: "Parse failed. Please try again.",
     requestFailed: "Request failed. Check your connection.",
     uploadFailed: "Upload failed",
@@ -261,6 +264,8 @@ export const translations = {
   vi: {
     feed: "Bảng tin",
     myListings: "BĐS của tôi",
+    myStore: "Kho của tôi",
+    myFavorites: "Yêu thích",
     inquiries: "Tin nhắn",
     crm: "Khách hàng",
     myProfile: "Hồ sơ",
@@ -493,6 +498,7 @@ export const translations = {
     noMessagesYet: "Chưa có cuộc trò chuyện nào",
     startMessaging: "Nhắn tin với môi giới từ Bảng tin",
     copyText: "Sao chép văn bản",
+    downloadImage: "Tải ảnh",
     parseFailed: "Phân tích thất bại. Vui lòng thử lại.",
     requestFailed: "Yêu cầu thất bại. Kiểm tra kết nối mạng.",
     uploadFailed: "Upload thất bại",

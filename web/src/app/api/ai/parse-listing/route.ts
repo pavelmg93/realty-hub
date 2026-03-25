@@ -186,6 +186,44 @@ async function callGeminiOnce(text: string): Promise<ParseResponse> {
   };
 }
 
+/** Call Gemini Vision to extract text from a screenshot image, then parse */
+async function callGeminiVision(imageBase64: string, mimeType: string): Promise<ParseResponse> {
+  const { GoogleGenerativeAI } = await import("@google/generative-ai");
+  const genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
+  const model = genAI.getGenerativeModel({
+    model: "gemini-1.5-flash",
+    generationConfig: { responseMimeType: "application/json" },
+  });
+
+  const result = await model.generateContent([
+    { text: SYSTEM_PROMPT },
+    { text: "Hình ảnh bên dưới là ảnh chụp màn hình của một tin rao bất động sản. Hãy đọc toàn bộ văn bản trong ảnh và phân tích thông tin tin rao." },
+    {
+      inlineData: {
+        mimeType,
+        data: imageBase64,
+      },
+    },
+  ]);
+
+  const responseText = result.response.text();
+  const parsed = JSON.parse(responseText);
+
+  const fields = parsed.fields || {};
+  if (typeof fields.price_vnd === "number" && fields.price_vnd > 0) {
+    fields.price_short = priceVndToShort(fields.price_vnd);
+  }
+  return {
+    fields,
+    confidence: parsed.confidence || {},
+    duplicate_warning: parsed.duplicate_warning || { found: false, listing_id: null, similarity: 0 },
+    description_draft: parsed.description_draft || "",
+    follow_up_questions: parsed.follow_up_questions || [],
+    geo_from_exif: null,
+    ai_used: true,
+  };
+}
+
 async function parseWithGemini(text: string): Promise<ParseResponse | null> {
   if (!GEMINI_API_KEY) return null;
 
@@ -451,10 +489,31 @@ export async function POST(request: NextRequest) {
 
     const body = await request.json().catch(() => ({}));
     const text = typeof body.text === "string" ? body.text.trim() : "";
+    const imageBase64 = typeof body.image === "string" ? body.image : "";
+    const imageMimeType = typeof body.mimeType === "string" ? body.mimeType : "image/jpeg";
+
+    // Image OCR mode: send screenshot to Gemini Vision
+    if (imageBase64) {
+      if (!GEMINI_API_KEY) {
+        return NextResponse.json({ error: "Gemini API key not configured" }, { status: 500 });
+      }
+      try {
+        const visionResult = await Promise.race([
+          callGeminiVision(imageBase64, imageMimeType),
+          new Promise<never>((_, reject) =>
+            setTimeout(() => reject(new Error("Gemini Vision timeout")), GEMINI_TIMEOUT_MS)
+          ),
+        ]);
+        return NextResponse.json(visionResult);
+      } catch (err) {
+        console.error("Gemini Vision failed:", err);
+        return NextResponse.json({ error: "Image parsing failed" }, { status: 500 });
+      }
+    }
 
     if (!text) {
       return NextResponse.json(
-        { error: "text is required" },
+        { error: "text or image is required" },
         { status: 400 },
       );
     }

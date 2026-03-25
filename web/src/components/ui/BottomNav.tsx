@@ -5,7 +5,7 @@ import { usePathname, useSearchParams } from "next/navigation";
 import { useLanguage } from "@/contexts/LanguageContext";
 import {
   Home,
-  Building2,
+  Store,
   MessageSquare,
   Users,
   UserCircle,
@@ -14,16 +14,16 @@ import {
 const NAV_ITEMS = [
   { key: "feed", href: "/dashboard/feed", icon: Home, tKey: "feed" as const },
   {
-    key: "listings",
-    href: "/dashboard/listings",
-    icon: Building2,
-    tKey: "myListings" as const,
-  },
-  {
     key: "inquiries",
     href: "/dashboard/messages",
     icon: MessageSquare,
     tKey: "inquiries" as const,
+  },
+  {
+    key: "store",
+    href: "/dashboard/store",
+    icon: Store,
+    tKey: "myStore" as const,
   },
   { key: "crm", href: "/dashboard/crm", icon: Users, tKey: "crm" as const },
   {
@@ -60,11 +60,13 @@ export function BottomNav({ unreadCount = 0 }: { unreadCount?: number }) {
         let active: boolean;
         if (key === "feed") {
           active = pathname === "/dashboard/feed" || (isListingView && fromParam === "feed");
-        } else if (key === "listings") {
+        } else if (key === "store") {
           active =
+            pathname === "/dashboard/store" ||
             pathname === "/dashboard/listings" ||
+            pathname === "/dashboard/listings/new" ||
             isListingEdit ||
-            (isListingView && fromParam === "listings");
+            (isListingView && (fromParam === "store" || fromParam === "listings"));
         } else if (key === "inquiries") {
           active =
             pathname.startsWith(href) ||

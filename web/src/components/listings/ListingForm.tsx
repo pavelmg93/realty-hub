@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { ListingInput } from "@/lib/validation";
 import { Listing, StagedPhoto, StagedDocument } from "@/lib/types";
@@ -9,6 +9,7 @@ import DocumentManager from "@/components/documents/DocumentManager";
 import { generateCommissionDisplay } from "@/lib/constants";
 import DatabaseView, { DatabaseExtras } from "./DatabaseView";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { Camera } from "lucide-react";
 
 type AIResult = {
   fields: Record<string, unknown>;
@@ -145,6 +146,7 @@ export default function ListingForm({ existing, initialData }: Props) {
   const [parsing, setParsing] = useState(false);
   const [parseError, setParseError] = useState<string | null>(null);
   const [aiResult, setAiResult] = useState<AIResult | null>(null);
+  const screenshotInputRef = useRef<HTMLInputElement>(null);
 
   const initialDataKey = initialData ? JSON.stringify(initialData) : "";
   useEffect(() => {
@@ -189,6 +191,59 @@ export default function ListingForm({ existing, initialData }: Props) {
       setParseError(t("requestFailed"));
     } finally {
       setParsing(false);
+    }
+  };
+
+  const handleScreenshotParse = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setParsing(true);
+    setParseError(null);
+    try {
+      const base64 = await new Promise<string>((resolve) => {
+        const reader = new FileReader();
+        reader.onload = () => {
+          const result = reader.result as string;
+          // Strip the data URL prefix (e.g., "data:image/jpeg;base64,")
+          resolve(result.split(",")[1]);
+        };
+        reader.readAsDataURL(file);
+      });
+      const res = await fetch("/api/ai/parse-listing", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ image: base64, mimeType: file.type || "image/jpeg" }),
+      });
+      if (!res.ok) {
+        setParseError(t("parseFailed"));
+        return;
+      }
+      const data: AIResult = await res.json();
+      setAiResult(data);
+      const merged = { ...formData };
+      for (const [k, v] of Object.entries(data.fields)) {
+        if (v !== null && v !== undefined && k in EMPTY_LISTING) {
+          (merged as Record<string, unknown>)[k] = v;
+        }
+      }
+      // Fill description from AI draft if empty
+      if (!merged.description && data.description_draft) {
+        merged.description = data.description_draft;
+      }
+      const commStr = (data.fields.commission ?? null) as string | null;
+      if (commStr) {
+        const { pct, months } = parseCommission(commStr);
+        merged.commission = commStr;
+        merged.commission_pct = pct;
+        merged.commission_months = months;
+      }
+      setFormData(merged);
+    } catch {
+      setParseError(t("requestFailed"));
+    } finally {
+      setParsing(false);
+      // Reset file input so the same file can be re-selected
+      if (screenshotInputRef.current) screenshotInputRef.current.value = "";
     }
   };
 
@@ -292,7 +347,7 @@ export default function ListingForm({ existing, initialData }: Props) {
           className="w-full rounded-xl p-3 text-sm resize-y border border-[var(--border)]"
           style={{ backgroundColor: "var(--bg-input)", color: "var(--text-primary)" }}
         />
-        <div className="flex items-center gap-3 mt-2">
+        <div className="flex items-center gap-3 mt-2 flex-wrap">
           <button
             type="button"
             onClick={handleParseWithAI}
@@ -304,6 +359,22 @@ export default function ListingForm({ existing, initialData }: Props) {
               ? (lang === "vi" ? "Đang phân tích..." : "Analyzing...")
               : (lang === "vi" ? "Phân tích bằng AI" : "Parse with AI")}
           </button>
+          <button
+            type="button"
+            onClick={() => screenshotInputRef.current?.click()}
+            disabled={parsing}
+            className="inline-flex items-center gap-1.5 px-4 py-2 text-sm rounded-lg disabled:opacity-50 font-medium border border-[var(--border)] text-[var(--text-primary)] hover:bg-[var(--bg-hover)] transition-colors"
+          >
+            <Camera size={16} />
+            {lang === "vi" ? "Ảnh chụp màn hình" : "Screenshot OCR"}
+          </button>
+          <input
+            ref={screenshotInputRef}
+            type="file"
+            accept="image/*"
+            onChange={handleScreenshotParse}
+            className="hidden"
+          />
           {parseError && <span className="text-sm text-[var(--error)]">{parseError}</span>}
           {aiResult?.duplicate_warning?.found && (
             <span className="text-sm text-amber-500">

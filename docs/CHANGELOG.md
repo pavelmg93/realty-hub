@@ -6,6 +6,18 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Session 34 — 2026-03-25 — My Store, Share Card, Screenshot OCR
+
+#### Added
+- **REA-97: My Store page** — New `/dashboard/store` page with two tabs (My Listings / My Favorites). Replaces "My Listings" in bottom nav with center "My Store" button using `Store` icon. Persists tab and grid state in localStorage.
+- **REA-14: Listing export** — "Download Image" button generates 1080x1350 JPEG share card using Canvas API (photo + status badge + two-line title + price + details + agent info + branding). Existing Zalo/Facebook copy text kept.
+- **REA-12: Screenshot OCR parsing** — "Screenshot OCR" button on add/edit form sends image to Gemini Vision (`gemini-1.5-flash`) for text extraction and field parsing. Same parse pipeline as text, but image-first.
+
+#### Changed
+- Bottom nav reordered: Feed, Inquiries, **My Store** (center), CRM, Profile.
+
+---
+
 ### Session 33 — 2026-03-25 — Search, Feed Sorting, Google Maps
 
 #### Added

@@ -19,7 +19,8 @@ import {
 import { TranslateButton } from "@/components/ui/TranslateButton";
 import DynamicListingMap from "@/components/map/DynamicListingMap";
 import DocumentManager from "@/components/documents/DocumentManager";
-import { Link2, Share2 } from "lucide-react";
+import { Link2, Share2, Download, Image as ImageIcon } from "lucide-react";
+import { generateShareCard } from "@/lib/share-card";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { getFieldValueLabel } from "@/lib/i18n";
 
@@ -104,6 +105,7 @@ function ListingViewPageInner() {
   const [showShareCard, setShowShareCard] = useState(false);
   const [shareFormat, setShareFormat] = useState<"zalo" | "facebook">("zalo");
   const [shareTextCopied, setShareTextCopied] = useState(false);
+  const [generatingImage, setGeneratingImage] = useState(false);
   const [conversations, setConversations] = useState<ConversationWithMessages[]>([]);
   const [messagesLoading, setMessagesLoading] = useState(false);
   const [expandedConvId, setExpandedConvId] = useState<number | null>(null);
@@ -301,6 +303,25 @@ function ListingViewPageInner() {
     });
   };
 
+  const handleDownloadShareImage = async () => {
+    if (!listing || generatingImage) return;
+    setGeneratingImage(true);
+    try {
+      const photoUrl = photos.length > 0 ? `/api/files/${photos[0].file_path}` : null;
+      const blob = await generateShareCard(listing, photoUrl);
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `listing-${listing.id}.jpg`;
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error("Share image generation failed:", err);
+    } finally {
+      setGeneratingImage(false);
+    }
+  };
+
   const fetchConversationMessages = async (convId: number) => {
     setConversations(prev => prev.map(c =>
       c.id === convId ? { ...c, messagesLoading: true } : c
@@ -435,14 +456,25 @@ function ListingViewPageInner() {
           <pre className="text-xs text-[var(--text-secondary)] whitespace-pre-wrap bg-[var(--bg-elevated)] rounded-lg p-3 mb-3 max-h-48 overflow-y-auto font-sans">
             {generateShareText(shareFormat)}
           </pre>
-          <button
-            type="button"
-            onClick={handleCopyShareText}
-            className="px-4 py-2 text-sm font-medium rounded-lg text-white transition-colors"
-            style={{ backgroundColor: "var(--orange)" }}
-          >
-            {shareTextCopied ? `✓ ${t("copied")}` : `📋 ${t("copyText")}`}
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={handleCopyShareText}
+              className="px-4 py-2 text-sm font-medium rounded-lg text-white transition-colors"
+              style={{ backgroundColor: "var(--orange)" }}
+            >
+              {shareTextCopied ? `✓ ${t("copied")}` : `📋 ${t("copyText")}`}
+            </button>
+            <button
+              type="button"
+              onClick={handleDownloadShareImage}
+              disabled={generatingImage}
+              className="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-medium rounded-lg border border-[var(--border)] text-[var(--text-primary)] hover:bg-[var(--bg-hover)] transition-colors disabled:opacity-50"
+            >
+              <ImageIcon size={16} />
+              {generatingImage ? t("saving") : t("downloadImage")}
+            </button>
+          </div>
         </div>
       )}
 

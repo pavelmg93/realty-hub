@@ -31,9 +31,9 @@
 
 ## Session 34 — My Store + Listing Export (feature session)
 
-1. [ ] **[REA-97] My Store = My Listings + Favorites** — center bottom nav button "My Store" with two tabs: My Listings, My Favorites
-2. [ ] **[REA-14] Listing export: share card image + copy text v1** — generate 1080×1350 share image, one-click copy formatted text for Zalo/Facebook
-3. [ ] **[REA-12] Gemini parse: image/screenshot OCR parsing** — upload screenshot → Gemini Vision extracts text → parse fields
+1. [x] **[REA-97] My Store = My Listings + Favorites** — center bottom nav button "My Store" with two tabs: My Listings, My Favorites
+2. [x] **[REA-14] Listing export: share card image + copy text v1** — generate 1080×1350 share image, one-click copy formatted text for Zalo/Facebook
+3. [x] **[REA-12] Gemini parse: image/screenshot OCR parsing** — upload screenshot → Gemini Vision extracts text → parse fields
 
 **After completing S34: commit, session log, STOP.**
 
