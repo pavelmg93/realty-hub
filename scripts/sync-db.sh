@@ -26,7 +26,7 @@ set -euo pipefail
 LOCAL_CONTAINER="realty-hub-app-postgres-1"
 DB_USER="re_nhatrang"
 DB_NAME="re_nhatrang"
-VM_HOST="${VM_HOST:-re-vm}"  # override: VM_HOST=user@ip ./scripts/sync-db.sh
+VM_HOST="re-prod"  # override: VM_HOST=user@ip ./scripts/sync-db.sh
 
 # ---------------------------------------------------------------------------
 # 1. Check local container is running
@@ -72,10 +72,12 @@ echo "Dumping production DB and restoring to local container..."
 echo "(This may take a moment depending on DB size and network speed.)"
 echo ""
 
-ssh "${VM_HOST}" \
-  "docker exec realty-hub-app-postgres-1 pg_dump -U ${DB_USER} --clean --if-exists -Fc ${DB_NAME}" \
+# We use the -i flag to ensure it uses the GCP-specific key
+ssh -i ~/.ssh/google_compute_engine "${VM_HOST}" \
+  "docker exec realty-hub-app-postgres-1 pg_dump -U ${DB_USER} -Fc ${DB_NAME}" \
   | docker exec -i "${LOCAL_CONTAINER}" \
-      pg_restore -U "${DB_USER}" --clean --if-exists -d "${DB_NAME}" --no-owner --no-privileges
+    pg_restore -U "${DB_USER}" --clean --if-exists -d "${DB_NAME}" --no-owner --no-privileges
+
 
 echo ""
 echo "Done. Local database '${DB_NAME}' has been replaced with the production snapshot."
