@@ -65,19 +65,31 @@ case "${CONFIRM}" in
 esac
 
 # ---------------------------------------------------------------------------
-# 3. pg_dump from production via SSH, pipe directly to local restore
+# 3. Drop and recreate the local database for a clean restore
 # ---------------------------------------------------------------------------
 echo ""
-echo "Dumping production DB and restoring to local container..."
+echo "Dropping and recreating local database for clean restore..."
+docker exec -i "${LOCAL_CONTAINER}" psql -U "${DB_USER}" -d postgres <<SQL
+SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE datname = '${DB_NAME}' AND pid <> pg_backend_pid();
+DROP DATABASE IF EXISTS ${DB_NAME};
+CREATE DATABASE ${DB_NAME} OWNER ${DB_USER};
+SQL
+
+# ---------------------------------------------------------------------------
+# 4. Dump production as plain SQL and restore locally
+# ---------------------------------------------------------------------------
+echo "Dumping production DB (plain SQL) and restoring to local container..."
 echo "(This may take a moment depending on DB size and network speed.)"
 echo ""
 
-# We use the -i flag to ensure it uses the GCP-specific key
+# pg_dump sets search_path to empty, which breaks immutable_unaccent
+# (it calls unaccent() which lives in the public schema). Fix on the fly
+# by keeping 'public' in the search_path during restore.
 ssh -i ~/.ssh/google_compute_engine "${VM_HOST}" \
-  "docker exec realty-hub-app-postgres-1 pg_dump -U ${DB_USER} -Fc ${DB_NAME}" \
+  "docker exec realty-hub-app-postgres-1 pg_dump -U ${DB_USER} ${DB_NAME}" \
+  | sed "s/SELECT pg_catalog.set_config('search_path', '', false)/SELECT pg_catalog.set_config('search_path', 'public, pg_catalog', false)/" \
   | docker exec -i "${LOCAL_CONTAINER}" \
-    pg_restore -U "${DB_USER}" --clean --if-exists -d "${DB_NAME}" --no-owner --no-privileges
-
+    psql -U "${DB_USER}" -d "${DB_NAME}" --quiet -v ON_ERROR_STOP=0
 
 echo ""
 echo "Done. Local database '${DB_NAME}' has been replaced with the production snapshot."
