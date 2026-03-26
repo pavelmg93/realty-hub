@@ -22,10 +22,10 @@
 
 ## Session 38 — UI Redesign (navigation + view mode)
 
-1. [ ] **[REA-106] View mode: 3-state toggle (1-wide / 2-wide / Map)** — single segmented control, orange highlight on active, remove standalone Grid button. Apply to Feed, My Store, everywhere.
-2. [ ] **[REA-107] Bottom nav rearrange** — News (placeholder), My Store, Feed (center), CRM (with Messages as first tab), Profile
-3. [ ] **[REA-105] My Store: add search, filters, and view mode selector** — same toolbar as Feed
-4. [ ] **[REA-100] Filters display update** — hide Legal, Price Min-Max at top and bigger, Bedrooms/Bathrooms, Area Min-Max, Ward Old/New
+1. [x] **[REA-106] View mode: 3-state toggle (1-wide / 2-wide / Map)** — single segmented control, orange highlight on active, remove standalone Grid button. Apply to Feed, My Store, everywhere.
+2. [x] **[REA-107] Bottom nav rearrange** — News (placeholder), My Store, Feed (center), CRM (with Messages as first tab), Profile
+3. [x] **[REA-105] My Store: add search, filters, and view mode selector** — same toolbar as Feed
+4. [x] **[REA-100] Filters display update** — hide Legal, Price Min-Max at top and bigger, Bedrooms/Bathrooms, Area Min-Max, Ward Old/New
 
 **After completing S38: commit, session log, STOP.**
 

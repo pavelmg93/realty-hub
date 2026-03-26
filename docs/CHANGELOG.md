@@ -6,6 +6,15 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Session 38 — 2026-03-26 — UI Redesign (Navigation + View Mode)
+
+#### Changed
+- **REA-106: 3-state view mode toggle** — Replaced separate GridToggle + Map button with a unified `ViewModeToggle` (1-wide / 2-wide / Map) on Feed, My Store, and Listings pages. Active state highlighted orange.
+- **REA-107: Bottom nav rearrange** — New order: News, My Store, Feed (center), CRM, Profile. Messages consolidated into CRM as first tab. Created `/dashboard/news` placeholder page. Extracted `MessagesList` shared component.
+- **REA-105: My Store toolbar** — Added search bar, filter panel, and view mode toggle to My Store (both My Listings and Favorites tabs). Map view now available on My Store.
+
+---
+
 ### Session 37 — 2026-03-26 — Critical Bug Fixes
 
 #### Fixed

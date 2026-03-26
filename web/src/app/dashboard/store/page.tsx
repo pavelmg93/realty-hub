@@ -1,18 +1,23 @@
 "use client";
 
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback, useRef, type KeyboardEvent } from "react";
 import { useRouter } from "next/navigation";
 import { Listing } from "@/lib/types";
 import { useAuth } from "@/hooks/useAuth";
 import { ListingCard } from "@/components/ui/ListingCard";
 import ListingCardOwner from "@/components/listings/ListingCard";
-import { GridToggle } from "@/components/ui/GridToggle";
+import { ViewModeToggle, ViewMode } from "@/components/ui/ViewModeToggle";
+import FeedFilters, {
+  FeedFilterValues,
+  DEFAULT_FILTERS,
+} from "@/components/feed/FeedFilters";
+import DynamicFeedMap from "@/components/map/DynamicFeedMap";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { Plus } from "lucide-react";
+import { LAYOUT } from "@/lib/layout-constants";
+import { Plus, Filter } from "lucide-react";
 import Link from "next/link";
 
 type Tab = "my_listings" | "favorites";
-type GridCols = 1 | 2;
 
 export default function StorePage() {
   const { user } = useAuth();
@@ -21,7 +26,11 @@ export default function StorePage() {
   const [activeTab, setActiveTab] = useState<Tab>("my_listings");
   const [listings, setListings] = useState<Listing[]>([]);
   const [loading, setLoading] = useState(true);
-  const [cols, setCols] = useState<GridCols>(2);
+  const [viewMode, setViewMode] = useState<ViewMode>("2col");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [activeSearch, setActiveSearch] = useState("");
+  const [filters, setFilters] = useState<FeedFilterValues>({ ...DEFAULT_FILTERS });
+  const [showFilters, setShowFilters] = useState(false);
   const restoreScrollRef = useRef<number | null>(null);
 
   // Restore state from localStorage
@@ -29,9 +38,9 @@ export default function StorePage() {
     try {
       const stored = localStorage.getItem("realtyhub_store_state");
       if (stored) {
-        const { tab, cols: c } = JSON.parse(stored);
+        const { tab, viewMode: vm } = JSON.parse(stored);
         if (tab === "my_listings" || tab === "favorites") setActiveTab(tab);
-        if (c === 1 || c === 2) setCols(c as GridCols);
+        if (vm === "1col" || vm === "2col" || vm === "map") setViewMode(vm);
       }
     } catch {}
   }, []);
@@ -39,9 +48,9 @@ export default function StorePage() {
   // Persist state
   useEffect(() => {
     try {
-      localStorage.setItem("realtyhub_store_state", JSON.stringify({ tab: activeTab, cols }));
+      localStorage.setItem("realtyhub_store_state", JSON.stringify({ tab: activeTab, viewMode }));
     } catch {}
-  }, [activeTab, cols]);
+  }, [activeTab, viewMode]);
 
   // Restore scroll
   useEffect(() => {
@@ -57,14 +66,27 @@ export default function StorePage() {
   const fetchListings = useCallback(async () => {
     setLoading(true);
     try {
+      const params = new URLSearchParams();
+      if (activeSearch.trim()) params.set("q", activeSearch.trim());
+      params.set("sort", filters.sort);
+      params.set("order", filters.order);
+      for (const [key, value] of Object.entries(filters)) {
+        if (value && key !== "sort" && key !== "order") {
+          params.set(key, value);
+        }
+      }
+
       if (activeTab === "my_listings") {
-        const res = await fetch("/api/listings?archived=false");
+        params.set("archived", "false");
+        const res = await fetch(`/api/listings?${params.toString()}`);
         if (res.ok) {
           const data = await res.json();
           setListings(data.listings);
         }
       } else {
-        const res = await fetch("/api/feed?is_favorited=true&limit=100");
+        params.set("is_favorited", "true");
+        params.set("limit", "100");
+        const res = await fetch(`/api/feed?${params.toString()}`);
         if (res.ok) {
           const data = await res.json();
           setListings(data.listings);
@@ -73,7 +95,7 @@ export default function StorePage() {
     } finally {
       setLoading(false);
     }
-  }, [activeTab]);
+  }, [activeTab, activeSearch, filters]);
 
   useEffect(() => {
     fetchListings();
@@ -97,6 +119,14 @@ export default function StorePage() {
     router.push(url);
   };
 
+  const handleSearchSubmit = () => setActiveSearch(searchQuery);
+  const handleSearchClear = () => { setSearchQuery(""); setActiveSearch(""); };
+  const handleSearchKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter") { e.preventDefault(); handleSearchSubmit(); }
+  };
+  const handleApplyFilters = () => fetchListings();
+  const handleResetFilters = () => setFilters({ ...DEFAULT_FILTERS });
+
   const handleReactivate = async (id: number) => {
     const res = await fetch(`/api/listings/${id}/archive`, {
       method: "POST",
@@ -113,23 +143,22 @@ export default function StorePage() {
 
   const currentUserId = user?.id ?? 0;
 
+  const cols = viewMode === "1col" ? 1 : 2;
+
   return (
-    <div className="px-4 sm:px-6 max-w-3xl mx-auto py-4">
+    <div className={`px-4 sm:px-6 max-w-3xl mx-auto pt-4${viewMode !== "map" ? " pb-4" : ""}`}>
       {/* Header */}
       <div className="flex items-center justify-between mb-4">
         <h1 className="text-lg font-semibold text-[var(--text-primary)]">
           {t("myStore")}
         </h1>
-        <div className="flex items-center gap-2">
-          <GridToggle value={cols} onChange={setCols} />
-          <Link
-            href="/dashboard/listings/new"
-            className="flex items-center gap-1 px-3 py-2 text-sm font-medium rounded-lg text-white"
-            style={{ backgroundColor: "var(--orange)" }}
-          >
-            <Plus size={16} />
-          </Link>
-        </div>
+        <Link
+          href="/dashboard/listings/new"
+          className="flex items-center gap-1 px-3 py-2 text-sm font-medium rounded-lg text-white"
+          style={{ backgroundColor: "var(--orange)" }}
+        >
+          <Plus size={16} />
+        </Link>
       </div>
 
       {/* Tabs */}
@@ -152,9 +181,69 @@ export default function StorePage() {
         })}
       </div>
 
+      {/* Unified toolbar: search + filter + view mode */}
+      <div className={`flex items-center gap-2 ${viewMode === "map" ? "h-12" : "mb-3"}`}>
+        <div className="relative flex-1">
+          <svg
+            className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-muted)] pointer-events-none"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+          </svg>
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            onKeyDown={handleSearchKeyDown}
+            placeholder={t("searchListings") || "Tìm kiếm địa chỉ, phường, mô tả..."}
+            className="w-full pl-9 pr-8 py-2 text-sm rounded-lg border border-[var(--border)] bg-[var(--bg-surface)] text-[var(--text-primary)] placeholder-[var(--text-muted)] focus:outline-none focus:border-[var(--orange)]"
+          />
+          {searchQuery && (
+            <button
+              type="button"
+              onClick={handleSearchClear}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)] hover:text-[var(--text-primary)]"
+            >
+              &times;
+            </button>
+          )}
+        </div>
+        <button
+          type="button"
+          onClick={() => setShowFilters(!showFilters)}
+          className={`inline-flex flex-none items-center gap-1.5 px-3 py-2 text-sm rounded-lg border border-[var(--border)] transition-colors ${
+            showFilters ? "text-white" : "text-[var(--text-secondary)]"
+          }`}
+          style={showFilters ? { backgroundColor: "var(--orange)" } : { backgroundColor: "var(--bg-surface)" }}
+        >
+          <Filter size={16} /> {t("filter")}
+        </button>
+        <ViewModeToggle value={viewMode} onChange={setViewMode} />
+      </div>
+
+      {/* Filters panel */}
+      {showFilters && (
+        <FeedFilters
+          filters={filters}
+          onChange={setFilters}
+          onApply={handleApplyFilters}
+          onReset={handleResetFilters}
+        />
+      )}
+
       {/* Content */}
-      {loading ? (
-        <div className={`grid gap-3 ${cols === 1 ? "grid-cols-1" : "grid-cols-2"}`}>
+      {viewMode === "map" ? (
+        <div className="overflow-hidden">
+          <DynamicFeedMap
+            listings={listings}
+            onListingClick={(l) => saveScrollAndNavigate(`/dashboard/listings/${l.id}/view?from=store`)}
+            height={LAYOUT.MAP_HEIGHT}
+          />
+        </div>
+      ) : loading ? (
+        <div className={`grid gap-3 ${viewMode === "1col" ? "grid-cols-1" : "grid-cols-2"}`}>
           {[...Array(4)].map((_, i) => (
             <div key={i} className="h-36 rounded-xl animate-pulse" style={{ backgroundColor: "var(--bg-elevated)" }} />
           ))}
@@ -175,7 +264,7 @@ export default function StorePage() {
           )}
         </div>
       ) : activeTab === "my_listings" ? (
-        <div className={`grid gap-3 ${cols === 1 ? "grid-cols-1" : "grid-cols-2"}`}>
+        <div className={`grid gap-3 ${viewMode === "1col" ? "grid-cols-1" : "grid-cols-2"}`}>
           {listings.map((listing) => (
             <ListingCardOwner
               key={listing.id}
@@ -194,7 +283,7 @@ export default function StorePage() {
           ))}
         </div>
       ) : (
-        <div className={`grid gap-3 ${cols === 1 ? "grid-cols-1" : "grid-cols-2"}`}>
+        <div className={`grid gap-3 ${viewMode === "1col" ? "grid-cols-1" : "grid-cols-2"}`}>
           {listings.map((listing) => (
             <ListingCard
               key={listing.id}

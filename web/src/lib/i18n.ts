@@ -2,6 +2,7 @@ export type Lang = "en" | "vi";
 
 export const translations = {
   en: {
+    news: "News",
     feed: "Feed",
     myListings: "My Listings",
     myStore: "My Store",
@@ -264,8 +265,11 @@ export const translations = {
     months: "Months",
     streetAddress: "Street Address",
     photoCount: "photo(s)",
+    messages: "Messages",
+    comingSoon: "Coming soon",
   },
   vi: {
+    news: "Tin tức",
     feed: "Bảng tin",
     myListings: "BĐS của tôi",
     myStore: "Kho của tôi",
@@ -528,6 +532,8 @@ export const translations = {
     months: "Tháng",
     streetAddress: "Số nhà + Đường",
     photoCount: "ảnh",
+    messages: "Tin nhắn",
+    comingSoon: "Sắp ra mắt",
   },
 } satisfies Record<Lang, Record<string, string>>;
 

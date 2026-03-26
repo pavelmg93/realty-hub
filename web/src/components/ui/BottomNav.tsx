@@ -4,27 +4,22 @@ import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
 import { useLanguage } from "@/contexts/LanguageContext";
 import {
-  Home,
+  Newspaper,
   Store,
-  MessageSquare,
+  Home,
   Users,
   UserCircle,
 } from "lucide-react";
 
 const NAV_ITEMS = [
-  { key: "feed", href: "/dashboard/feed", icon: Home, tKey: "feed" as const },
-  {
-    key: "inquiries",
-    href: "/dashboard/messages",
-    icon: MessageSquare,
-    tKey: "inquiries" as const,
-  },
+  { key: "news", href: "/dashboard/news", icon: Newspaper, tKey: "news" as const },
   {
     key: "store",
     href: "/dashboard/store",
     icon: Store,
     tKey: "myStore" as const,
   },
+  { key: "feed", href: "/dashboard/feed", icon: Home, tKey: "feed" as const },
   { key: "crm", href: "/dashboard/crm", icon: Users, tKey: "crm" as const },
   {
     key: "profile",
@@ -67,9 +62,10 @@ export function BottomNav({ unreadCount = 0 }: { unreadCount?: number }) {
             pathname === "/dashboard/listings/new" ||
             isListingEdit ||
             (isListingView && (fromParam === "store" || fromParam === "listings"));
-        } else if (key === "inquiries") {
+        } else if (key === "crm") {
           active =
-            pathname.startsWith(href) ||
+            pathname.startsWith("/dashboard/crm") ||
+            pathname.startsWith("/dashboard/messages") ||
             (isListingView && fromParam === "messages");
         } else {
           active = pathname.startsWith(href);
@@ -86,7 +82,7 @@ export function BottomNav({ unreadCount = 0 }: { unreadCount?: number }) {
           >
             <div className="relative">
               <Icon size={22} strokeWidth={active ? 2.5 : 1.8} />
-              {key === "inquiries" && unreadCount > 0 && (
+              {key === "crm" && unreadCount > 0 && (
                 <span
                   className="absolute -top-1 -right-1.5 text-white text-[9px] font-bold rounded-full min-w-[14px] h-[14px] flex items-center justify-center px-0.5"
                   style={{ backgroundColor: "var(--error)" }}

@@ -5,11 +5,12 @@ import { useSearchParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useAuth } from "@/hooks/useAuth";
-import { Users, UserPlus, Building2, TrendingUp, Plus, X } from "lucide-react";
+import { Users, UserPlus, Building2, TrendingUp, Plus, X, MessageSquare } from "lucide-react";
+import { MessagesList } from "@/components/messages/MessagesList";
 import { DEAL_STAGES, formatPrice } from "@/lib/constants";
 import { getPropertyTypeKey } from "@/lib/i18n";
 
-type Tab = "agents" | "sellers" | "buyers" | "deals";
+type Tab = "messages" | "agents" | "sellers" | "buyers" | "deals";
 
 interface AgentRow {
   id: number;
@@ -241,9 +242,9 @@ function CRMPageInner() {
   const searchParams = useSearchParams();
   const tabParam = searchParams.get("tab") as Tab | null;
   const [tab, setTab] = useState<Tab>(
-    tabParam && ["agents", "sellers", "buyers", "deals"].includes(tabParam)
+    tabParam && ["messages", "agents", "sellers", "buyers", "deals"].includes(tabParam)
       ? tabParam
-      : "agents"
+      : "messages"
   );
   const [agents, setAgents] = useState<AgentRow[]>([]);
   const [sellers, setSellers] = useState<PersonRow[]>([]);
@@ -423,6 +424,7 @@ function CRMPageInner() {
   }, []);
 
   useEffect(() => {
+    if (tab === "messages") return;
     setLoading(true);
     if (tab === "agents") {
       Promise.all([fetchAgents(), fetchFavorites(), fetchActiveAgentIds()]).finally(() =>
@@ -587,6 +589,7 @@ function CRMPageInner() {
       >
         {(
           [
+            { key: "messages" as const, label: t("messages"), icon: MessageSquare },
             { key: "agents" as const, label: t("agents"), icon: Users },
             { key: "sellers" as const, label: t("sellers"), icon: Building2 },
             { key: "buyers" as const, label: t("buyers"), icon: UserPlus },
@@ -607,6 +610,8 @@ function CRMPageInner() {
           </button>
         ))}
       </div>
+
+      {tab === "messages" && <MessagesList />}
 
       {tab === "agents" && (
         <>

@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { Listing } from "@/lib/types";
 import { useAuth } from "@/hooks/useAuth";
 import { ListingCard } from "@/components/ui/ListingCard";
-import { GridToggle } from "@/components/ui/GridToggle";
+import { ViewModeToggle, ViewMode } from "@/components/ui/ViewModeToggle";
 import FeedFilters, {
   FeedFilterValues,
   DEFAULT_FILTERS,
@@ -13,7 +13,7 @@ import FeedFilters, {
 import DynamicFeedMap from "@/components/map/DynamicFeedMap";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { LAYOUT } from "@/lib/layout-constants";
-import { Filter, Map } from "lucide-react";
+import { Filter } from "lucide-react";
 
 interface Pagination {
   page: number;
@@ -21,9 +21,6 @@ interface Pagination {
   total: number;
   total_pages: number;
 }
-
-type ViewMode = "grid" | "map";
-type GridCols = 1 | 2;
 
 export default function FeedPage() {
   const { user } = useAuth();
@@ -39,8 +36,7 @@ export default function FeedPage() {
   const [loading, setLoading] = useState(true);
   const [filters, setFilters] = useState<FeedFilterValues>({ ...DEFAULT_FILTERS });
   const [showFilters, setShowFilters] = useState(false);
-  const [viewMode, setViewMode] = useState<ViewMode>("grid");
-  const [cols, setCols] = useState<GridCols>(2);
+  const [viewMode, setViewMode] = useState<ViewMode>("2col");
   const [agents, setAgents] = useState<{ id: number; first_name: string | null; username: string | null }[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [activeSearch, setActiveSearch] = useState("");
@@ -52,9 +48,8 @@ export default function FeedPage() {
     try {
       const stored = localStorage.getItem("realtyhub_feed_view_mode");
       if (stored) {
-        const { viewMode: vm, cols: c } = JSON.parse(stored);
-        if (vm === "grid" || vm === "map") setViewMode(vm);
-        if (c === 1 || c === 2) setCols(c as GridCols);
+        const vm = JSON.parse(stored);
+        if (vm === "1col" || vm === "2col" || vm === "map") setViewMode(vm);
       }
     } catch {}
   }, []);
@@ -62,9 +57,9 @@ export default function FeedPage() {
   // Persist view mode to localStorage
   useEffect(() => {
     try {
-      localStorage.setItem("realtyhub_feed_view_mode", JSON.stringify({ viewMode, cols }));
+      localStorage.setItem("realtyhub_feed_view_mode", JSON.stringify(viewMode));
     } catch {}
-  }, [viewMode, cols]);
+  }, [viewMode]);
 
   // Read saved scroll on mount — apply after data loads
   useEffect(() => {
@@ -163,7 +158,7 @@ export default function FeedPage() {
   const CITIES = ["Nha Trang", "Hà Nội", "TP.HCM", "Đà Nẵng"];
 
   return (
-    <div className={`px-4 sm:px-6 max-w-3xl mx-auto pt-4${viewMode === "grid" ? " pb-4" : ""}`}>
+    <div className={`px-4 sm:px-6 max-w-3xl mx-auto pt-4${viewMode !== "map" ? " pb-4" : ""}`}>
       {/* Header + city selector */}
       <div className="flex items-center justify-between mb-4">
         <h1 className="text-lg font-semibold text-[var(--text-primary)]">
@@ -223,18 +218,8 @@ export default function FeedPage() {
           <Filter size={16} /> {t("filter")}
         </button>
 
-        {/* Grid toggle — always visible so user can pre-select layout */}
-        <GridToggle value={cols} onChange={setCols} />
-
-        {/* Map toggle */}
-        <button
-          type="button"
-          onClick={() => setViewMode(viewMode === "grid" ? "map" : "grid")}
-          className="inline-flex flex-none items-center gap-1.5 px-3 py-2 text-sm rounded-lg border border-[var(--border)] text-[var(--text-secondary)] hover:bg-[var(--bg-hover)] transition-colors"
-          style={{ backgroundColor: "var(--bg-surface)" }}
-        >
-          <Map size={16} /> {viewMode === "map" ? t("grid") : t("map")}
-        </button>
+        {/* View mode toggle: 1-wide / 2-wide / Map */}
+        <ViewModeToggle value={viewMode} onChange={setViewMode} />
       </div>
 
       {/* Listing count — hidden in map mode */}
@@ -295,7 +280,7 @@ export default function FeedPage() {
         <>
           <div
             className={`grid gap-3 ${
-              cols === 1 ? "grid-cols-1" : "grid-cols-2"
+              viewMode === "1col" ? "grid-cols-1" : "grid-cols-2"
             }`}
           >
             {listings.map((listing) => (
@@ -306,7 +291,7 @@ export default function FeedPage() {
                   is_owner: listing.agent_id === currentUserId,
                   has_conversation: !!listing.existing_conversation_id,
                 }}
-                cols={cols}
+                cols={viewMode === "1col" ? 1 : 2}
                 viewSearch="?from=feed"
                 onMessage={() => handleMessage(listing)}
                 onViewMessages={() => {

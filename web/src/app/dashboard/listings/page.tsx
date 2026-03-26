@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Listing } from "@/lib/types";
 import ListingCard from "@/components/listings/ListingCard";
-import { GridToggle } from "@/components/ui/GridToggle";
+import { ViewModeToggle, ViewMode } from "@/components/ui/ViewModeToggle";
 import FeedFilters, {
   FeedFilterValues,
   DEFAULT_FILTERS,
@@ -13,10 +13,7 @@ import FeedFilters, {
 import DynamicFeedMap from "@/components/map/DynamicFeedMap";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { LAYOUT } from "@/lib/layout-constants";
-import { Plus, Filter, Map, Search } from "lucide-react";
-
-type ViewMode = "grid" | "map";
-type GridCols = 1 | 2;
+import { Plus, Filter, Search } from "lucide-react";
 
 export default function ListingsPage() {
   const { t } = useLanguage();
@@ -25,8 +22,7 @@ export default function ListingsPage() {
   const [loading, setLoading] = useState(true);
   const [filters, setFilters] = useState<FeedFilterValues>({ ...DEFAULT_FILTERS });
   const [showFilters, setShowFilters] = useState(false);
-  const [viewMode, setViewMode] = useState<ViewMode>("grid");
-  const [cols, setCols] = useState<GridCols>(2);
+  const [viewMode, setViewMode] = useState<ViewMode>("2col");
   const [searchQuery, setSearchQuery] = useState("");
   const [activeSearch, setActiveSearch] = useState("");
   const restoreScrollRef = useRef<number | null>(null);
@@ -36,9 +32,8 @@ export default function ListingsPage() {
     try {
       const stored = localStorage.getItem("realtyhub_listings_view_mode");
       if (stored) {
-        const { viewMode: vm, cols: c } = JSON.parse(stored);
-        if (vm === "grid" || vm === "map") setViewMode(vm);
-        if (c === 1 || c === 2) setCols(c as GridCols);
+        const vm = JSON.parse(stored);
+        if (vm === "1col" || vm === "2col" || vm === "map") setViewMode(vm);
       }
     } catch {}
   }, []);
@@ -46,9 +41,9 @@ export default function ListingsPage() {
   // Persist view mode to localStorage
   useEffect(() => {
     try {
-      localStorage.setItem("realtyhub_listings_view_mode", JSON.stringify({ viewMode, cols }));
+      localStorage.setItem("realtyhub_listings_view_mode", JSON.stringify(viewMode));
     } catch {}
-  }, [viewMode, cols]);
+  }, [viewMode]);
 
   // Read saved scroll on mount — apply after data loads
   useEffect(() => {
@@ -135,7 +130,7 @@ export default function ListingsPage() {
   };
 
   return (
-    <div className={`px-4 sm:px-6 max-w-3xl mx-auto${viewMode === "grid" ? " py-4" : ""}`}>
+    <div className={`px-4 sm:px-6 max-w-3xl mx-auto${viewMode !== "map" ? " py-4" : ""}`}>
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-lg font-semibold text-[var(--text-primary)]">
@@ -188,18 +183,8 @@ export default function ListingsPage() {
           <Filter size={16} /> {t("filter")}
         </button>
 
-        {/* Grid toggle — always visible so user can pre-select layout */}
-        <GridToggle value={cols} onChange={setCols} />
-
-        {/* Map toggle */}
-        <button
-          type="button"
-          onClick={() => setViewMode((m) => (m === "grid" ? "map" : "grid"))}
-          className="inline-flex flex-none items-center gap-1.5 px-3 py-2 text-sm rounded-lg border border-[var(--border)] text-[var(--text-secondary)] hover:bg-[var(--bg-hover)] transition-colors"
-          style={{ backgroundColor: "var(--bg-surface)" }}
-        >
-          <Map size={16} /> {viewMode === "map" ? t("grid") : t("map")}
-        </button>
+        {/* View mode toggle: 1-wide / 2-wide / Map */}
+        <ViewModeToggle value={viewMode} onChange={setViewMode} />
       </div>
 
       {/* Filters panel */}
@@ -213,7 +198,7 @@ export default function ListingsPage() {
       )}
 
       {loading ? (
-        <div className={`grid gap-4 ${cols === 1 ? "grid-cols-1" : "grid-cols-2"}`}>
+        <div className={`grid gap-4 ${viewMode === "1col" ? "grid-cols-1" : "grid-cols-2"}`}>
           {[...Array(4)].map((_, i) => (
             <div key={i} className="h-48 rounded-xl animate-pulse" style={{ backgroundColor: "var(--bg-elevated)" }} />
           ))}
@@ -248,7 +233,7 @@ export default function ListingsPage() {
       ) : (
         <div
           className={`grid gap-4 ${
-            cols === 1 ? "grid-cols-1" : "grid-cols-2"
+            viewMode === "1col" ? "grid-cols-1" : "grid-cols-2"
           }`}
         >
           {listings.map((listing) => (
@@ -257,7 +242,7 @@ export default function ListingsPage() {
               listing={listing}
               isArchived={false}
               isOwner
-              cols={cols}
+              cols={viewMode === "1col" ? 1 : 2}
               onReactivate={handleReactivate}
               onDelete={handleDelete}
               onBeforeNavigate={() => {
