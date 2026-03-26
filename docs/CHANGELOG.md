@@ -6,6 +6,15 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Session 39 — 2026-03-26 — Features (CRM + Pricing + Saved Searches)
+
+#### Added
+- **REA-109: Vietnamese price notation in filters** — Price filter inputs now accept "2ty", "400tr", "900trieu", "1.2 tỷ", and plain numbers (interpreted as triệu VND). New `parseVietnamesePrice()` utility used in both feed and listings API routes. Input type changed from number to text with Vietnamese placeholder hints.
+- **REA-110: Saved Searches** — Full feature: save search name + query + filters + attached CRM persons (buyers/sellers). New `saved_searches` and `saved_search_persons` tables (migration 023). CRUD API at `/api/saved-searches`. SaveSearchModal component with person checklists and quick-create person. Bookmark button added to Feed and My Store toolbars. New "Saved" tab in CRM page shows all saved searches with person associations, load-to-feed, and delete actions.
+- **REA-101: Consolidated as duplicate of REA-110.**
+
+---
+
 ### Session 38 — 2026-03-26 — UI Redesign (Navigation + View Mode)
 
 #### Changed

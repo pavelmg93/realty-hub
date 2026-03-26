@@ -33,9 +33,9 @@
 
 ## Session 39 — Features (CRM + pricing + saved searches)
 
-1. [ ] **[REA-109] Price filter: accept Vietnamese notation** — parse "2ty", "400tr", "900trieu", convert to VND for SQL
-2. [ ] **[REA-110] Saved Searches** — save filters + search text, attach Buyers/Sellers, quick-create Person, accessible from CRM
-3. [ ] **[REA-101] Saved Searches w/wo Buyer association** — verify overlap with REA-110, consolidate if duplicate
+1. [x] **[REA-109] Price filter: accept Vietnamese notation** — parse "2ty", "400tr", "900trieu", convert to VND for SQL
+2. [x] **[REA-110] Saved Searches** — save filters + search text, attach Buyers/Sellers, quick-create Person, accessible from CRM
+3. [x] **[REA-101] Saved Searches w/wo Buyer association** — duplicate of REA-110, consolidated
 
 **After completing S39: commit, session log, STOP.**
 

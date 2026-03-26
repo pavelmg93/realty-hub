@@ -5,12 +5,12 @@ import { useSearchParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useAuth } from "@/hooks/useAuth";
-import { Users, UserPlus, Building2, TrendingUp, Plus, X, MessageSquare } from "lucide-react";
+import { Users, UserPlus, Building2, TrendingUp, Plus, X, MessageSquare, Bookmark, Trash2, Search } from "lucide-react";
 import { MessagesList } from "@/components/messages/MessagesList";
 import { DEAL_STAGES, formatPrice } from "@/lib/constants";
 import { getPropertyTypeKey } from "@/lib/i18n";
 
-type Tab = "messages" | "agents" | "sellers" | "buyers" | "deals";
+type Tab = "messages" | "agents" | "sellers" | "buyers" | "deals" | "saved";
 
 interface AgentRow {
   id: number;
@@ -62,6 +62,16 @@ interface PersonListingRow {
   listing_ward: string | null;
   listing_property_type: string | null;
   listing_price_vnd: number | null;
+}
+
+interface SavedSearchRow {
+  id: number;
+  name: string;
+  query: string;
+  filters: Record<string, string>;
+  persons: { id: string; full_name: string; type: string }[];
+  created_at: string;
+  updated_at: string;
 }
 
 const STAGE_ORDER = [
@@ -242,7 +252,7 @@ function CRMPageInner() {
   const searchParams = useSearchParams();
   const tabParam = searchParams.get("tab") as Tab | null;
   const [tab, setTab] = useState<Tab>(
-    tabParam && ["messages", "agents", "sellers", "buyers", "deals"].includes(tabParam)
+    tabParam && ["messages", "agents", "sellers", "buyers", "deals", "saved"].includes(tabParam)
       ? tabParam
       : "messages"
   );
@@ -287,6 +297,7 @@ function CRMPageInner() {
   }>>([]);
   const [listingDropdownFilter, setListingDropdownFilter] = useState("");
   const [listingOptionsLoaded, setListingOptionsLoaded] = useState(false);
+  const [savedSearches, setSavedSearches] = useState<SavedSearchRow[]>([]);
 
   const fetchListingOptions = useCallback(async () => {
     const res = await fetch("/api/listings/for-select?source=both&limit=100");
@@ -297,8 +308,16 @@ function CRMPageInner() {
     }
   }, []);
 
+  const fetchSavedSearches = useCallback(async () => {
+    const res = await fetch("/api/saved-searches");
+    if (res.ok) {
+      const data = await res.json();
+      setSavedSearches(data.saved_searches ?? []);
+    }
+  }, []);
+
   useEffect(() => {
-    if (tabParam && ["agents", "sellers", "buyers", "deals"].includes(tabParam)) {
+    if (tabParam && ["agents", "sellers", "buyers", "deals", "saved"].includes(tabParam)) {
       setTab(tabParam);
     }
   }, [tabParam]);
@@ -445,8 +464,10 @@ function CRMPageInner() {
           fetchPersonListingsByType("buyer");
         })
         .finally(() => setLoading(false));
+    } else if (tab === "saved") {
+      fetchSavedSearches().finally(() => setLoading(false));
     }
-  }, [tab, fetchAgents, fetchSellers, fetchBuyers, fetchDeals, fetchFavorites, fetchActiveAgentIds, fetchPersonListingsByType]);
+  }, [tab, fetchAgents, fetchSellers, fetchBuyers, fetchDeals, fetchFavorites, fetchActiveAgentIds, fetchPersonListingsByType, fetchSavedSearches]);
 
   const handleCreateSeller = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -594,6 +615,7 @@ function CRMPageInner() {
             { key: "sellers" as const, label: t("sellers"), icon: Building2 },
             { key: "buyers" as const, label: t("buyers"), icon: UserPlus },
             { key: "deals" as const, label: t("deals"), icon: TrendingUp },
+            { key: "saved" as const, label: t("savedSearches"), icon: Bookmark },
           ] as const
         ).map(({ key, label, icon: Icon }) => (
           <button
@@ -1205,6 +1227,101 @@ function CRMPageInner() {
           <p className="text-xs text-[var(--text-muted)] mt-4">
             People appear in the column that matches their status. Use &lt; and &gt; to move one stage left or right (deals or person status).
           </p>
+        </>
+      )}
+
+      {tab === "saved" && (
+        <>
+          {loading ? (
+            <div className="text-center py-12 text-[var(--text-muted)]">{t("loading")}</div>
+          ) : savedSearches.length === 0 ? (
+            <div
+              className="text-center py-12 text-[var(--text-muted)] rounded-lg border border-[var(--border)]"
+              style={{ backgroundColor: "var(--bg-surface)" }}
+            >
+              <Bookmark size={32} className="mx-auto mb-2 opacity-40" />
+              <p>{t("noSavedSearches")}</p>
+              <p className="text-xs mt-1">{t("saveSearch")} — Feed / My Store</p>
+            </div>
+          ) : (
+            <div className="space-y-2">
+              {savedSearches.map((ss) => {
+                const filterCount = Object.keys(ss.filters || {}).length;
+                return (
+                  <div
+                    key={ss.id}
+                    className="rounded-lg border border-[var(--border)] p-3"
+                    style={{ backgroundColor: "var(--bg-surface)" }}
+                  >
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="flex-1 min-w-0">
+                        <p className="font-medium text-[var(--text-primary)] truncate">{ss.name}</p>
+                        <div className="flex flex-wrap gap-2 mt-1 text-xs text-[var(--text-muted)]">
+                          {ss.query && (
+                            <span className="inline-flex items-center gap-1">
+                              <Search size={12} /> &quot;{ss.query}&quot;
+                            </span>
+                          )}
+                          {filterCount > 0 && (
+                            <span>{filterCount} {t("filters").toLowerCase()}</span>
+                          )}
+                          {ss.persons && ss.persons.length > 0 && (
+                            <span>{ss.persons.length} {t("personsAttached")}</span>
+                          )}
+                        </div>
+                        {ss.persons && ss.persons.length > 0 && (
+                          <div className="flex flex-wrap gap-1 mt-1.5">
+                            {ss.persons.map((p) => (
+                              <span
+                                key={p.id}
+                                className="inline-flex items-center px-2 py-0.5 rounded-full text-xs border border-[var(--border)]"
+                                style={{ backgroundColor: "var(--bg-elevated)" }}
+                              >
+                                <span className="text-[var(--text-muted)] mr-1">
+                                  {p.type === "buyer" ? t("buyer") : t("seller")}:
+                                </span>
+                                <span className="text-[var(--text-primary)]">{p.full_name}</span>
+                              </span>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-1 shrink-0">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const params = new URLSearchParams();
+                            if (ss.query) params.set("q", ss.query);
+                            if (ss.filters) {
+                              for (const [k, v] of Object.entries(ss.filters)) {
+                                if (v) params.set(k, v);
+                              }
+                            }
+                            router.push(`/dashboard/feed?${params.toString()}`);
+                          }}
+                          className="p-2 rounded-lg text-[var(--orange)] hover:bg-[var(--bg-hover)] transition-colors"
+                          title={t("loadSearch")}
+                        >
+                          <Search size={16} />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={async () => {
+                            const res = await fetch(`/api/saved-searches/${ss.id}`, { method: "DELETE" });
+                            if (res.ok) fetchSavedSearches();
+                          }}
+                          className="p-2 rounded-lg text-[var(--text-muted)] hover:text-red-500 hover:bg-[var(--bg-hover)] transition-colors"
+                          title={t("deleteSearch")}
+                        >
+                          <Trash2 size={16} />
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
         </>
       )}
     </div>

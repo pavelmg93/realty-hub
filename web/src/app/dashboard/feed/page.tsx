@@ -13,7 +13,8 @@ import FeedFilters, {
 import DynamicFeedMap from "@/components/map/DynamicFeedMap";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { LAYOUT } from "@/lib/layout-constants";
-import { Filter } from "lucide-react";
+import { Filter, Bookmark } from "lucide-react";
+import SaveSearchModal from "@/components/feed/SaveSearchModal";
 
 interface Pagination {
   page: number;
@@ -41,6 +42,7 @@ export default function FeedPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [activeSearch, setActiveSearch] = useState("");
   const [city, setCity] = useState("Nha Trang");
+  const [showSaveSearch, setShowSaveSearch] = useState(false);
   const restoreScrollRef = useRef<number | null>(null);
 
   // Restore view mode from localStorage
@@ -218,6 +220,17 @@ export default function FeedPage() {
           <Filter size={16} /> {t("filter")}
         </button>
 
+        {/* Save Search */}
+        <button
+          type="button"
+          onClick={() => setShowSaveSearch(true)}
+          className="inline-flex flex-none items-center gap-1.5 px-3 py-2 text-sm rounded-lg border border-[var(--border)] text-[var(--text-secondary)] hover:text-[var(--orange)] transition-colors"
+          style={{ backgroundColor: "var(--bg-surface)" }}
+          title={t("saveSearch")}
+        >
+          <Bookmark size={16} />
+        </button>
+
         {/* View mode toggle: 1-wide / 2-wide / Map */}
         <ViewModeToggle value={viewMode} onChange={setViewMode} />
       </div>
@@ -330,6 +343,14 @@ export default function FeedPage() {
           )}
         </>
       )}
+
+      <SaveSearchModal
+        open={showSaveSearch}
+        onClose={() => setShowSaveSearch(false)}
+        onSaved={() => {}}
+        searchQuery={activeSearch}
+        filters={filters}
+      />
     </div>
   );
 }

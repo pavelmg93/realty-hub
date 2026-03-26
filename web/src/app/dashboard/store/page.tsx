@@ -14,8 +14,9 @@ import FeedFilters, {
 import DynamicFeedMap from "@/components/map/DynamicFeedMap";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { LAYOUT } from "@/lib/layout-constants";
-import { Plus, Filter } from "lucide-react";
+import { Plus, Filter, Bookmark } from "lucide-react";
 import Link from "next/link";
+import SaveSearchModal from "@/components/feed/SaveSearchModal";
 
 type Tab = "my_listings" | "favorites";
 
@@ -31,6 +32,7 @@ export default function StorePage() {
   const [activeSearch, setActiveSearch] = useState("");
   const [filters, setFilters] = useState<FeedFilterValues>({ ...DEFAULT_FILTERS });
   const [showFilters, setShowFilters] = useState(false);
+  const [showSaveSearch, setShowSaveSearch] = useState(false);
   const restoreScrollRef = useRef<number | null>(null);
 
   // Restore state from localStorage
@@ -220,6 +222,16 @@ export default function StorePage() {
         >
           <Filter size={16} /> {t("filter")}
         </button>
+        {/* Save Search */}
+        <button
+          type="button"
+          onClick={() => setShowSaveSearch(true)}
+          className="inline-flex flex-none items-center gap-1.5 px-3 py-2 text-sm rounded-lg border border-[var(--border)] text-[var(--text-secondary)] hover:text-[var(--orange)] transition-colors"
+          style={{ backgroundColor: "var(--bg-surface)" }}
+          title={t("saveSearch")}
+        >
+          <Bookmark size={16} />
+        </button>
         <ViewModeToggle value={viewMode} onChange={setViewMode} />
       </div>
 
@@ -309,6 +321,14 @@ export default function StorePage() {
           ))}
         </div>
       )}
+
+      <SaveSearchModal
+        open={showSaveSearch}
+        onClose={() => setShowSaveSearch(false)}
+        onSaved={() => {}}
+        searchQuery={activeSearch}
+        filters={filters}
+      />
     </div>
   );
 }

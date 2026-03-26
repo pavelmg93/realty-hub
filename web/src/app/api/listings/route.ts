@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import pool from "@/lib/db";
 import { getAuthFromCookies } from "@/lib/auth";
+import { parseVietnamesePrice } from "@/lib/parse-price";
 import { listingSchema } from "@/lib/validation";
 import { generateTitleStandardized } from "@/lib/constants";
 import { notifyNewListing } from "@/lib/notifications";
@@ -99,15 +100,17 @@ export async function GET(request: NextRequest) {
           paramIndex++;
         }
       } else if (filter.type === "gte") {
-        const num = parseFloat(value);
-        if (!isNaN(num)) {
+        const isPrice = filter.key === "price_min";
+        const num = isPrice ? parseVietnamesePrice(value) : parseFloat(value);
+        if (num !== null && !isNaN(num)) {
           conditions.push(`${filter.column} >= $${paramIndex}`);
           params.push(num);
           paramIndex++;
         }
       } else if (filter.type === "lte") {
-        const num = parseFloat(value);
-        if (!isNaN(num)) {
+        const isPrice = filter.key === "price_max";
+        const num = isPrice ? parseVietnamesePrice(value) : parseFloat(value);
+        if (num !== null && !isNaN(num)) {
           conditions.push(`${filter.column} <= $${paramIndex}`);
           params.push(num);
           paramIndex++;

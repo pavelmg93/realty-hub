@@ -3,8 +3,8 @@
 **Source of truth for all table definitions.**
 Update this file whenever a migration is applied.
 
-**Current migration level: 012**
-**Last updated: 2026-03-16 (Session 14)**
+**Current migration level: 023**
+**Last updated: 2026-03-26 (Session 39)**
 
 ---
 
@@ -25,6 +25,8 @@ Update this file whenever a migration is applied.
 | `person_listings` | Person ↔ listing associations |
 | `deals` | Deal pipeline records |
 | `deal_events` | Audit log of deal stage changes and events |
+| `saved_searches` | Saved filter/search presets per agent |
+| `saved_search_persons` | Saved search ↔ person associations |
 | `nha_trang_wards` | Reference: Nha Trang ward names |
 | `nha_trang_streets` | Reference: Nha Trang street names |
 
@@ -311,6 +313,33 @@ Audit log for deals — every stage change, note, call, viewing, offer, etc.
 | `notes` | text | |
 | `created_by_agent_id` | integer FK→agents | SET NULL on delete |
 | `created_at` | timestamp with time zone | |
+
+---
+
+## saved_searches
+
+Saved search presets. Agents save filter + search combinations for quick access.
+
+| Column | Type | Notes |
+|---|---|---|
+| `id` | integer PK | auto |
+| `agent_id` | integer FK→agents | CASCADE delete |
+| `name` | varchar(200) NOT NULL | display name |
+| `query` | text | search text |
+| `filters` | jsonb | filter key-value pairs |
+| `created_at` | timestamp with time zone | |
+| `updated_at` | timestamp with time zone | |
+
+---
+
+## saved_search_persons
+
+Junction table linking saved searches to CRM persons (buyers/sellers).
+
+| Column | Type | Notes |
+|---|---|---|
+| `saved_search_id` | integer FK→saved_searches | CASCADE delete — composite PK |
+| `person_id` | uuid FK→persons | CASCADE delete — composite PK |
 
 ---
 

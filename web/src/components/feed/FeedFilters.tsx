@@ -187,10 +187,11 @@ export default function FeedFilters({
             {t("minPrice")}
           </label>
           <input
-            type="number"
+            type="text"
+            inputMode="decimal"
             value={filters.price_min}
             onChange={(e) => set("price_min", e.target.value)}
-            placeholder="0"
+            placeholder="vd. 400tr, 2ty"
             className="w-full rounded-lg px-3 py-2.5 text-base border border-[var(--border)] bg-[var(--bg-elevated)] text-[var(--text-primary)] focus:outline-none focus:border-[var(--orange)]"
           />
         </div>
@@ -199,10 +200,11 @@ export default function FeedFilters({
             {t("maxPrice")}
           </label>
           <input
-            type="number"
+            type="text"
+            inputMode="decimal"
             value={filters.price_max}
             onChange={(e) => set("price_max", e.target.value)}
-            placeholder={t("any")}
+            placeholder="vd. 5ty, 900tr"
             className="w-full rounded-lg px-3 py-2.5 text-base border border-[var(--border)] bg-[var(--bg-elevated)] text-[var(--text-primary)] focus:outline-none focus:border-[var(--orange)]"
           />
         </div>
