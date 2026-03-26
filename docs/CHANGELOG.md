@@ -6,6 +6,29 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Session 36 — 2026-03-26 — Audit S32-S35, Filters Redesign
+
+#### Verified (S32-S35 audit via Linear MCP)
+- **REA-95**: Grid/Map toolbar always visible on feed + listings pages ✓
+- **REA-99**: 1-wide card uses larger fonts (text-base), 40/60 layout ✓
+- **REA-94**: Map popup uses standardized title + tiny card layout ✓
+- **REA-96**: Full-text search with tsvector + GIN + unaccent on both APIs ✓
+- **REA-98**: Feed ordering by status flag, hides deposit/sold/nfs unless favorited ✓
+- **REA-93**: Google Maps link out + paste URL with coord extraction ✓
+- **REA-97**: My Store page with two tabs, center bottom nav position ✓
+- **REA-14**: 1080×1350 share card + Zalo/Facebook copy text ✓
+- **REA-12**: Gemini Vision OCR → field population ✓
+- **REA-21**: Sliding window rate limiter on all /api/ routes ✓
+- **REA-20**: In-app notifications (table, API, bell icon, page) ✓ — FCM push NOT implemented
+
+#### Added
+- **REA-100: Filters display update** — Removed Legal filter. Price Min-Max moved to top with larger inputs (text-base, py-2.5). Added Bathrooms filter (num_bathrooms_min). Ward Old & New side-by-side. Area Min-Max in dedicated row. Added ward_new and num_bathrooms_min to both feed and listings API routes.
+
+#### Changed
+- `FeedFilterValues` interface expanded with `ward_new` and `num_bathrooms_min` fields
+
+---
+
 ### Session 35 — 2026-03-25 — API Rate Limiting, Notification System
 
 #### Added

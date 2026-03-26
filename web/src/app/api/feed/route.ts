@@ -79,6 +79,8 @@ export async function GET(request: NextRequest) {
       { key: "area_min", column: "pl.area_m2", type: "gte" },
       { key: "area_max", column: "pl.area_m2", type: "lte" },
       { key: "num_bedrooms_min", column: "pl.num_bedrooms", type: "gte" },
+      { key: "num_bathrooms_min", column: "pl.num_bathrooms", type: "gte" },
+      { key: "ward_new", column: "pl.ward_new", type: "eq" },
       { key: "corner_lot", column: "pl.corner_lot", type: "bool" },
       { key: "has_elevator", column: "pl.has_elevator", type: "bool" },
       { key: "negotiable", column: "pl.negotiable", type: "bool" },

@@ -36,6 +36,8 @@ const LISTING_FILTERS: {
   { key: "area_min", column: "area_m2", type: "gte" },
   { key: "area_max", column: "area_m2", type: "lte" },
   { key: "num_bedrooms_min", column: "num_bedrooms", type: "gte" },
+  { key: "num_bathrooms_min", column: "num_bathrooms", type: "gte" },
+  { key: "ward_new", column: "ward_new", type: "eq" },
   { key: "corner_lot", column: "corner_lot", type: "bool" },
   { key: "has_elevator", column: "has_elevator", type: "bool" },
   { key: "negotiable", column: "negotiable", type: "bool" },

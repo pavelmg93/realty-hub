@@ -1,65 +1,49 @@
-# Multi-Session SCOPE — S32 through S35
+# Session 36 — Audit + Fix Pass (S32-S35 Verification)
+
+**Date:** 2026-03-26
 
 **For each task, run `get_issue REA-XX` via Linear MCP to read the full spec before coding.**
 
 > **⚠️ NO SUBAGENTS. Execute all tasks SEQUENTIALLY.**
-> **After each session block: commit, create session log, update CHANGELOG, recommend commit message, then STOP.**
-> **Do NOT continue to the next session block. User will push, deploy, test, and restart.**
+> **This is a verification + fix session.** Claude Code ran S32-S35 without Linear MCP.
+> For each issue below, READ the Linear spec, COMPARE against what's in the code, and FIX any gaps.
 
 ---
 
-## Session 32 — Docs + Quick UI Fixes (low risk, warm-up)
+## Part 1 — Audit S32-S35 issues (verify and fix)
 
-1. [x] **[REA-92] Docs: update all references from Next.js 15 → 16.1.6** — grep repo, update CLAUDE.md, ARCHITECTURE.md, README.md, add Suspense rule to Design Rules
-2. [x] **[REA-95] Grid 1w/2w / Map buttons always visible** — toolbar strip (Search, Filter, Grid toggles, Map) must not change when switching view mode
-3. [x] **[REA-99] 1-wide card needs larger fonts** — maximize horizontal/vertical space, larger title, larger agent info
-4. [x] **[REA-94] Listing in Map View — title fix** — map popups should use mini listing card with standardized two-line title
+For each issue: `get_issue REA-XX`, read spec, verify code matches spec, fix if not.
 
-**After completing S32: commit, session log, STOP.**
+### S32 (UI Polish)
+* [x] **[REA-95] Verify: Grid buttons always visible** — check feed + listings pages
+* [x] **[REA-99] Verify: 1-wide card fonts** — check both ListingCard components
+* [x] **[REA-94] Verify: Map popup titles** — check FeedMap popup rendering
 
----
+### S33 (Search + Feed + GMaps)
+* [x] **[REA-96] Verify: Full-text search** — check migration 020, API routes, test search locally
+* [x] **[REA-98] Verify: Feed auto-groups by flag** — check ORDER BY in feed API
+* [x] **[REA-93] Verify: Google Maps in/out** — check detail view link + form paste field
 
-## Session 33 — Search + Feed Sorting (DB migration session)
+### S34 (My Store + Share + OCR)
+* [x] **[REA-97] Verify: My Store page** — check /dashboard/store, bottom nav, tabs
+* [x] **[REA-14] Verify: Share card image** — check share-card.ts, download button
+* [x] **[REA-12] Verify: Screenshot OCR** — check Gemini Vision call, UI button
 
-1. [x] **[REA-96] Search has to work now** — tsvector + GIN index, unaccent extension, wire to /api/feed and /api/listings, debounced UI. Supersedes REA-13.
-2. [x] **[REA-98] Feed auto-groups by flag** — just_listed first (by date), then price changes, then selling. Hide deposit/sold/not_for_sale unless favorited.
-3. [x] **[REA-93] Google Maps link in and out** — "Open in Google Maps" button on listing detail, paste Google Maps link field on add/edit form to extract lat/lng
-
-**After completing S33: commit, session log, STOP.**
-
----
-
-## Session 34 — My Store + Listing Export (feature session)
-
-1. [x] **[REA-97] My Store = My Listings + Favorites** — center bottom nav button "My Store" with two tabs: My Listings, My Favorites
-2. [x] **[REA-14] Listing export: share card image + copy text v1** — generate 1080×1350 share image, one-click copy formatted text for Zalo/Facebook
-3. [x] **[REA-12] Gemini parse: image/screenshot OCR parsing** — upload screenshot → Gemini Vision extracts text → parse fields
-
-**After completing S34: commit, session log, STOP.**
+### S35 (Infra)
+* [x] **[REA-21] Verify: Rate limiting** — check middleware, rate-limit.ts
+* [x] **[REA-20] Verify: Notifications** — check migration 021, API, TopBar bell, notifications page (NOTE: FCM push not implemented, in-app only)
 
 ---
 
-## Session 35 — Infrastructure (if time permits)
+## Part 2 — New issues from testing
 
-1. [x] **[REA-21] API rate limiting** — rate limit all API endpoints
-2. [ ] **[REA-18] Migrate photo storage to GCS** — skipped (requires GCS bucket + credentials setup)
-3. [x] **[REA-20] Notification system** — new messages, new listings in agent's area, FCM push
-
-**After completing S35: commit, session log, STOP.**
+* [x] **[REA-100] Filters display update** — hide Legal, Price Min-Max at top and bigger, Bedrooms & Bathrooms, Area Min-Max, Ward Old & New
 
 ---
 
-## Excluded (manual / blocked)
+## Rules
 
-- REA-8: Create 10 pilot accounts — needs names from FIDT, manual on VM
-
----
-
-## Rules for unattended execution
-
-1. **Sequential only.** No subagents, no worktrees.
-2. **Commit after each session block.** Do not batch across sessions.
-3. **Stop after each block.** Print "Session NN complete. Recommended commit: ..."
-4. **If a task fails or seems risky,** skip it, add a comment on the Linear issue, and move to the next task. Do not block the session.
-5. **TypeScript must be clean** (`cd web && npx tsc --noEmit`) before committing.
-6. **Do NOT push.** User handles push and deploy.
+1. For each audit item: read Linear spec → check actual code → if mismatch, fix it
+2. If something works correctly, skip it — don't rewrite working code
+3. Log any issues found as Linear comments on the relevant issue
+4. At end, create session log with what was verified vs what was fixed

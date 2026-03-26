@@ -6,10 +6,34 @@ import {
 import { useLanguage } from "@/contexts/LanguageContext";
 import { FIELD_VALUE_LABELS } from "@/lib/i18n";
 
+const NEW_WARD_OPTIONS: Record<string, string> = {
+  "Van Thanh": "Vạn Thạnh",
+  "Loc Tho": "Lộc Thọ",
+  "Vinh Nguyen": "Vĩnh Nguyên",
+  "Tan Tien": "Tân Tiến",
+  "Phuoc Hoa": "Phước Hòa",
+  "Vinh Hoa": "Vĩnh Hòa",
+  "Vinh Hai": "Vĩnh Hải",
+  "Vinh Phuoc": "Vĩnh Phước",
+  "Vinh Tho": "Vĩnh Thọ",
+  "Vinh Luong": "Vĩnh Lương",
+  "Vinh Phuong": "Vĩnh Phương",
+  "Ngoc Hiep": "Ngọc Hiệp",
+  "Phuong Sai": "Phương Sài",
+  "Vinh Ngoc": "Vĩnh Ngọc",
+  "Vinh Thanh": "Vĩnh Thạnh",
+  "Vinh Hiep": "Vĩnh Hiệp",
+  "Vinh Trung": "Vĩnh Trung",
+  "Phuoc Hai": "Phước Hải",
+  "Phuoc Long": "Phước Long",
+  "Vinh Truong": "Vĩnh Trường",
+};
+
 export interface FeedFilterValues {
   property_type: string;
   transaction_type: string;
   ward: string;
+  ward_new: string;
   status: string;
   legal_status: string;
   direction: string;
@@ -22,6 +46,7 @@ export interface FeedFilterValues {
   area_min: string;
   area_max: string;
   num_bedrooms_min: string;
+  num_bathrooms_min: string;
   corner_lot: string;
   has_elevator: string;
   negotiable: string;
@@ -35,6 +60,7 @@ export const DEFAULT_FILTERS: FeedFilterValues = {
   property_type: "",
   transaction_type: "",
   ward: "",
+  ward_new: "",
   status: "",
   legal_status: "",
   direction: "",
@@ -47,6 +73,7 @@ export const DEFAULT_FILTERS: FeedFilterValues = {
   area_min: "",
   area_max: "",
   num_bedrooms_min: "",
+  num_bathrooms_min: "",
   corner_lot: "",
   has_elevator: "",
   negotiable: "",
@@ -121,7 +148,6 @@ export default function FeedFilters({
   const propertyTypeOptions = toOptions("property_type");
   const transactionTypeOptions = toOptions("transaction_type");
   const statusOptions = toOptions("status");
-  const legalStatusOptions = toOptions("legal_status");
   const directionOptions = toOptions("direction");
   const structureTypeOptions = toOptions("structure_type");
   const accessRoadOptions = toOptions("access_road");
@@ -154,6 +180,111 @@ export default function FeedFilters({
         </div>
       </div>
 
+      {/* Price range — prominent at top */}
+      <div className="grid grid-cols-2 gap-3 mb-3">
+        <div>
+          <label className="block text-xs font-medium mb-1 text-[var(--text-secondary)]">
+            {t("minPrice")}
+          </label>
+          <input
+            type="number"
+            value={filters.price_min}
+            onChange={(e) => set("price_min", e.target.value)}
+            placeholder="0"
+            className="w-full rounded-lg px-3 py-2.5 text-base border border-[var(--border)] bg-[var(--bg-elevated)] text-[var(--text-primary)] focus:outline-none focus:border-[var(--orange)]"
+          />
+        </div>
+        <div>
+          <label className="block text-xs font-medium mb-1 text-[var(--text-secondary)]">
+            {t("maxPrice")}
+          </label>
+          <input
+            type="number"
+            value={filters.price_max}
+            onChange={(e) => set("price_max", e.target.value)}
+            placeholder={t("any")}
+            className="w-full rounded-lg px-3 py-2.5 text-base border border-[var(--border)] bg-[var(--bg-elevated)] text-[var(--text-primary)] focus:outline-none focus:border-[var(--orange)]"
+          />
+        </div>
+      </div>
+
+      {/* Bedrooms & Bathrooms */}
+      <div className="grid grid-cols-2 gap-3 mb-3">
+        <div>
+          <label className="block text-xs font-medium mb-1 text-[var(--text-secondary)]">
+            {t("minBeds")}
+          </label>
+          <input
+            type="number"
+            value={filters.num_bedrooms_min}
+            onChange={(e) => set("num_bedrooms_min", e.target.value)}
+            placeholder={t("any")}
+            min="0"
+            className="w-full rounded-lg px-3 py-2 text-sm border border-[var(--border)] bg-[var(--bg-elevated)] text-[var(--text-primary)] focus:outline-none focus:border-[var(--orange)]"
+          />
+        </div>
+        <div>
+          <label className="block text-xs font-medium mb-1 text-[var(--text-secondary)]">
+            {t("minBaths")}
+          </label>
+          <input
+            type="number"
+            value={filters.num_bathrooms_min}
+            onChange={(e) => set("num_bathrooms_min", e.target.value)}
+            placeholder={t("any")}
+            min="0"
+            className="w-full rounded-lg px-3 py-2 text-sm border border-[var(--border)] bg-[var(--bg-elevated)] text-[var(--text-primary)] focus:outline-none focus:border-[var(--orange)]"
+          />
+        </div>
+      </div>
+
+      {/* Area range */}
+      <div className="grid grid-cols-2 gap-3 mb-3">
+        <div>
+          <label className="block text-xs font-medium mb-1 text-[var(--text-secondary)]">
+            {t("minArea")}
+          </label>
+          <input
+            type="number"
+            value={filters.area_min}
+            onChange={(e) => set("area_min", e.target.value)}
+            placeholder="0"
+            className="w-full rounded-lg px-3 py-2 text-sm border border-[var(--border)] bg-[var(--bg-elevated)] text-[var(--text-primary)] focus:outline-none focus:border-[var(--orange)]"
+          />
+        </div>
+        <div>
+          <label className="block text-xs font-medium mb-1 text-[var(--text-secondary)]">
+            {t("maxArea")}
+          </label>
+          <input
+            type="number"
+            value={filters.area_max}
+            onChange={(e) => set("area_max", e.target.value)}
+            placeholder={t("any")}
+            className="w-full rounded-lg px-3 py-2 text-sm border border-[var(--border)] bg-[var(--bg-elevated)] text-[var(--text-primary)] focus:outline-none focus:border-[var(--orange)]"
+          />
+        </div>
+      </div>
+
+      {/* Ward Old & New */}
+      <div className="grid grid-cols-2 gap-3 mb-3">
+        <FilterSelect
+          label={t("wardOld")}
+          value={filters.ward}
+          options={Object.fromEntries(NHA_TRANG_WARDS.map((w) => [w, w]))}
+          onChange={(v) => set("ward", v)}
+          allLabel={t("all")}
+        />
+        <FilterSelect
+          label={t("wardNew")}
+          value={filters.ward_new}
+          options={NEW_WARD_OPTIONS}
+          onChange={(v) => set("ward_new", v)}
+          allLabel={t("all")}
+        />
+      </div>
+
+      {/* Other filters — no Legal */}
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2">
         <FilterSelect
           label={t("property")}
@@ -170,24 +301,10 @@ export default function FeedFilters({
           allLabel={t("all")}
         />
         <FilterSelect
-          label={t("ward")}
-          value={filters.ward}
-          options={Object.fromEntries(NHA_TRANG_WARDS.map((w) => [w, w]))}
-          onChange={(v) => set("ward", v)}
-          allLabel={t("all")}
-        />
-        <FilterSelect
           label={t("status")}
           value={filters.status}
           options={statusOptions}
           onChange={(v) => set("status", v)}
-          allLabel={t("all")}
-        />
-        <FilterSelect
-          label={t("legal")}
-          value={filters.legal_status}
-          options={legalStatusOptions}
-          onChange={(v) => set("legal_status", v)}
           allLabel={t("all")}
         />
         <FilterSelect
@@ -239,67 +356,6 @@ export default function FeedFilters({
             allLabel={t("all")}
           />
         )}
-        <div>
-          <label className="block text-xs mb-0.5 text-[var(--text-secondary)]">
-            {t("minPrice")}
-          </label>
-          <input
-            type="number"
-            value={filters.price_min}
-            onChange={(e) => set("price_min", e.target.value)}
-            placeholder="0"
-            className="w-full rounded-lg px-2 py-1.5 text-sm"
-          />
-        </div>
-        <div>
-          <label className="block text-xs mb-0.5 text-[var(--text-secondary)]">
-            {t("maxPrice")}
-          </label>
-          <input
-            type="number"
-            value={filters.price_max}
-            onChange={(e) => set("price_max", e.target.value)}
-            placeholder={t("any")}
-            className="w-full rounded-lg px-2 py-1.5 text-sm"
-          />
-        </div>
-        <div>
-          <label className="block text-xs mb-0.5 text-[var(--text-secondary)]">
-            {t("minArea")}
-          </label>
-          <input
-            type="number"
-            value={filters.area_min}
-            onChange={(e) => set("area_min", e.target.value)}
-            placeholder="0"
-            className="w-full rounded-lg px-2 py-1.5 text-sm"
-          />
-        </div>
-        <div>
-          <label className="block text-xs mb-0.5 text-[var(--text-secondary)]">
-            {t("maxArea")}
-          </label>
-          <input
-            type="number"
-            value={filters.area_max}
-            onChange={(e) => set("area_max", e.target.value)}
-            placeholder={t("any")}
-            className="w-full rounded-lg px-2 py-1.5 text-sm"
-          />
-        </div>
-        <div>
-          <label className="block text-xs mb-0.5 text-[var(--text-secondary)]">
-            {t("minBeds")}
-          </label>
-          <input
-            type="number"
-            value={filters.num_bedrooms_min}
-            onChange={(e) => set("num_bedrooms_min", e.target.value)}
-            placeholder={t("any")}
-            min="0"
-            className="w-full rounded-lg px-2 py-1.5 text-sm"
-          />
-        </div>
         <div className="flex flex-col gap-2 justify-end">
           <label className="flex items-center gap-2 text-xs cursor-pointer text-[var(--text-secondary)]">
             <input
