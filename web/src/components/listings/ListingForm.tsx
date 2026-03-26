@@ -200,13 +200,19 @@ export default function ListingForm({ existing, initialData }: Props) {
     setParsing(true);
     setParseError(null);
     try {
-      const base64 = await new Promise<string>((resolve) => {
+      const base64 = await new Promise<string>((resolve, reject) => {
         const reader = new FileReader();
         reader.onload = () => {
           const result = reader.result as string;
           // Strip the data URL prefix (e.g., "data:image/jpeg;base64,")
-          resolve(result.split(",")[1]);
+          const data = result.split(",")[1];
+          if (!data) {
+            reject(new Error("Failed to read file as base64"));
+            return;
+          }
+          resolve(data);
         };
+        reader.onerror = () => reject(new Error("FileReader error"));
         reader.readAsDataURL(file);
       });
       const res = await fetch("/api/ai/parse-listing", {
@@ -215,10 +221,16 @@ export default function ListingForm({ existing, initialData }: Props) {
         body: JSON.stringify({ image: base64, mimeType: file.type || "image/jpeg" }),
       });
       if (!res.ok) {
-        setParseError(t("parseFailed"));
+        const errBody = await res.json().catch(() => ({}));
+        console.error("Screenshot OCR failed:", res.status, errBody);
+        setParseError(errBody.error || t("parseFailed"));
         return;
       }
       const data: AIResult = await res.json();
+      if (!data.fields) {
+        setParseError(t("parseFailed"));
+        return;
+      }
       setAiResult(data);
       const merged = { ...formData };
       for (const [k, v] of Object.entries(data.fields)) {

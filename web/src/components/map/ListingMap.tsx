@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useCallback } from "react";
-import { MapContainer, TileLayer, Marker, Popup, useMapEvents } from "react-leaflet";
+import { useState, useCallback, useEffect } from "react";
+import { MapContainer, TileLayer, Marker, Popup, useMapEvents, useMap } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 
@@ -43,6 +43,14 @@ function ClickHandler({
   return null;
 }
 
+function MapUpdater({ center, zoom }: { center: [number, number]; zoom: number }) {
+  const map = useMap();
+  useEffect(() => {
+    map.setView(center, zoom);
+  }, [map, center[0], center[1], zoom]);
+  return null;
+}
+
 export default function ListingMap({
   latitude,
   longitude,
@@ -60,6 +68,13 @@ export default function ListingMap({
   const [markerPos, setMarkerPos] = useState<[number, number] | null>(
     hasCoords ? [latitude, longitude] : null,
   );
+
+  // Sync marker when props change (e.g., Google Maps URL paste)
+  useEffect(() => {
+    if (latitude != null && longitude != null) {
+      setMarkerPos([latitude, longitude]);
+    }
+  }, [latitude, longitude]);
 
   const handleClick = useCallback(
     (lat: number, lng: number) => {
@@ -81,6 +96,7 @@ export default function ListingMap({
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         />
+        <MapUpdater center={center} zoom={zoom} />
         {interactive && <ClickHandler onLocationChange={handleClick} />}
         {markerPos && (
           <Marker position={markerPos}>

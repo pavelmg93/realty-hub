@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback, useRef, type KeyboardEvent } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Listing } from "@/lib/types";
@@ -28,6 +28,7 @@ export default function ListingsPage() {
   const [viewMode, setViewMode] = useState<ViewMode>("grid");
   const [cols, setCols] = useState<GridCols>(2);
   const [searchQuery, setSearchQuery] = useState("");
+  const [activeSearch, setActiveSearch] = useState("");
   const restoreScrollRef = useRef<number | null>(null);
 
   // Restore view mode from localStorage
@@ -60,14 +61,13 @@ export default function ListingsPage() {
     } catch {}
   }, []);
 
-  const fetchListings = useCallback(async (q?: string) => {
+  const fetchListings = useCallback(async () => {
     setLoading(true);
     try {
       const params = new URLSearchParams();
       params.set("archived", "false");
 
-      const query = q !== undefined ? q : searchQuery;
-      if (query.trim()) params.set("q", query.trim());
+      if (activeSearch.trim()) params.set("q", activeSearch.trim());
 
       params.set("sort", filters.sort);
       params.set("order", filters.order);
@@ -84,7 +84,7 @@ export default function ListingsPage() {
     } finally {
       setLoading(false);
     }
-  }, [filters, searchQuery]);
+  }, [filters, activeSearch]);
 
   useEffect(() => {
     fetchListings();
@@ -101,9 +101,20 @@ export default function ListingsPage() {
     }
   }, [loading]);
 
-  const handleSearchChange = (value: string) => {
-    setSearchQuery(value);
-    fetchListings(value);
+  const handleSearchSubmit = () => {
+    setActiveSearch(searchQuery);
+  };
+
+  const handleSearchClear = () => {
+    setSearchQuery("");
+    setActiveSearch("");
+  };
+
+  const handleSearchKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      handleSearchSubmit();
+    }
   };
 
   const handleApplyFilters = () => fetchListings();
@@ -149,14 +160,15 @@ export default function ListingsPage() {
           <input
             type="text"
             value={searchQuery}
-            onChange={(e) => handleSearchChange(e.target.value)}
-            className="w-full pl-9 pr-4 py-2 text-sm rounded-lg border border-[var(--border)] bg-[var(--bg-surface)] text-[var(--text-primary)] placeholder-[var(--text-muted)] focus:outline-none focus:border-[var(--orange)]"
+            onChange={(e) => setSearchQuery(e.target.value)}
+            onKeyDown={handleSearchKeyDown}
+            className="w-full pl-9 pr-8 py-2 text-sm rounded-lg border border-[var(--border)] bg-[var(--bg-surface)] text-[var(--text-primary)] placeholder-[var(--text-muted)] focus:outline-none focus:border-[var(--orange)]"
             placeholder={t("searchListings") || "Tìm kiếm địa chỉ, phường, mô tả..."}
           />
           {searchQuery && (
             <button
               type="button"
-              onClick={() => handleSearchChange("")}
+              onClick={handleSearchClear}
               className="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)] hover:text-[var(--text-primary)]"
             >
               &times;

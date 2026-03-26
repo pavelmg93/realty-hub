@@ -47,11 +47,10 @@ export async function GET(request: NextRequest) {
 
     if (q) {
       conditions.push(`pl.search_vector @@ to_tsquery('simple', unaccent($${paramIndex}))`);
-      // Convert search term to tsquery format (prefix match, handle spaces)
+      // Convert search term to tsquery format (whole-word match)
       const tsQuery = q
         .split(/\s+/)
         .filter(Boolean)
-        .map((w) => w + ":*")
         .join(" & ");
       params.push(tsQuery);
       paramIndex++;

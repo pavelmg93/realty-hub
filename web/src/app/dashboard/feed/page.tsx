@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useEffect, useRef } from "react";
+import { useState, useCallback, useEffect, useRef, type KeyboardEvent } from "react";
 import { useRouter } from "next/navigation";
 import { Listing } from "@/lib/types";
 import { useAuth } from "@/hooks/useAuth";
@@ -43,8 +43,8 @@ export default function FeedPage() {
   const [cols, setCols] = useState<GridCols>(2);
   const [agents, setAgents] = useState<{ id: number; first_name: string | null; username: string | null }[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
+  const [activeSearch, setActiveSearch] = useState("");
   const [city, setCity] = useState("Nha Trang");
-  const searchDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const restoreScrollRef = useRef<number | null>(null);
 
   // Restore view mode from localStorage
@@ -85,7 +85,7 @@ export default function FeedPage() {
   }, []);
 
   const fetchFeed = useCallback(
-    async (page = 1, q?: string) => {
+    async (page = 1) => {
       setLoading(true);
       try {
         const params = new URLSearchParams();
@@ -93,8 +93,7 @@ export default function FeedPage() {
         params.set("limit", viewMode === "map" ? "200" : "20");
         params.set("sort", filters.sort);
         params.set("order", filters.order);
-        const query = q !== undefined ? q : searchQuery;
-        if (query.trim()) params.set("q", query.trim());
+        if (activeSearch.trim()) params.set("q", activeSearch.trim());
         if (city) params.set("city", city);
         for (const [key, value] of Object.entries(filters)) {
           if (value && key !== "sort" && key !== "order") {
@@ -111,7 +110,7 @@ export default function FeedPage() {
         setLoading(false);
       }
     },
-    [filters, viewMode, searchQuery, city]
+    [filters, viewMode, activeSearch, city]
   );
 
   useEffect(() => {
@@ -129,13 +128,20 @@ export default function FeedPage() {
     }
   }, [loading]);
 
-  // Debounce search — when searchQuery changes, wait 300ms then fetch
-  const handleSearchChange = (value: string) => {
-    setSearchQuery(value);
-    if (searchDebounceRef.current) clearTimeout(searchDebounceRef.current);
-    searchDebounceRef.current = setTimeout(() => {
-      fetchFeed(1, value);
-    }, 300);
+  const handleSearchSubmit = () => {
+    setActiveSearch(searchQuery);
+  };
+
+  const handleSearchClear = () => {
+    setSearchQuery("");
+    setActiveSearch("");
+  };
+
+  const handleSearchKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      handleSearchSubmit();
+    }
   };
 
   // Save scroll position before navigating to listing detail
@@ -189,14 +195,15 @@ export default function FeedPage() {
           <input
             type="text"
             value={searchQuery}
-            onChange={(e) => handleSearchChange(e.target.value)}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            onKeyDown={handleSearchKeyDown}
             placeholder={t("searchListings") || "Tìm kiếm địa chỉ, phường, mô tả..."}
-            className="w-full pl-9 pr-4 py-2 text-sm rounded-lg border border-[var(--border)] bg-[var(--bg-surface)] text-[var(--text-primary)] placeholder-[var(--text-muted)] focus:outline-none focus:border-[var(--orange)]"
+            className="w-full pl-9 pr-8 py-2 text-sm rounded-lg border border-[var(--border)] bg-[var(--bg-surface)] text-[var(--text-primary)] placeholder-[var(--text-muted)] focus:outline-none focus:border-[var(--orange)]"
           />
           {searchQuery && (
             <button
               type="button"
-              onClick={() => handleSearchChange("")}
+              onClick={handleSearchClear}
               className="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)] hover:text-[var(--text-primary)]"
             >
               &times;
@@ -234,7 +241,7 @@ export default function FeedPage() {
       {viewMode !== "map" && !loading && (
         <div className="mb-3 text-sm text-[var(--text-muted)]">
           {pagination.total} {t("listings")}
-          {searchQuery && <span className="ml-1 text-[var(--orange)]">"{searchQuery}"</span>}
+          {activeSearch && <span className="ml-1 text-[var(--orange)]">"{activeSearch}"</span>}
         </div>
       )}
 
@@ -271,11 +278,11 @@ export default function FeedPage() {
       ) : listings.length === 0 ? (
         <div className="text-center py-16">
           <p className="text-[var(--text-muted)] mb-2">{t("noResults")}</p>
-          {(searchQuery || Object.values(filters).some(v => v && v !== "created_at" && v !== "desc")) && (
+          {(activeSearch || Object.values(filters).some(v => v && v !== "created_at" && v !== "desc")) && (
             <button
               type="button"
               onClick={() => {
-                handleSearchChange("");
+                handleSearchClear();
                 handleResetFilters();
               }}
               className="text-sm text-[var(--orange)] hover:underline"

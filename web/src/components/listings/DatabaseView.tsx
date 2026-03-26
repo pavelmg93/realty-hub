@@ -210,15 +210,45 @@ function LocationPicker({ data, onChange }: { data: ListingInput; onChange: (u: 
     }
   };
 
-  const handleGmapsLinkChange = (value: string) => {
+  const handleGmapsLinkChange = async (value: string) => {
     setGmapsLink(value);
     setGmapsStatus("idle");
     if (!value.trim()) return;
+
+    // Try extracting coords from the URL directly
     const coords = extractCoordsFromGoogleMapsUrl(value);
     if (coords && coords.lat >= -90 && coords.lat <= 90 && coords.lng >= -180 && coords.lng <= 180) {
       onChange({ latitude: coords.lat, longitude: coords.lng });
       setGmapsStatus("success");
-    } else if (value.includes("google") || value.includes("goo.gl") || value.includes("maps")) {
+      return;
+    }
+
+    // For goo.gl / maps.app short links, resolve server-side then extract
+    if (value.includes("goo.gl") || value.includes("maps.app")) {
+      setGmapsStatus("idle");
+      try {
+        const res = await fetch("/api/resolve-url", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ url: value.trim() }),
+        });
+        if (res.ok) {
+          const { resolvedUrl } = await res.json();
+          const resolved = extractCoordsFromGoogleMapsUrl(resolvedUrl);
+          if (resolved && resolved.lat >= -90 && resolved.lat <= 90 && resolved.lng >= -180 && resolved.lng <= 180) {
+            onChange({ latitude: resolved.lat, longitude: resolved.lng });
+            setGmapsStatus("success");
+            return;
+          }
+        }
+      } catch {
+        // fall through to error
+      }
+      setGmapsStatus("error");
+      return;
+    }
+
+    if (value.includes("google") || value.includes("maps")) {
       setGmapsStatus("error");
     }
   };

@@ -68,10 +68,10 @@ export async function GET(request: NextRequest) {
 
     if (q) {
       conditions.push(`search_vector @@ to_tsquery('simple', unaccent($${paramIndex}))`);
+      // Whole-word match only
       const tsQuery = q
         .split(/\s+/)
         .filter(Boolean)
-        .map((w) => w + ":*")
         .join(" & ");
       params.push(tsQuery);
       paramIndex++;

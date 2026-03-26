@@ -1,49 +1,52 @@
-# Session 36 — Audit + Fix Pass (S32-S35 Verification)
+# Sessions 37-39 — Bug Fixes + UI Redesign + Features
 
 **Date:** 2026-03-26
 
 **For each task, run `get_issue REA-XX` via Linear MCP to read the full spec before coding.**
 
 > **⚠️ NO SUBAGENTS. Execute all tasks SEQUENTIALLY.**
-> **This is a verification + fix session.** Claude Code ran S32-S35 without Linear MCP.
-> For each issue below, READ the Linear spec, COMPARE against what's in the code, and FIX any gaps.
+> **Commit after each session block. Do NOT continue to next block without user push/deploy.**
 
 ---
 
-## Part 1 — Audit S32-S35 issues (verify and fix)
+## Session 37 — Critical Bug Fixes
 
-For each issue: `get_issue REA-XX`, read spec, verify code matches spec, fix if not.
+1. [x] **[REA-104] P0: Search flickering, partial matches, should fire on Enter only** — remove debounce, Enter-only search, verify tsvector whole-word matching, remove ILIKE fallback
+2. [x] **[REA-103] Bug: Screenshot OCR (Gemini Vision) does not work** — debug API route, check base64 handling, test locally
+3. [x] **[REA-102] Bug: Google Maps paste doesn't update map pin + support goo.gl links** — wire extracted coords to Leaflet map re-render, handle short URL redirect
+4. [x] **[REA-108] Map popup redesign** — mini card with clickable photo, dark theme, no white borders, remove "View Details" link
 
-### S32 (UI Polish)
-* [x] **[REA-95] Verify: Grid buttons always visible** — check feed + listings pages
-* [x] **[REA-99] Verify: 1-wide card fonts** — check both ListingCard components
-* [x] **[REA-94] Verify: Map popup titles** — check FeedMap popup rendering
-
-### S33 (Search + Feed + GMaps)
-* [x] **[REA-96] Verify: Full-text search** — check migration 020, API routes, test search locally
-* [x] **[REA-98] Verify: Feed auto-groups by flag** — check ORDER BY in feed API
-* [x] **[REA-93] Verify: Google Maps in/out** — check detail view link + form paste field
-
-### S34 (My Store + Share + OCR)
-* [x] **[REA-97] Verify: My Store page** — check /dashboard/store, bottom nav, tabs
-* [x] **[REA-14] Verify: Share card image** — check share-card.ts, download button
-* [x] **[REA-12] Verify: Screenshot OCR** — check Gemini Vision call, UI button
-
-### S35 (Infra)
-* [x] **[REA-21] Verify: Rate limiting** — check middleware, rate-limit.ts
-* [x] **[REA-20] Verify: Notifications** — check migration 021, API, TopBar bell, notifications page (NOTE: FCM push not implemented, in-app only)
+**After completing S37: commit, session log, STOP.**
 
 ---
 
-## Part 2 — New issues from testing
+## Session 38 — UI Redesign (navigation + view mode)
 
-* [x] **[REA-100] Filters display update** — hide Legal, Price Min-Max at top and bigger, Bedrooms & Bathrooms, Area Min-Max, Ward Old & New
+1. [ ] **[REA-106] View mode: 3-state toggle (1-wide / 2-wide / Map)** — single segmented control, orange highlight on active, remove standalone Grid button. Apply to Feed, My Store, everywhere.
+2. [ ] **[REA-107] Bottom nav rearrange** — News (placeholder), My Store, Feed (center), CRM (with Messages as first tab), Profile
+3. [ ] **[REA-105] My Store: add search, filters, and view mode selector** — same toolbar as Feed
+4. [ ] **[REA-100] Filters display update** — hide Legal, Price Min-Max at top and bigger, Bedrooms/Bathrooms, Area Min-Max, Ward Old/New
+
+**After completing S38: commit, session log, STOP.**
 
 ---
 
-## Rules
+## Session 39 — Features (CRM + pricing + saved searches)
 
-1. For each audit item: read Linear spec → check actual code → if mismatch, fix it
-2. If something works correctly, skip it — don't rewrite working code
-3. Log any issues found as Linear comments on the relevant issue
-4. At end, create session log with what was verified vs what was fixed
+1. [ ] **[REA-109] Price filter: accept Vietnamese notation** — parse "2ty", "400tr", "900trieu", convert to VND for SQL
+2. [ ] **[REA-110] Saved Searches** — save filters + search text, attach Buyers/Sellers, quick-create Person, accessible from CRM
+3. [ ] **[REA-101] Saved Searches w/wo Buyer association** — verify overlap with REA-110, consolidate if duplicate
+
+**After completing S39: commit, session log, STOP.**
+
+---
+
+## Rules for unattended execution
+
+1. **Sequential only.** No subagents, no worktrees.
+2. **Commit after each session block.** Do not batch across sessions.
+3. **Stop after each block.** Print "Session NN complete. Recommended commit: ..."
+4. **If a task fails or seems risky,** skip it, add a comment on the Linear issue, move on.
+5. **TypeScript must be clean** before committing.
+6. **Do NOT push.** User handles push and deploy.
+7. **READ Linear issue specs via MCP before coding each task.**

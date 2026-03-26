@@ -6,6 +6,16 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Session 37 — 2026-03-26 — Critical Bug Fixes
+
+#### Fixed
+- **REA-104: Search flickering & partial matches** — Removed debounce, search now fires on Enter only. Removed `:*` prefix matching from tsvector queries (both feed and listings APIs) to prevent partial word matches. Added `activeSearch` state to decouple input from query execution.
+- **REA-103: Screenshot OCR error handling** — Added FileReader error/reject handling, better error logging on failed API responses, and validation of response shape before applying fields.
+- **REA-102: Google Maps paste + goo.gl links** — Fixed Leaflet map not updating when coords change externally by adding `MapUpdater` component (uses `useMap().setView()`) and `useEffect` to sync marker position. Added `/api/resolve-url` route to follow goo.gl/maps.app short link redirects server-side.
+- **REA-108: Map popup redesign** — Dark-themed mini card popup with photo on top, two-line title, specs. Entire popup clickable to listing detail. Removed "View Details" link and ward line. Added `map-popup.css` for Leaflet popup dark theme overrides.
+
+---
+
 ### Session 36 — 2026-03-26 — Audit S32-S35, Filters Redesign
 
 #### Verified (S32-S35 audit via Linear MCP)

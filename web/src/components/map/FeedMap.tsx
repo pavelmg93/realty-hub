@@ -6,6 +6,7 @@ import "leaflet/dist/leaflet.css";
 import { Listing } from "@/lib/types";
 import { formatPrice, generateTitleStandardized } from "@/lib/constants";
 import { useLanguage } from "@/contexts/LanguageContext";
+import "./map-popup.css";
 
 // Fix Leaflet default icon
 const defaultIcon = L.icon({
@@ -68,36 +69,28 @@ export default function FeedMap({
               position={[listing.latitude!, listing.longitude!]}
             >
               <Popup>
-                <div className="min-w-[200px] max-w-[260px]">
+                <div
+                  className="w-[220px] cursor-pointer"
+                  onClick={() => onListingClick?.(listing)}
+                >
                   {listing.primary_photo && (
                     <img
                       src={`/api/files/${listing.primary_photo}`}
                       alt=""
-                      className="w-full h-24 object-cover rounded mb-2"
+                      className="w-full h-[120px] object-cover"
                     />
                   )}
-                  {/* Two-line title (ADR-005) */}
-                  {line1 && (
-                    <p className="font-bold text-sm leading-tight truncate">{line1}</p>
-                  )}
-                  <p className="font-bold text-sm leading-tight truncate">{line2}</p>
-                  {/* Price + area */}
-                  <p className="text-xs text-[var(--text-muted)] mt-1">
-                    {formatPrice(listing.price_vnd)}
-                    {listing.area_m2 ? ` · ${listing.area_m2}m²` : ""}
-                    {listing.num_bedrooms ? ` · ${listing.num_bedrooms} ${t("bed")}` : ""}
-                  </p>
-                  {listing.ward && (
-                    <p className="text-xs text-[var(--text-muted)]">{listing.ward}</p>
-                  )}
-                  {onListingClick && (
-                    <button
-                      onClick={() => onListingClick(listing)}
-                      className="mt-2 text-xs font-medium hover:underline text-[var(--orange)]"
-                    >
-                      {t("viewDetails")}
-                    </button>
-                  )}
+                  <div className="px-3 py-2">
+                    {line1 && (
+                      <p className="font-semibold text-sm leading-tight truncate" style={{ color: "var(--text-primary)" }}>{line1}</p>
+                    )}
+                    <p className="font-semibold text-sm leading-tight truncate" style={{ color: "var(--text-primary)" }}>{line2}</p>
+                    <p className="text-xs mt-1" style={{ color: "var(--text-muted)" }}>
+                      {formatPrice(listing.price_vnd)}
+                      {listing.area_m2 ? ` · ${listing.area_m2}m²` : ""}
+                      {listing.num_bedrooms ? ` · ${listing.num_bedrooms} ${t("bed")}` : ""}
+                    </p>
+                  </div>
                 </div>
               </Popup>
             </Marker>
