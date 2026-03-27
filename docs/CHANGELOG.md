@@ -6,6 +6,19 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Session 40 — 2026-03-27 — Filters + Edit Form Fixes
+
+#### Changed
+- **REA-111.2: Price filter tỷ stepper** — Replaced freestyle text inputs with PriceStepper component showing value in tỷ (billion VND) with +/- buttons and 0.01 precision (10M VND steps). Mobile-friendly with `inputMode="decimal"`.
+- **REA-111.3: Edit form field reorder** — Listing status moved into Classification section (3rd column). Legal status moved down to Extras section. Matches New Listing field order.
+
+#### Fixed
+- **REA-111.4: Edit form status dropdown** — All 7 statuses (just_listed, selling, price_dropped, price_increased, deposit, sold, not_for_sale) now available in dropdown.
+- **REA-111.5: Auto price status** — PUT /api/listings/[id] now auto-sets status to `price_increased` or `price_dropped` when price changes on save, unless user manually changed status.
+- **REA-111.6: Listing count flicker** — "X listings" line now renders with stable min-height and shows "— listings" placeholder during loading to prevent layout shift.
+
+---
+
 ### Session 39 — 2026-03-26 — Features (CRM + Pricing + Saved Searches)
 
 #### Added

@@ -409,12 +409,21 @@ export default function DatabaseView({ data, onChange, isEdit = false }: Props) 
           options={transactionTypeOptions}
           onChange={(v) => set("transaction_type", v)}
         />
-        <SelectField
-          label={t("legalStatus")}
-          value={data.legal_status}
-          options={LEGAL_STATUS_TYPES}
-          onChange={(v) => set("legal_status", v)}
-        />
+        {isEdit ? (
+          <SelectField
+            label={t("listingStatus")}
+            value={data.status}
+            options={statusOptions}
+            onChange={(v) => set("status", v ?? "selling")}
+          />
+        ) : (
+          <SelectField
+            label={t("legalStatus")}
+            value={data.legal_status}
+            options={LEGAL_STATUS_TYPES}
+            onChange={(v) => set("legal_status", v)}
+          />
+        )}
       </Row>
 
       {/* ── Row 2: Price / Area / P/m² ── */}
@@ -512,22 +521,7 @@ export default function DatabaseView({ data, onChange, isEdit = false }: Props) 
         />
       </Row>
 
-      {/* ── Row 6: Status — edit only ── */}
-      {isEdit && (
-        <>
-          <SectionLabel>{t("listingStatus")}</SectionLabel>
-          <div className="mb-4 w-1/2">
-            <SelectField
-              label={t("listingStatus")}
-              value={data.status}
-              options={statusOptions}
-              onChange={(v) => set("status", v ?? "selling")}
-            />
-          </div>
-        </>
-      )}
-
-      {/* ── Row 7: Map ── */}
+      {/* ── Row 6: Map ── */}
       <LocationPicker data={data} onChange={setMultiple} />
 
       {/* ── Rows 8-10: Dimensions (2-col) ── */}
@@ -549,13 +543,22 @@ export default function DatabaseView({ data, onChange, isEdit = false }: Props) 
 }
 
 /** Extras section rendered separately (after photos/docs in ListingForm) */
-export function DatabaseExtras({ data, onChange }: Props) {
+export function DatabaseExtras({ data, onChange, isEdit = false }: Props) {
   const { t, lang } = useLanguage();
   const set = (field: keyof ListingInput, value: unknown) => onChange({ ...data, [field]: value });
 
   return (
     <div>
       <div className="grid grid-cols-2 gap-3">
+        {/* Legal Status — shown here in edit mode (moved from Classification) */}
+        {isEdit && (
+          <SelectField
+            label={t("legalStatus")}
+            value={data.legal_status}
+            options={LEGAL_STATUS_TYPES}
+            onChange={(v) => set("legal_status", v)}
+          />
+        )}
         <div>
           <label className="block text-xs font-medium mb-1 text-[var(--text-secondary)]">{t("accessRoad")}</label>
           <select

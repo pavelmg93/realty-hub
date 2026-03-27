@@ -235,11 +235,17 @@ export default function FeedPage() {
         <ViewModeToggle value={viewMode} onChange={setViewMode} />
       </div>
 
-      {/* Listing count — hidden in map mode */}
-      {viewMode !== "map" && !loading && (
-        <div className="mb-3 text-sm text-[var(--text-muted)]">
-          {pagination.total} {t("listings")}
-          {activeSearch && <span className="ml-1 text-[var(--orange)]">"{activeSearch}"</span>}
+      {/* Listing count — stable height to prevent layout shift */}
+      {viewMode !== "map" && (
+        <div className="mb-3 text-sm text-[var(--text-muted)]" style={{ minHeight: "1.5rem" }}>
+          {loading ? (
+            <span className="opacity-50">— {t("listings")}</span>
+          ) : (
+            <>
+              {pagination.total} {t("listings")}
+              {activeSearch && <span className="ml-1 text-[var(--orange)]">"{activeSearch}"</span>}
+            </>
+          )}
         </div>
       )}
 

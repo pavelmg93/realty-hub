@@ -426,7 +426,7 @@ export default function ListingForm({ existing, initialData }: Props) {
         <p className="text-xs font-semibold text-[var(--text-muted)] uppercase tracking-wider mb-3">
           {lang === "vi" ? "Chi tiết thêm" : "Extra Details"}
         </p>
-        <DatabaseExtras data={formData} onChange={setFormData} />
+        <DatabaseExtras data={formData} onChange={setFormData} isEdit={!!existing} />
       </div>
 
       {/* ── Save / Cancel ── */}

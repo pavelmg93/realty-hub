@@ -94,9 +94,9 @@ export async function PUT(
       );
     }
 
-    // Verify ownership
+    // Verify ownership + fetch old price/status for auto-status logic
     const existing = await pool.query(
-      `SELECT agent_id FROM parsed_listings WHERE id = $1`,
+      `SELECT agent_id, price_vnd, status FROM parsed_listings WHERE id = $1`,
       [listingId],
     );
     if (existing.rows.length === 0) {
@@ -119,6 +119,21 @@ export async function PUT(
     }
 
     const data = parsed.data;
+
+    // Auto-set price_increased/price_dropped when price changes
+    // Only if user didn't manually change the status in this edit
+    const oldPriceVnd = parseInt(existing.rows[0].price_vnd) || null;
+    const oldStatus = existing.rows[0].status;
+    const newPriceVnd = data.price_vnd ?? null;
+    const userChangedStatus = data.status !== oldStatus;
+
+    if (!userChangedStatus && newPriceVnd != null && oldPriceVnd != null && newPriceVnd !== oldPriceVnd) {
+      if (newPriceVnd > oldPriceVnd) {
+        data.status = "price_increased";
+      } else {
+        data.status = "price_dropped";
+      }
+    }
 
     const result = await pool.query(
       `UPDATE parsed_listings SET

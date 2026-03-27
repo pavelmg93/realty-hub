@@ -130,6 +130,93 @@ function FilterSelect({
   );
 }
 
+/** Convert tỷ string back to numeric tỷ value for display. "1.15ty" → 1.15, "" → null */
+function parseTyValue(raw: string): number | null {
+  if (!raw) return null;
+  const m = raw.match(/^([\d.]+)\s*ty$/i);
+  if (m) return parseFloat(m[1]);
+  // Also handle plain numbers that parseVietnamesePrice would treat as triệu
+  const num = parseFloat(raw);
+  if (!isNaN(num) && num > 0) {
+    // If raw VND-like (>=1M), convert to tỷ
+    if (num >= 1_000_000) return num / 1_000_000_000;
+    // Otherwise treat as triệu
+    return num / 1000;
+  }
+  return null;
+}
+
+/** Format tỷ number for display: 1.15 → "1.15", 0.4 → "0.40" */
+function formatTy(val: number): string {
+  if (val >= 1) return val % 1 === 0 ? String(val) : val.toFixed(2).replace(/0$/, "");
+  return val.toFixed(2).replace(/0$/, "");
+}
+
+function PriceStepper({
+  label,
+  value,
+  onChange,
+}: {
+  label: string;
+  value: string;
+  onChange: (v: string) => void;
+}) {
+  const tyVal = parseTyValue(value);
+  const STEP = 0.01; // 0.01 tỷ = 10 million VND
+
+  const handleStep = (dir: 1 | -1) => {
+    const current = tyVal ?? 0;
+    const next = Math.max(0, Math.round((current + dir * STEP) * 100) / 100);
+    onChange(next === 0 ? "" : `${next}ty`);
+  };
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const raw = e.target.value;
+    if (raw === "") {
+      onChange("");
+      return;
+    }
+    const num = parseFloat(raw);
+    if (!isNaN(num) && num >= 0) {
+      onChange(`${num}ty`);
+    }
+  };
+
+  return (
+    <div>
+      <label className="block text-xs font-medium mb-1 text-[var(--text-secondary)]">{label}</label>
+      <div className="flex items-center gap-1">
+        <button
+          type="button"
+          onClick={() => handleStep(-1)}
+          disabled={!tyVal || tyVal <= 0}
+          className="flex-none w-8 h-10 flex items-center justify-center rounded-lg border border-[var(--border)] bg-[var(--bg-elevated)] text-[var(--text-secondary)] hover:bg-[var(--bg-hover)] disabled:opacity-30 transition-colors text-lg font-medium"
+        >
+          −
+        </button>
+        <div className="relative flex-1">
+          <input
+            type="text"
+            inputMode="decimal"
+            value={tyVal != null ? formatTy(tyVal) : ""}
+            onChange={handleInputChange}
+            placeholder="0"
+            className="w-full rounded-lg pl-3 pr-8 py-2.5 text-base border border-[var(--border)] bg-[var(--bg-elevated)] text-[var(--text-primary)] focus:outline-none focus:border-[var(--orange)] text-center"
+          />
+          <span className="absolute right-2 top-1/2 -translate-y-1/2 text-xs text-[var(--text-muted)] pointer-events-none">tỷ</span>
+        </div>
+        <button
+          type="button"
+          onClick={() => handleStep(1)}
+          className="flex-none w-8 h-10 flex items-center justify-center rounded-lg border border-[var(--border)] bg-[var(--bg-elevated)] text-[var(--text-secondary)] hover:bg-[var(--bg-hover)] transition-colors text-lg font-medium"
+        >
+          +
+        </button>
+      </div>
+    </div>
+  );
+}
+
 export default function FeedFilters({
   filters,
   onChange,
@@ -180,34 +267,18 @@ export default function FeedFilters({
         </div>
       </div>
 
-      {/* Price range — prominent at top */}
+      {/* Price range — tỷ steppers */}
       <div className="grid grid-cols-2 gap-3 mb-3">
-        <div>
-          <label className="block text-xs font-medium mb-1 text-[var(--text-secondary)]">
-            {t("minPrice")}
-          </label>
-          <input
-            type="text"
-            inputMode="decimal"
-            value={filters.price_min}
-            onChange={(e) => set("price_min", e.target.value)}
-            placeholder="vd. 400tr, 2ty"
-            className="w-full rounded-lg px-3 py-2.5 text-base border border-[var(--border)] bg-[var(--bg-elevated)] text-[var(--text-primary)] focus:outline-none focus:border-[var(--orange)]"
-          />
-        </div>
-        <div>
-          <label className="block text-xs font-medium mb-1 text-[var(--text-secondary)]">
-            {t("maxPrice")}
-          </label>
-          <input
-            type="text"
-            inputMode="decimal"
-            value={filters.price_max}
-            onChange={(e) => set("price_max", e.target.value)}
-            placeholder="vd. 5ty, 900tr"
-            className="w-full rounded-lg px-3 py-2.5 text-base border border-[var(--border)] bg-[var(--bg-elevated)] text-[var(--text-primary)] focus:outline-none focus:border-[var(--orange)]"
-          />
-        </div>
+        <PriceStepper
+          label={t("minPrice")}
+          value={filters.price_min}
+          onChange={(v) => set("price_min", v)}
+        />
+        <PriceStepper
+          label={t("maxPrice")}
+          value={filters.price_max}
+          onChange={(v) => set("price_max", v)}
+        />
       </div>
 
       {/* Bedrooms & Bathrooms */}
