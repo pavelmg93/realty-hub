@@ -7,7 +7,8 @@ import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { Heart, MapPin, User, Phone } from "lucide-react";
+import { Heart, MapPin, Phone, MessageSquare } from "lucide-react";
+import { AgentChip } from "@/components/ui/AgentChip";
 
 // Corner flag colors (spec REA-69/73):
 // Blue=Just Listed, Red=Price Raised/Dropped, Green=Deposit/Sold, Gray=Not For Sale
@@ -106,7 +107,15 @@ export default function ListingCard({
   // Build two-line headline (ADR-005)
   const line1 = listing.street || "";
   const line2 = listing.title_standardized || generateTitleStandardized(listing);
-  const agentName = [listing.owner_first_name, listing.owner_last_name].filter(Boolean).join(" ");
+  const agent = listing.agent_id != null ? {
+    id: listing.agent_id,
+    first_name: listing.owner_first_name ?? null,
+    last_name: listing.owner_last_name ?? null,
+    username: listing.owner_username ?? null,
+    phone: listing.owner_phone ?? null,
+    avatar_url: listing.owner_avatar_url ?? null,
+  } : null;
+  const wardDisplay = [listing.ward_new, listing.ward].filter(Boolean).join(" / ") || null;
 
   // ── 1-wide: horizontal card ──
   if (cols === 1) {
@@ -139,71 +148,85 @@ export default function ListingCard({
             </div>
           )}
           <StatusFlag status={listing.status} />
+          {/* Heart — top-right of photo */}
+          <button
+            onClick={toggleFavorite}
+            disabled={isTogglingFavorite}
+            className="absolute top-2 right-2 p-1.5 rounded-full bg-black/40 text-white hover:text-red-500 hover:bg-black/60 transition-colors focus:outline-none focus:ring-2 focus:ring-red-500 backdrop-blur-sm shadow-md"
+            aria-label={isFavorited ? "Remove from favorites" : "Add to favorites"}
+          >
+            <Heart size={16} className={`transition-colors ${isFavorited ? "fill-red-500 text-red-500" : ""}`} />
+          </button>
+          {photoCount > 1 && (
+            <div
+              className="absolute bottom-2 right-2 text-white text-[10px] px-1.5 py-0.5 rounded"
+              style={{ backgroundColor: "rgba(0,0,0,0.6)" }}
+            >
+              1/{photoCount}
+            </div>
+          )}
         </div>
 
         {/* Right: details */}
-        <div className="w-3/5 p-3 flex flex-col justify-between relative overflow-hidden">
-          <div className="min-w-0">
+        <div className="w-3/5 p-3 flex flex-col justify-between overflow-hidden relative">
+          <div className="min-w-0 pr-12">
             {/* Title lines — larger font for 1-wide (ADR-005) */}
             <p className="text-base font-bold text-[var(--text-primary)] truncate leading-snug">{line1}</p>
             <p className="text-base font-bold text-[var(--text-primary)] truncate leading-snug">{line2}</p>
-            <div className="mt-2 space-y-1">
-              {listing.ward && (
-                <div className="flex items-center gap-1.5 text-sm text-[var(--text-secondary)]">
-                  <MapPin size={13} className="shrink-0" />
-                  <span className="truncate">{listing.ward}</span>
-                </div>
-              )}
-              {agentName && (
-                <div className="flex items-center gap-1.5 text-sm text-[var(--text-secondary)]">
-                  <User size={13} className="shrink-0" />
-                  <span className="truncate">{agentName}</span>
-                </div>
-              )}
-              {listing.owner_phone && (
-                <div className="flex items-center gap-1.5 text-sm text-[var(--text-secondary)]">
-                  <Phone size={13} className="shrink-0" />
-                  <a
-                    href={`tel:${listing.owner_phone}`}
-                    onClick={(e) => e.stopPropagation()}
-                    className="truncate hover:text-[var(--orange)] transition-colors"
-                  >
-                    {listing.owner_phone}
-                  </a>
-                </div>
-              )}
-            </div>
+            {wardDisplay && (
+              <div className="flex items-center gap-1.5 mt-1 text-xs text-[var(--text-secondary)]">
+                <MapPin size={12} className="shrink-0" />
+                <span className="truncate">{wardDisplay}</span>
+              </div>
+            )}
           </div>
 
-          {/* Actions row */}
-          <div className="flex items-center justify-between" onClick={(e) => e.preventDefault()}>
-            <div className="flex gap-2 flex-wrap">
-              {!isArchived ? (
-                <button
-                  type="button"
-                  onClick={(e) => { e.preventDefault(); e.stopPropagation(); router.push(`/dashboard/listings/${listing.id}/edit`); }}
-                  className="px-2 py-0.5 text-[11px] border rounded font-medium border-[var(--orange)]/30 text-[var(--orange)] hover:bg-[var(--orange)]/10"
-                >
-                  {t("edit")}
-                </button>
-              ) : (
-                <>
-                  {onReactivate && (
-                    <ConfirmButton label={t("reactivate")} confirmLabel={t("confirm")} onConfirm={() => onReactivate(listing.id)} className="text-[11px] text-emerald-500" />
-                  )}
-                  {onDelete && (
-                    <ConfirmButton label={t("delete")} confirmLabel={t("confirm")} onConfirm={() => onDelete(listing.id)} className="text-[11px] text-rose-500" />
-                  )}
-                </>
+          {/* Edit button — middle-right of card (vertically centered, absolute) */}
+          {!isArchived && isOwner && (
+            <button
+              type="button"
+              onClick={(e) => { e.preventDefault(); e.stopPropagation(); router.push(`/dashboard/listings/${listing.id}/edit`); }}
+              className="absolute right-3 top-1/2 -translate-y-1/2 px-2.5 py-1 text-[11px] border rounded font-medium border-[var(--orange)]/30 text-[var(--orange)] hover:bg-[var(--orange)]/10"
+            >
+              {t("edit")}
+            </button>
+          )}
+          {isArchived && (
+            <div className="absolute right-3 top-1/2 -translate-y-1/2 flex gap-1" onClick={(e) => e.preventDefault()}>
+              {onReactivate && (
+                <ConfirmButton label={t("reactivate")} confirmLabel={t("confirm")} onConfirm={() => onReactivate(listing.id)} className="text-[11px] text-emerald-500" />
+              )}
+              {onDelete && (
+                <ConfirmButton label={t("delete")} confirmLabel={t("confirm")} onConfirm={() => onDelete(listing.id)} className="text-[11px] text-rose-500" />
               )}
             </div>
+          )}
+
+          {/* Bottom row: agent avatar+name | phone | message */}
+          <div className="flex items-center gap-2 mt-2 pt-2 border-t border-[var(--border-subtle)]" onClick={(e) => e.preventDefault()}>
+            {agent && (
+              <div className="flex-1 min-w-0">
+                <AgentChip agent={agent} size="sm" clickable={false} />
+              </div>
+            )}
+            {agent?.phone && (
+              <a
+                href={`tel:${agent.phone}`}
+                onClick={(e) => e.stopPropagation()}
+                className="shrink-0 flex items-center p-1.5 rounded-md text-[var(--text-secondary)] hover:text-[var(--orange)] transition-colors"
+                title={agent.phone}
+              >
+                <Phone size={14} />
+              </a>
+            )}
             <button
-              onClick={toggleFavorite}
-              disabled={isTogglingFavorite}
-              className="p-1 rounded-full text-[var(--text-muted)] hover:text-red-500 transition-colors focus:outline-none"
-              aria-label={isFavorited ? "Remove from favorites" : "Add to favorites"}
+              type="button"
+              onClick={(e) => { e.preventDefault(); e.stopPropagation(); router.push("/dashboard/messages"); }}
+              className="shrink-0 flex items-center border rounded-md p-1.5 transition-colors hover:bg-[var(--info)]/10"
+              style={{ color: "var(--info)", borderColor: "rgba(59, 130, 246, 0.3)" }}
+              title={t("viewMessages")}
             >
-              <Heart size={16} className={`transition-colors ${isFavorited ? "fill-red-500 text-red-500" : ""}`} />
+              <MessageSquare size={14} />
             </button>
           </div>
         </div>
@@ -223,8 +246,8 @@ export default function ListingCard({
         ...(isOwner ? { borderLeftColor: "var(--orange)" } : {}),
       }}
     >
-      {/* Photo area */}
-      <div className="relative w-full h-36 bg-[var(--bg-elevated)]">
+      {/* Photo area — reduced height h-28 for iPhone 2x2 fit */}
+      <div className="relative w-full h-28 bg-[var(--bg-elevated)]">
         {photoUrl ? (
           <Image
             src={photoUrl}
@@ -240,10 +263,9 @@ export default function ListingCard({
             </svg>
           </div>
         )}
-        {/* Corner flag replaces old status badge overlay */}
         <StatusFlag status={listing.status} />
         <button
-          onClick={toggleFavorite}
+          onClick={(e) => { e.preventDefault(); e.stopPropagation(); toggleFavorite(e); }}
           disabled={isTogglingFavorite}
           className="absolute top-2 right-2 p-1.5 rounded-full bg-black/40 text-white hover:text-red-500 hover:bg-black/60 transition-colors focus:outline-none focus:ring-2 focus:ring-red-500 backdrop-blur-sm shadow-md"
           aria-label={isFavorited ? "Remove from favorites" : "Add to favorites"}
@@ -260,54 +282,68 @@ export default function ListingCard({
         )}
       </div>
 
-      <div className="p-4">
+      <div className="p-2.5 relative">
         {/* Title lines — both same color (ADR-005) */}
-        {line1 && <p className="text-base font-bold text-[var(--text-primary)] truncate leading-tight">{line1}</p>}
-        {line2 && <p className="text-base font-bold text-[var(--text-primary)] truncate leading-tight">{line2}</p>}
+        <div className="pr-12">
+          {line1 && <p className="text-sm font-bold text-[var(--text-primary)] truncate leading-tight">{line1}</p>}
+          {line2 && <p className="text-sm font-bold text-[var(--text-primary)] truncate leading-tight">{line2}</p>}
+        </div>
 
-        {agentName && (
-          <div className="flex items-center gap-1 mt-1.5 text-xs text-[var(--text-secondary)]">
-            <User size={11} className="shrink-0" />
-            <span className="truncate">{agentName}</span>
+        {/* Edit button — middle-right of info section (absolute) */}
+        {!isArchived && isOwner && (
+          <button
+            type="button"
+            onClick={(e) => { e.preventDefault(); e.stopPropagation(); router.push(`/dashboard/listings/${listing.id}/edit`); }}
+            className="absolute right-2.5 top-2.5 px-2.5 py-1 text-[11px] border rounded font-medium border-[var(--orange)]/30 text-[var(--orange)] hover:bg-[var(--orange)]/10"
+          >
+            {t("edit")}
+          </button>
+        )}
+        {isArchived && (
+          <div className="absolute right-2.5 top-2.5 flex gap-1" onClick={(e) => e.preventDefault()}>
+            {onReactivate && (
+              <ConfirmButton label={t("reactivate")} confirmLabel={t("confirm")} onConfirm={() => onReactivate(listing.id)} className="text-emerald-600 hover:bg-emerald-50" />
+            )}
+            {onDelete && (
+              <ConfirmButton label={t("delete")} confirmLabel={t("confirm")} onConfirm={() => onDelete(listing.id)} className="text-rose-600 hover:bg-rose-50" />
+            )}
           </div>
         )}
 
-        <div className="flex items-center justify-between text-xs pt-3 mt-2 border-t border-[var(--border-subtle)] text-[var(--text-muted)]">
-          <span>
-            {t("updated")}{" "}
-            {new Date(listing.updated_at).toLocaleDateString(undefined, { month: "short", day: "numeric" })}
-          </span>
-          <div className="flex gap-2 flex-wrap" onClick={(e) => e.preventDefault()}>
-            {!isArchived ? (
-              <>
-                {isOwner && (
-                  <button
-                    type="button"
-                    onClick={(e) => { e.preventDefault(); e.stopPropagation(); router.push("/dashboard/messages"); }}
-                    className="px-3 py-1.5 text-xs border rounded-lg font-medium transition-colors border-[var(--orange)]/30 text-[var(--orange)] hover:bg-[var(--orange)]/10"
-                  >
-                    {t("inquiries")}
-                  </button>
-                )}
-                <button
-                  type="button"
-                  onClick={(e) => { e.preventDefault(); e.stopPropagation(); router.push(`/dashboard/listings/${listing.id}/edit`); }}
-                  className="px-3 py-1.5 text-xs border rounded-lg font-medium transition-colors border-[var(--orange)]/30 text-[var(--orange)] hover:bg-[var(--orange)]/10"
-                >
-                  {t("edit")}
-                </button>
-              </>
-            ) : (
-              <>
-                {onReactivate && (
-                  <ConfirmButton label={t("reactivate")} confirmLabel={t("confirm")} onConfirm={() => onReactivate(listing.id)} className="text-emerald-600 hover:bg-emerald-50" />
-                )}
-                {onDelete && (
-                  <ConfirmButton label={t("delete")} confirmLabel={t("confirm")} onConfirm={() => onDelete(listing.id)} className="text-rose-600 hover:bg-rose-50" />
-                )}
-              </>
-            )}
+        {/* Ward display */}
+        {wardDisplay && (
+          <div className="flex items-center gap-1 mt-1 text-[11px] text-[var(--text-secondary)]">
+            <MapPin size={10} className="shrink-0" />
+            <span className="truncate">{wardDisplay}</span>
           </div>
+        )}
+
+        {/* Bottom row: avatar+name | phone | message */}
+        <div className="flex items-center gap-2 mt-2 pt-2 border-t border-[var(--border-subtle)]" onClick={(e) => e.preventDefault()}>
+          {agent && (
+            <div className="flex-1 min-w-0">
+              <AgentChip agent={agent} size="sm" clickable={false} />
+            </div>
+          )}
+          {agent?.phone && (
+            <a
+              href={`tel:${agent.phone}`}
+              onClick={(e) => e.stopPropagation()}
+              className="shrink-0 flex items-center p-1.5 rounded-md text-[var(--text-secondary)] hover:text-[var(--orange)] transition-colors"
+              title={agent.phone}
+            >
+              <Phone size={14} />
+            </a>
+          )}
+          <button
+            type="button"
+            onClick={(e) => { e.preventDefault(); e.stopPropagation(); router.push("/dashboard/messages"); }}
+            className="shrink-0 flex items-center border rounded-md p-1.5 transition-colors hover:bg-[var(--info)]/10"
+            style={{ color: "var(--info)", borderColor: "rgba(59, 130, 246, 0.3)" }}
+            title={t("viewMessages")}
+          >
+            <MessageSquare size={14} />
+          </button>
         </div>
       </div>
     </Link>

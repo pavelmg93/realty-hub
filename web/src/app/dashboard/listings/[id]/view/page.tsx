@@ -19,7 +19,7 @@ import {
 import { TranslateButton } from "@/components/ui/TranslateButton";
 import DynamicListingMap from "@/components/map/DynamicListingMap";
 import DocumentManager from "@/components/documents/DocumentManager";
-import { Link2, Share2, Download, Image as ImageIcon } from "lucide-react";
+import { Link2, Share2, Download, Image as ImageIcon, Heart } from "lucide-react";
 import { generateShareCard } from "@/lib/share-card";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { getFieldValueLabel } from "@/lib/i18n";
@@ -111,6 +111,8 @@ function ListingViewPageInner() {
   const [expandedConvId, setExpandedConvId] = useState<number | null>(null);
   const [newMessage, setNewMessage] = useState("");
   const [sendingMessage, setSendingMessage] = useState(false);
+  const [isFavorited, setIsFavorited] = useState(false);
+  const [isTogglingFavorite, setIsTogglingFavorite] = useState(false);
 
   useEffect(() => {
     setActivePhotoIdx(0);
@@ -131,6 +133,7 @@ function ListingViewPageInner() {
         } else {
           const data = await listingRes.json();
           setListing(data.listing);
+          setIsFavorited(data.listing.is_favorited ?? false);
           // Fetch adjacent listing IDs for prev/next navigation (scope=mine when in My Listings)
           const adjRes = await fetch(
             `/api/listings/${id}/adjacent${fromParam === "listings" ? "?scope=mine" : ""}`
@@ -227,6 +230,19 @@ function ListingViewPageInner() {
   }
 
   const isOwner = listing.agent_id === user?.id;
+
+  const toggleFavorite = async () => {
+    if (isTogglingFavorite) return;
+    setIsTogglingFavorite(true);
+    const prev = isFavorited;
+    setIsFavorited(!prev);
+    try {
+      const res = await fetch(`/api/listings/${listing.id}/favorite`, { method: "POST" });
+      if (!res.ok) { setIsFavorited(prev); }
+      else { const data = await res.json(); setIsFavorited(data.favorited); }
+    } catch { setIsFavorited(prev); }
+    finally { setIsTogglingFavorite(false); }
+  };
 
   const handleMessageAgent = () => {
     document.getElementById('messages')?.scrollIntoView({ behavior: 'smooth' });
@@ -522,6 +538,18 @@ function ListingViewPageInner() {
               className="w-full h-full object-cover"
             />
             <StatusFlag status={listing.status} />
+            {/* Heart favorite — top-right of photo */}
+            <button
+              onClick={toggleFavorite}
+              disabled={isTogglingFavorite}
+              className="absolute top-3 right-3 p-2 rounded-full bg-black/40 text-white hover:text-red-500 hover:bg-black/60 transition-colors focus:outline-none focus:ring-2 focus:ring-red-500 backdrop-blur-sm shadow-md z-10"
+              aria-label={isFavorited ? "Remove from favorites" : "Add to favorites"}
+            >
+              <Heart
+                size={20}
+                className={`transition-colors ${isFavorited ? "fill-red-500 text-red-500" : ""}`}
+              />
+            </button>
             {photos.length > 1 && (
               <>
                 <button

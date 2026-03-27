@@ -6,6 +6,20 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Session 42 — 2026-03-27 — Card Consistency + Visual Polish
+
+#### Changed
+- **REA-127: Card consistency overhaul** — Orange left border on 2-wide owned cards (replaces ring). Agent avatar + clickable name on all cards via AgentChip. Standardized bottom row: avatar+name | phone | message. Ward display "New / Old" below title. 2-wide image height reduced h-36→h-28 for iPhone 2x2 fit.
+- **REA-125: Standardize message icon** — Same MessageSquare icon on all card views (1-wide, 2-wide, Feed, My Store). Removed rectangular orange "Inquiries" button.
+- **REA-130: Map popup cleanup** — Removed extra empty lines (CSS paragraph margin reset). Added compact agent info row (avatar, name, phone, message icon).
+- **REA-126: Edit button repositioned** — 1-wide: absolute middle-right of card. 2-wide: top-right of info section. Owner-only.
+
+#### Added
+- **REA-123: Heart on full listing photo** — FavoriteButton on top-right of listing detail photo carousel with toggle.
+- **REA-124: Heart on 1-wide photo** — Moved heart to top-right of photo (matching 2-wide) in all 1-wide card views.
+
+---
+
 ### Session 40 — 2026-03-27 — Filters + Edit Form Fixes
 
 #### Changed

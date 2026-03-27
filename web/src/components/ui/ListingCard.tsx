@@ -2,11 +2,10 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { StatusBadge } from "./StatusBadge";
 import { AgentChip } from "./AgentChip";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { generateTitleStandardized } from "@/lib/constants";
-import { MessageSquare, Heart, MapPin, User, Phone } from "lucide-react";
+import { MessageSquare, Heart, MapPin, Phone } from "lucide-react";
 import { useState } from "react";
 import type { Listing } from "@/lib/types";
 
@@ -139,6 +138,8 @@ export function ListingCard({
   const line1 = listing.street || "";
   const line2 = listing.title_standardized || generateTitleStandardized(listing);
 
+  const wardDisplay = [listing.ward_new, listing.ward].filter(Boolean).join(" / ") || null;
+
   // ── 1-wide: horizontal card (larger fonts, maximize space) ──
   if (cols === 1) {
     return (
@@ -168,6 +169,18 @@ export function ListingCard({
             </div>
           )}
           <StatusFlag status={listing.status} />
+          {/* Heart — top-right of photo */}
+          <button
+            onClick={toggleFavorite}
+            disabled={isTogglingFavorite}
+            className="absolute top-2 right-2 p-1.5 rounded-full bg-black/40 text-white hover:text-red-500 hover:bg-black/60 transition-colors focus:outline-none focus:ring-2 focus:ring-red-500 backdrop-blur-sm shadow-md"
+            aria-label={isFavorited ? "Remove from favorites" : "Add to favorites"}
+          >
+            <Heart
+              size={16}
+              className={`transition-colors ${isFavorited ? "fill-red-500 text-red-500" : ""}`}
+            />
+          </button>
           {photoCount > 1 && (
             <div
               className="absolute bottom-2 right-2 text-white text-[10px] px-1.5 py-0.5 rounded"
@@ -179,7 +192,7 @@ export function ListingCard({
         </div>
 
         {/* Right: details */}
-        <div className="w-3/5 p-3 flex flex-col justify-between relative overflow-hidden">
+        <div className="w-3/5 p-3 flex flex-col justify-between overflow-hidden">
           <div className="min-w-0">
             {/* Title lines — larger font for 1-wide (ADR-005) */}
             <p className="text-base font-bold text-[var(--text-primary)] truncate leading-snug">
@@ -188,49 +201,66 @@ export function ListingCard({
             <p className="text-base font-bold text-[var(--text-primary)] truncate leading-snug">
               {line2}
             </p>
-            {/* Metadata — larger for 1-wide */}
-            <div className="mt-2 space-y-1">
-              {listing.ward && (
-                <div className="flex items-center gap-1.5 text-sm text-[var(--text-secondary)]">
-                  <MapPin size={13} className="shrink-0" />
-                  <span className="truncate">{listing.ward}</span>
-                </div>
-              )}
-              {(listing.owner_first_name || listing.owner_last_name) && (
-                <div className="flex items-center gap-1.5 text-sm text-[var(--text-secondary)]">
-                  <User size={13} className="shrink-0" />
-                  <span className="truncate">
-                    {[listing.owner_first_name, listing.owner_last_name].filter(Boolean).join(" ")}
-                  </span>
-                </div>
-              )}
-              {listing.owner_phone && (
-                <div className="flex items-center gap-1.5 text-sm text-[var(--text-secondary)]">
-                  <Phone size={13} className="shrink-0" />
-                  <a
-                    href={`tel:${listing.owner_phone}`}
-                    onClick={(e) => e.stopPropagation()}
-                    className="truncate hover:text-[var(--orange)] transition-colors"
-                  >
-                    {listing.owner_phone}
-                  </a>
-                </div>
+            {/* Ward display */}
+            {wardDisplay && (
+              <div className="flex items-center gap-1.5 mt-1 text-xs text-[var(--text-secondary)]">
+                <MapPin size={12} className="shrink-0" />
+                <span className="truncate">{wardDisplay}</span>
+              </div>
+            )}
+          </div>
+
+          {/* Bottom row: agent avatar+name | phone | message */}
+          <div className="flex items-center gap-2 mt-2 pt-2 border-t border-[var(--border-subtle)]" onClick={(e) => e.preventDefault()}>
+            {agent && (
+              <div className="flex-1 min-w-0">
+                <AgentChip agent={agent} size="sm" clickable={!isOwner} />
+              </div>
+            )}
+            {agent?.phone && (
+              <a
+                href={`tel:${agent.phone}`}
+                onClick={(e) => e.stopPropagation()}
+                className="shrink-0 flex items-center p-1.5 rounded-md text-[var(--text-secondary)] hover:text-[var(--orange)] transition-colors"
+                title={agent.phone}
+              >
+                <Phone size={14} />
+              </a>
+            )}
+            <div className="shrink-0">
+              {isOwner ? (
+                <button
+                  type="button"
+                  onClick={(e) => { e.preventDefault(); onViewMessages?.(); }}
+                  className="flex items-center border rounded-md p-1.5 transition-colors hover:bg-[var(--info)]/10"
+                  style={{ color: "var(--info)", borderColor: "rgba(59, 130, 246, 0.3)" }}
+                  title={t("viewMessages")}
+                >
+                  <MessageSquare size={14} />
+                </button>
+              ) : hasConversation ? (
+                <Link
+                  href={`/dashboard/listings/${listing.id}/view${viewSearch}#messages`}
+                  onClick={(e) => e.stopPropagation()}
+                  className="flex items-center border rounded-md p-1.5 transition-colors hover:bg-[var(--info)]/10"
+                  style={{ color: "var(--info)", borderColor: "rgba(59, 130, 246, 0.3)" }}
+                  title={t("viewMessages")}
+                >
+                  <MessageSquare size={14} />
+                </Link>
+              ) : (
+                <button
+                  type="button"
+                  onClick={(e) => { e.preventDefault(); onMessage?.(); }}
+                  className="flex items-center border rounded-md p-1.5 transition-colors hover:bg-[var(--info)]/10"
+                  style={{ color: "var(--info)", borderColor: "rgba(59, 130, 246, 0.3)" }}
+                  title={t("message")}
+                >
+                  <MessageSquare size={14} />
+                </button>
               )}
             </div>
           </div>
-
-          {/* Heart — bottom right */}
-          <button
-            onClick={toggleFavorite}
-            disabled={isTogglingFavorite}
-            className="absolute bottom-3 right-3 p-1 rounded-full text-[var(--text-muted)] hover:text-red-500 transition-colors focus:outline-none"
-            aria-label={isFavorited ? "Remove from favorites" : "Add to favorites"}
-          >
-            <Heart
-              size={18}
-              className={`transition-colors ${isFavorited ? "fill-red-500 text-red-500" : ""}`}
-            />
-          </button>
         </div>
       </Link>
     );
@@ -239,16 +269,19 @@ export function ListingCard({
   // ── 2-wide (or 3-wide): vertical card ──
   return (
     <div
-      className={`relative rounded-lg overflow-hidden border border-[var(--border)] transition-all duration-200 ${
-        isOwner ? "ring-1 ring-[var(--orange)]/40" : ""
+      className={`relative rounded-lg overflow-hidden border transition-all duration-200 ${
+        isOwner ? "border-l-4" : "border-[var(--border)]"
       }`}
       style={{
         backgroundColor: "var(--bg-surface)",
         boxShadow: "var(--shadow-card)",
+        borderColor: "var(--border)",
+        ...(isOwner ? { borderLeftColor: "var(--orange)" } : {}),
       }}
     >
       <Link href={`/dashboard/listings/${listing.id}/view${viewSearch}`} onClick={onBeforeNavigate}>
-        <div className="relative w-full h-36 bg-[var(--bg-elevated)]">
+        {/* Reduced image height: h-28 for 2x2 iPhone fit */}
+        <div className="relative w-full h-28 bg-[var(--bg-elevated)]">
           {photoUrl ? (
             <Image
               src={photoUrl}
@@ -262,7 +295,6 @@ export function ListingCard({
               <Building2Icon />
             </div>
           )}
-          {/* Corner flag replaces status badge overlay */}
           <StatusFlag status={listing.status} />
           <button
             onClick={toggleFavorite}
@@ -272,15 +304,9 @@ export function ListingCard({
           >
             <Heart
               size={16}
-              className={`transition-colors ${isFavorited ? "fill-red-500 text-red-500 border-none" : ""}`}
+              className={`transition-colors ${isFavorited ? "fill-red-500 text-red-500" : ""}`}
             />
           </button>
-          {isOwner && (
-            <div
-              className="absolute top-2 right-10 w-2 h-2 rounded-full shadow-[var(--shadow-orange)]"
-              style={{ backgroundColor: "var(--orange)" }}
-            />
-          )}
           {photoCount > 1 && (
             <div
               className="absolute bottom-2 right-2 text-white text-[10px] px-1.5 py-0.5 rounded"
@@ -292,18 +318,41 @@ export function ListingCard({
         </div>
       </Link>
 
-      <div className="p-3">
+      <div className="p-2.5">
         {/* Two-line headline — both same color (ADR-005) */}
-        <p className={`font-bold text-[var(--text-primary)] truncate leading-tight ${cols === 3 ? "text-sm" : "text-base"}`}>
+        <p className={`font-bold text-[var(--text-primary)] truncate leading-tight ${cols === 3 ? "text-sm" : "text-sm"}`}>
           {line1}
         </p>
-        <p className={`font-bold text-[var(--text-primary)] truncate leading-tight ${cols === 3 ? "text-sm" : "text-base"}`}>
+        <p className={`font-bold text-[var(--text-primary)] truncate leading-tight ${cols === 3 ? "text-sm" : "text-sm"}`}>
           {line2}
         </p>
 
-        <div className="flex items-center justify-between mt-3">
-          {agent && <AgentChip agent={agent} />}
-          <div className="ml-auto">
+        {/* Ward display */}
+        {wardDisplay && (
+          <div className="flex items-center gap-1 mt-1 text-[11px] text-[var(--text-secondary)]">
+            <MapPin size={10} className="shrink-0" />
+            <span className="truncate">{wardDisplay}</span>
+          </div>
+        )}
+
+        {/* Bottom row: avatar+name | phone | message */}
+        <div className="flex items-center gap-2 mt-2 pt-2 border-t border-[var(--border-subtle)]">
+          {agent && (
+            <div className="flex-1 min-w-0">
+              <AgentChip agent={agent} size="sm" clickable={!isOwner} />
+            </div>
+          )}
+          {agent?.phone && (
+            <a
+              href={`tel:${agent.phone}`}
+              onClick={(e) => e.stopPropagation()}
+              className="shrink-0 flex items-center p-1.5 rounded-md text-[var(--text-secondary)] hover:text-[var(--orange)] transition-colors"
+              title={agent.phone}
+            >
+              <Phone size={14} />
+            </a>
+          )}
+          <div className="shrink-0">
             {isOwner ? (
               <button
                 type="button"
