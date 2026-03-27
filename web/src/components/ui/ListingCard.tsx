@@ -221,10 +221,11 @@ export function ListingCard({
               <a
                 href={`tel:${agent.phone}`}
                 onClick={(e) => e.stopPropagation()}
-                className="shrink-0 flex items-center p-1.5 rounded-md text-[var(--text-secondary)] hover:text-[var(--orange)] transition-colors"
+                className="shrink-0 flex items-center gap-1 p-1.5 rounded-md text-[var(--text-secondary)] hover:text-[var(--orange)] transition-colors text-xs"
                 title={agent.phone}
               >
                 <Phone size={14} />
+                <span>{agent.phone}</span>
               </a>
             )}
             <div className="shrink-0">
@@ -346,10 +347,11 @@ export function ListingCard({
             <a
               href={`tel:${agent.phone}`}
               onClick={(e) => e.stopPropagation()}
-              className="shrink-0 flex items-center p-1.5 rounded-md text-[var(--text-secondary)] hover:text-[var(--orange)] transition-colors"
+              className="shrink-0 flex items-center gap-1 p-1.5 rounded-md text-[var(--text-secondary)] hover:text-[var(--orange)] transition-colors text-xs"
               title={agent.phone}
             >
               <Phone size={14} />
+              <span>{agent.phone}</span>
             </a>
           )}
           <div className="shrink-0">
