@@ -9,6 +9,13 @@ import { MessageSquare, Heart, MapPin, Phone } from "lucide-react";
 import { useState } from "react";
 import type { Listing } from "@/lib/types";
 
+function formatPhone(phone: string): string {
+  const digits = phone.replace(/\D/g, "");
+  if (digits.length === 10) return `${digits.slice(0, 3)}-${digits.slice(3, 6)}-${digits.slice(6)}`;
+  if (digits.length === 11) return `${digits.slice(0, 4)}-${digits.slice(4, 7)}-${digits.slice(7)}`;
+  return phone;
+}
+
 interface ListingCardProps {
   listing: Listing & {
     has_conversation?: boolean;
@@ -221,11 +228,11 @@ export function ListingCard({
               <a
                 href={`tel:${agent.phone}`}
                 onClick={(e) => e.stopPropagation()}
-                className="shrink-0 flex items-center gap-1 p-1.5 rounded-md text-[var(--text-secondary)] hover:text-[var(--orange)] transition-colors text-xs"
+                className="shrink-0 inline-flex items-center justify-center gap-1 p-1.5 rounded-md text-[var(--text-secondary)] hover:text-[var(--orange)] transition-colors text-xs leading-none"
                 title={agent.phone}
               >
                 <Phone size={14} />
-                <span>{agent.phone}</span>
+                <span>{formatPhone(agent.phone)}</span>
               </a>
             )}
             <div className="shrink-0">
@@ -347,11 +354,11 @@ export function ListingCard({
             <a
               href={`tel:${agent.phone}`}
               onClick={(e) => e.stopPropagation()}
-              className="shrink-0 flex items-center gap-1 p-1.5 rounded-md text-[var(--text-secondary)] hover:text-[var(--orange)] transition-colors text-xs"
+              className="shrink-0 inline-flex items-center justify-center gap-1 p-1.5 rounded-md text-[var(--text-secondary)] hover:text-[var(--orange)] transition-colors text-xs leading-none"
               title={agent.phone}
             >
               <Phone size={14} />
-              <span>{agent.phone}</span>
+              <span>{formatPhone(agent.phone)}</span>
             </a>
           )}
           <div className="shrink-0">

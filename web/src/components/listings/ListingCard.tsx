@@ -10,6 +10,13 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { Heart, MapPin, Phone, MessageSquare } from "lucide-react";
 import { AgentChip } from "@/components/ui/AgentChip";
 
+function formatPhone(phone: string): string {
+  const digits = phone.replace(/\D/g, "");
+  if (digits.length === 10) return `${digits.slice(0, 3)}-${digits.slice(3, 6)}-${digits.slice(6)}`;
+  if (digits.length === 11) return `${digits.slice(0, 4)}-${digits.slice(4, 7)}-${digits.slice(7)}`;
+  return phone;
+}
+
 // Corner flag colors (spec REA-69/73):
 // Blue=Just Listed, Red=Price Raised/Dropped, Green=Deposit/Sold, Gray=Not For Sale
 // Selling has NO flag
@@ -213,11 +220,11 @@ export default function ListingCard({
               <a
                 href={`tel:${agent.phone}`}
                 onClick={(e) => e.stopPropagation()}
-                className="shrink-0 flex items-center gap-1 p-1.5 rounded-md text-[var(--text-secondary)] hover:text-[var(--orange)] transition-colors text-xs"
+                className="shrink-0 inline-flex items-center justify-center gap-1 p-1.5 rounded-md text-[var(--text-secondary)] hover:text-[var(--orange)] transition-colors text-xs leading-none"
                 title={agent.phone}
               >
                 <Phone size={14} />
-                <span>{agent.phone}</span>
+                <span>{formatPhone(agent.phone)}</span>
               </a>
             )}
             <button
@@ -330,11 +337,11 @@ export default function ListingCard({
             <a
               href={`tel:${agent.phone}`}
               onClick={(e) => e.stopPropagation()}
-              className="shrink-0 flex items-center gap-1 p-1.5 rounded-md text-[var(--text-secondary)] hover:text-[var(--orange)] transition-colors text-xs"
+              className="shrink-0 inline-flex items-center justify-center gap-1 p-1.5 rounded-md text-[var(--text-secondary)] hover:text-[var(--orange)] transition-colors text-xs leading-none"
               title={agent.phone}
             >
               <Phone size={14} />
-              <span>{agent.phone}</span>
+              <span>{formatPhone(agent.phone)}</span>
             </a>
           )}
           <button
