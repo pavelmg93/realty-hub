@@ -63,13 +63,25 @@ export default function FeedPage() {
     } catch {}
   }, [viewMode]);
 
-  // Read saved scroll on mount — apply after data loads
+  // Read saved scroll + filters on mount — apply after data loads
   useEffect(() => {
     try {
       const savedY = sessionStorage.getItem("realtyhub_scroll_feed");
       if (savedY) {
         sessionStorage.removeItem("realtyhub_scroll_feed");
         restoreScrollRef.current = parseInt(savedY, 10);
+      }
+      const savedFilters = sessionStorage.getItem("realtyhub_filters_feed");
+      if (savedFilters) {
+        sessionStorage.removeItem("realtyhub_filters_feed");
+        const parsed = JSON.parse(savedFilters);
+        setFilters(parsed);
+      }
+      const savedSearch = sessionStorage.getItem("realtyhub_search_feed");
+      if (savedSearch) {
+        sessionStorage.removeItem("realtyhub_search_feed");
+        setSearchQuery(savedSearch);
+        setActiveSearch(savedSearch);
       }
     } catch {}
   }, []);
@@ -141,10 +153,12 @@ export default function FeedPage() {
     }
   };
 
-  // Save scroll position before navigating to listing detail
+  // Save scroll position + filters before navigating to listing detail
   const saveScrollAndNavigate = (url: string) => {
     try {
       sessionStorage.setItem("realtyhub_scroll_feed", String(window.scrollY));
+      sessionStorage.setItem("realtyhub_filters_feed", JSON.stringify(filters));
+      if (activeSearch) sessionStorage.setItem("realtyhub_search_feed", activeSearch);
     } catch {}
     router.push(url);
   };
@@ -156,6 +170,9 @@ export default function FeedPage() {
   const handleApplyFilters = () => fetchFeed(1);
   const handleResetFilters = () => setFilters({ ...DEFAULT_FILTERS });
   const currentUserId = user?.id ?? 0;
+  const activeFilterCount = Object.entries(filters).filter(
+    ([k, v]) => v && k !== "sort" && k !== "order",
+  ).length;
 
   const CITIES = ["Nha Trang", "Hà Nội", "TP.HCM", "Đà Nẵng"];
 
@@ -177,8 +194,8 @@ export default function FeedPage() {
         </select>
       </div>
 
-      {/* Unified toolbar — h-12 (48px) in map mode, normal in grid mode */}
-      <div className={`flex items-center gap-2 ${viewMode === "map" ? "h-12" : "mb-3"}`}>
+      {/* Unified toolbar */}
+      <div className={`flex items-center gap-2 ${viewMode === "map" ? "mb-2" : "mb-3"}`}>
         {/* Search */}
         <div className="relative flex-1">
           <svg
@@ -212,12 +229,16 @@ export default function FeedPage() {
         <button
           type="button"
           onClick={() => setShowFilters(!showFilters)}
-          className={`inline-flex flex-none items-center gap-1.5 px-3 py-2 text-sm rounded-lg border border-[var(--border)] transition-colors ${
-            showFilters ? "text-white" : "text-[var(--text-secondary)]"
+          className={`inline-flex flex-none items-center gap-1.5 px-3 py-2 text-sm rounded-lg border transition-colors ${
+            showFilters
+              ? "text-white border-[var(--orange)]"
+              : activeFilterCount > 0
+                ? "text-[var(--orange)] border-[var(--orange)]"
+                : "text-[var(--text-secondary)] border-[var(--border)]"
           }`}
           style={showFilters ? { backgroundColor: "var(--orange)" } : { backgroundColor: "var(--bg-surface)" }}
         >
-          <Filter size={16} /> {t("filter")}
+          <Filter size={16} /> {t("filter")}{activeFilterCount > 0 && !showFilters ? ` (${activeFilterCount})` : ""}
         </button>
 
         {/* Save Search */}
@@ -236,18 +257,16 @@ export default function FeedPage() {
       </div>
 
       {/* Listing count — stable height to prevent layout shift */}
-      {viewMode !== "map" && (
-        <div className="mb-3 text-sm text-[var(--text-muted)]" style={{ minHeight: "1.5rem" }}>
-          {loading ? (
-            <span className="opacity-50">— {t("listings")}</span>
-          ) : (
-            <>
-              {pagination.total} {t("listings")}
-              {activeSearch && <span className="ml-1 text-[var(--orange)]">"{activeSearch}"</span>}
-            </>
-          )}
-        </div>
-      )}
+      <div className={`text-sm text-[var(--text-muted)] ${viewMode === "map" ? "my-1" : "mb-3"}`} style={{ minHeight: "1.5rem" }}>
+        {loading ? (
+          <span className="opacity-50">— {t("listings")}</span>
+        ) : (
+          <>
+            {pagination.total} {t("listings")}
+            {activeSearch && <span className="ml-1 text-[var(--orange)]">"{activeSearch}"</span>}
+          </>
+        )}
+      </div>
 
       {/* Filters panel */}
       {showFilters && (
@@ -256,6 +275,7 @@ export default function FeedPage() {
           onChange={setFilters}
           onApply={handleApplyFilters}
           onReset={handleResetFilters}
+          onCollapse={() => setShowFilters(false)}
           agents={agents}
         />
       )}
@@ -319,6 +339,8 @@ export default function FeedPage() {
                 onBeforeNavigate={() => {
                   try {
                     sessionStorage.setItem("realtyhub_scroll_feed", String(window.scrollY));
+                    sessionStorage.setItem("realtyhub_filters_feed", JSON.stringify(filters));
+                    if (activeSearch) sessionStorage.setItem("realtyhub_search_feed", activeSearch);
                   } catch {}
                 }}
               />

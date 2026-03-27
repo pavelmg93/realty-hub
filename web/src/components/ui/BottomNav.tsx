@@ -61,7 +61,7 @@ export function BottomNav({ unreadCount = 0 }: { unreadCount?: number }) {
             pathname === "/dashboard/listings" ||
             pathname === "/dashboard/listings/new" ||
             isListingEdit ||
-            (isListingView && (fromParam === "store" || fromParam === "listings"));
+            (isListingView && fromParam === "store");
         } else if (key === "crm") {
           active =
             pathname.startsWith("/dashboard/crm") ||

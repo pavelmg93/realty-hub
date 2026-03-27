@@ -358,8 +358,12 @@ export default function DatabaseView({ data, onChange, isEdit = false }: Props) 
   const set = (field: keyof ListingInput, value: unknown) => onChange({ ...data, [field]: value });
   const setMultiple = (updates: Partial<ListingInput>) => onChange({ ...data, ...updates });
 
+  // System-managed statuses — not user-selectable in edit form
+  const SYSTEM_ONLY_STATUSES = ["just_listed", "price_increased", "price_dropped"];
   const statusOptions = Object.fromEntries(
-    Object.entries(LISTING_STATUSES).map(([k]) => [k, (t as (key: string) => string)(STATUS_LABEL_KEYS[k] ?? "open")])
+    Object.entries(LISTING_STATUSES)
+      .filter(([k]) => !SYSTEM_ONLY_STATUSES.includes(k))
+      .map(([k]) => [k, (t as (key: string) => string)(STATUS_LABEL_KEYS[k] ?? "open")])
   );
   const propertyTypeOptions = Object.fromEntries(
     Object.entries(PROPERTY_TYPES).map(([k, v]) => [k, getPropertyTypeKey(k) ? t(getPropertyTypeKey(k)!) : v])

@@ -218,13 +218,6 @@ function ListingViewPageInner() {
     return (
       <div className="text-center py-12 p-3">
         <p className="text-[var(--error)] mb-4">{error || t("notFound")}</p>
-        <button
-          type="button"
-          onClick={() => router.back()}
-          className="text-sm text-[var(--text-secondary)] hover:text-white"
-        >
-          {t("goBack")}
-        </button>
       </div>
     );
   }

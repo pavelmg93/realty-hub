@@ -54,13 +54,24 @@ export default function StorePage() {
     } catch {}
   }, [activeTab, viewMode]);
 
-  // Restore scroll
+  // Restore scroll + filters
   useEffect(() => {
     try {
       const savedY = sessionStorage.getItem("realtyhub_scroll_store");
       if (savedY) {
         sessionStorage.removeItem("realtyhub_scroll_store");
         restoreScrollRef.current = parseInt(savedY, 10);
+      }
+      const savedFilters = sessionStorage.getItem("realtyhub_filters_store");
+      if (savedFilters) {
+        sessionStorage.removeItem("realtyhub_filters_store");
+        setFilters(JSON.parse(savedFilters));
+      }
+      const savedSearch = sessionStorage.getItem("realtyhub_search_store");
+      if (savedSearch) {
+        sessionStorage.removeItem("realtyhub_search_store");
+        setSearchQuery(savedSearch);
+        setActiveSearch(savedSearch);
       }
     } catch {}
   }, []);
@@ -117,6 +128,8 @@ export default function StorePage() {
   const saveScrollAndNavigate = (url: string) => {
     try {
       sessionStorage.setItem("realtyhub_scroll_store", String(window.scrollY));
+      sessionStorage.setItem("realtyhub_filters_store", JSON.stringify(filters));
+      if (activeSearch) sessionStorage.setItem("realtyhub_search_store", activeSearch);
     } catch {}
     router.push(url);
   };
@@ -128,6 +141,9 @@ export default function StorePage() {
   };
   const handleApplyFilters = () => fetchListings();
   const handleResetFilters = () => setFilters({ ...DEFAULT_FILTERS });
+  const activeFilterCount = Object.entries(filters).filter(
+    ([k, v]) => v && k !== "sort" && k !== "order",
+  ).length;
 
   const handleReactivate = async (id: number) => {
     const res = await fetch(`/api/listings/${id}/archive`, {
@@ -184,7 +200,7 @@ export default function StorePage() {
       </div>
 
       {/* Unified toolbar: search + filter + view mode */}
-      <div className={`flex items-center gap-2 ${viewMode === "map" ? "h-12" : "mb-3"}`}>
+      <div className={`flex items-center gap-2 ${viewMode === "map" ? "mb-2" : "mb-3"}`}>
         <div className="relative flex-1">
           <svg
             className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-muted)] pointer-events-none"
@@ -215,12 +231,16 @@ export default function StorePage() {
         <button
           type="button"
           onClick={() => setShowFilters(!showFilters)}
-          className={`inline-flex flex-none items-center gap-1.5 px-3 py-2 text-sm rounded-lg border border-[var(--border)] transition-colors ${
-            showFilters ? "text-white" : "text-[var(--text-secondary)]"
+          className={`inline-flex flex-none items-center gap-1.5 px-3 py-2 text-sm rounded-lg border transition-colors ${
+            showFilters
+              ? "text-white border-[var(--orange)]"
+              : activeFilterCount > 0
+                ? "text-[var(--orange)] border-[var(--orange)]"
+                : "text-[var(--text-secondary)] border-[var(--border)]"
           }`}
           style={showFilters ? { backgroundColor: "var(--orange)" } : { backgroundColor: "var(--bg-surface)" }}
         >
-          <Filter size={16} /> {t("filter")}
+          <Filter size={16} /> {t("filter")}{activeFilterCount > 0 && !showFilters ? ` (${activeFilterCount})` : ""}
         </button>
         {/* Save Search */}
         <button
@@ -242,8 +262,21 @@ export default function StorePage() {
           onChange={setFilters}
           onApply={handleApplyFilters}
           onReset={handleResetFilters}
+          onCollapse={() => setShowFilters(false)}
         />
       )}
+
+      {/* Listing count — stable height */}
+      <div className={`text-sm text-[var(--text-muted)] ${viewMode === "map" ? "my-1" : "mb-3"}`} style={{ minHeight: "1.5rem" }}>
+        {loading ? (
+          <span className="opacity-50">— {t("listings")}</span>
+        ) : (
+          <>
+            {listings.length} {t("listings")}
+            {activeSearch && <span className="ml-1 text-[var(--orange)]">"{activeSearch}"</span>}
+          </>
+        )}
+      </div>
 
       {/* Content */}
       {viewMode === "map" ? (
@@ -289,6 +322,8 @@ export default function StorePage() {
               onBeforeNavigate={() => {
                 try {
                   sessionStorage.setItem("realtyhub_scroll_store", String(window.scrollY));
+                  sessionStorage.setItem("realtyhub_filters_store", JSON.stringify(filters));
+                  if (activeSearch) sessionStorage.setItem("realtyhub_search_store", activeSearch);
                 } catch {}
               }}
             />
@@ -315,6 +350,8 @@ export default function StorePage() {
               onBeforeNavigate={() => {
                 try {
                   sessionStorage.setItem("realtyhub_scroll_store", String(window.scrollY));
+                  sessionStorage.setItem("realtyhub_filters_store", JSON.stringify(filters));
+                  if (activeSearch) sessionStorage.setItem("realtyhub_search_store", activeSearch);
                 } catch {}
               }}
             />

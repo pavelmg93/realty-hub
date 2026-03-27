@@ -1,7 +1,7 @@
 "use client";
 
 import { useAuth } from "@/hooks/useAuth";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState, Suspense } from "react";
 import { TopBar } from "@/components/ui/TopBar";
 import { BottomNav } from "@/components/ui/BottomNav";
@@ -26,7 +26,6 @@ function DashboardLayoutInner({
   const { user, isLoading, logout } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
-  const searchParams = useSearchParams();
   const [unreadCount, setUnreadCount] = useState(0);
   const [notifCount, setNotifCount] = useState(0);
 
@@ -61,8 +60,7 @@ function DashboardLayoutInner({
     }
   }, [user, isLoading, router]);
 
-  const fromParam = searchParams.get("from");
-  const { back, backHref, title } = getTopBarNav(pathname, fromParam);
+  const { title } = getTopBarNav(pathname);
 
   if (isLoading || !user) {
     return (
@@ -82,33 +80,14 @@ function DashboardLayoutInner({
       className="min-h-screen flex flex-col"
       style={{ backgroundColor: "var(--bg-base)" }}
     >
-      <TopBar back={back} backHref={backHref} title={title} notificationCount={notifCount} />
+      <TopBar title={title} notificationCount={notifCount} />
       <main className="flex-1 pt-14 pb-16">{children}</main>
       <BottomNav unreadCount={unreadCount} />
     </div>
   );
 }
 
-function getTopBarNav(pathname: string | null, fromParam?: string | null): {
-  back: boolean;
-  backHref?: string;
-  title?: string;
-} {
-  if (!pathname || !pathname.startsWith("/dashboard")) return { back: false };
-  const segments = pathname.replace(/^\/dashboard\/?/, "").split("/").filter(Boolean);
-  if (segments.length === 0) return { back: false };
-  if (segments[0] === "messages" && segments[1]) return { back: true, backHref: "/dashboard/messages" };
-  if (segments[0] === "listings") {
-    if (segments[1] && segments[2] === "view") {
-      const backDest = fromParam === "feed" ? "/dashboard/feed" : fromParam === "store" ? "/dashboard/store" : "/dashboard/listings";
-      return { back: true, backHref: backDest };
-    }
-    if (segments[1] && segments[2] === "edit") return { back: true, backHref: `/dashboard/listings/${segments[1]}/view` };
-    if (segments[1] && !segments[2]) return { back: true, backHref: "/dashboard/listings" };
-  }
-  if (segments[0] === "crm" && segments[1] === "person" && segments[2])
-    return { back: true, backHref: "/dashboard/crm" };
-  if (segments[0] === "agents" && segments[1]) return { back: true, backHref: "/dashboard/crm" };
-  if (segments[0] === "notifications") return { back: true, backHref: "/dashboard/feed" };
-  return { back: false };
+function getTopBarNav(pathname: string | null): { title?: string } {
+  if (!pathname || !pathname.startsWith("/dashboard")) return {};
+  return {};
 }

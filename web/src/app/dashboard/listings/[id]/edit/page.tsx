@@ -76,7 +76,7 @@ export default function EditListingPage() {
         <div className="text-center py-12">
           <p className="text-[var(--error)] mb-4">{error || t("notFound")}</p>
           <button
-            onClick={() => router.push("/dashboard/listings")}
+            onClick={() => router.push("/dashboard/store")}
             className="text-sm text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
           >
             {t("backToListings")}
@@ -93,7 +93,7 @@ export default function EditListingPage() {
           {t("editListing")}
         </h1>
         <button
-          onClick={() => router.push(`/dashboard/listings/${listing.id}/view?from=listings`)}
+          onClick={() => router.push(`/dashboard/listings/${listing.id}/view?from=store`)}
           className="px-3 py-1.5 text-sm rounded-lg border border-[var(--border)] text-[var(--text-secondary)] hover:bg-[var(--bg-hover)] transition-colors"
         >
           {t("view")}

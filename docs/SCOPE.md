@@ -15,11 +15,11 @@
 
 ### Tasks (execute top-down)
 
-* [ ] **[REA-112] Filter UX fixes (11 sub-items)** — Price decimal input, stepper increment by 1.0, "tỷ" label outside input, clear 0.0 on focus, style consistency, listing count flicker, collapse on Apply, orange active indicator, back-button filter state, "X Listings" in map view, My Store map spacing. `pilot-blocker`
-* [ ] **[REA-113] Edit listing: status dropdown + auto price status + field reorder** — Hide just_listed/price_increased/price_dropped from dropdown (system-only). Auto-set price status on save (compare old vs new price_vnd). Field order: match New Listing form. Description textarea double height.
-* [ ] **[REA-115] Remove ALL ghost back arrow buttons (repo-wide)** — `grep -rn` for back/Back/chevron-left/ArrowLeft/← in web/src/ and remove all. Users rely on browser back.
-* [ ] **[REA-132] Standardized title: remove ALL CAPS** — Audit generateTitleStandardized(), DB values, regenerate-titles.sh, CSS text-transform. Grep repo-wide for uppercase/toUpperCase. Fix everywhere.
-* [ ] **[REA-129] Replace /dashboard/listings links with My Store** — grep for dashboard/listings, replace list route only (not individual /[id] routes). All "My Listings" navigation → My Store.
+* [x] **[REA-112] Filter UX fixes (11 sub-items)** — Price decimal input, stepper increment by 1.0, "tỷ" label outside input, clear 0.0 on focus, style consistency, listing count flicker, collapse on Apply, orange active indicator, back-button filter state, "X Listings" in map view, My Store map spacing. `pilot-blocker`
+* [x] **[REA-113] Edit listing: status dropdown + auto price status + field reorder** — Hide just_listed/price_increased/price_dropped from dropdown (system-only). Auto-set price status on save (compare old vs new price_vnd). Field order: match New Listing form. Description textarea double height.
+* [x] **[REA-115] Remove ALL ghost back arrow buttons (repo-wide)** — `grep -rn` for back/Back/chevron-left/ArrowLeft/← in web/src/ and remove all. Users rely on browser back.
+* [x] **[REA-132] Standardized title: remove ALL CAPS** — Audit generateTitleStandardized(), DB values, regenerate-titles.sh, CSS text-transform. Grep repo-wide for uppercase/toUpperCase. Fix everywhere.
+* [x] **[REA-129] Replace /dashboard/listings links with My Store** — grep for dashboard/listings, replace list route only (not individual /[id] routes). All "My Listings" navigation → My Store.
 
 ### End of session checklist
 * [ ] `cd web && npx tsc --noEmit` — must be clean

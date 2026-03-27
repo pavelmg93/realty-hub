@@ -225,7 +225,7 @@ export default function ListingsPage() {
               try {
                 sessionStorage.setItem("realtyhub_scroll_listings", String(window.scrollY));
               } catch {}
-              router.push(`/dashboard/listings/${l.id}/view?from=listings`);
+              router.push(`/dashboard/listings/${l.id}/view?from=store`);
             }}
             height={LAYOUT.MAP_HEIGHT}
           />

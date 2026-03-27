@@ -104,13 +104,6 @@ export default function PersonProfilePage() {
   return (
     <div className="p-4 max-w-md mx-auto">
       <div className="flex items-center gap-2 mb-4">
-        <button
-          type="button"
-          onClick={() => router.back()}
-          className="p-2 text-[var(--text-muted)] hover:text-[var(--text-primary)]"
-        >
-          ←
-        </button>
         <h1 className="text-lg font-semibold text-[var(--text-primary)]">
           {isSeller ? "Seller" : "Buyer"} Profile
         </h1>
@@ -182,7 +175,7 @@ export default function PersonProfilePage() {
           {listings.map((pl) => (
             <Link
               key={pl.id}
-              href={`/dashboard/listings/${pl.listing_id}/view?from=listings`}
+              href={`/dashboard/listings/${pl.listing_id}/view?from=store`}
               className="flex justify-between items-center gap-3 p-3 rounded-xl border border-[var(--border)] transition-colors hover:border-[var(--orange)]/50"
               style={{ backgroundColor: "var(--bg-surface)" }}
             >

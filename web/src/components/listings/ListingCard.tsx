@@ -128,7 +128,7 @@ export default function ListingCard({
   if (cols === 1) {
     return (
       <Link
-        href={`/dashboard/listings/${listing.id}/view?from=listings`}
+        href={`/dashboard/listings/${listing.id}/view?from=store`}
         onClick={onBeforeNavigate}
         className={`flex rounded-xl overflow-hidden border transition-shadow hover:shadow-[var(--shadow-elevated)] ${isOwner ? "border-l-4" : ""}`}
         style={{
@@ -245,7 +245,7 @@ export default function ListingCard({
   // ── 2-wide: vertical card ──
   return (
     <Link
-      href={`/dashboard/listings/${listing.id}/view?from=listings`}
+      href={`/dashboard/listings/${listing.id}/view?from=store`}
       onClick={onBeforeNavigate}
       className={`block rounded-xl overflow-hidden border transition-shadow hover:shadow-[var(--shadow-elevated)] ${isOwner ? "border-l-4" : ""}`}
       style={{

@@ -324,7 +324,7 @@ export default function ListingForm({ existing, initialData }: Props) {
         }
       }
 
-      router.push("/dashboard/listings");
+      router.push("/dashboard/store");
       router.refresh();
     } catch {
       setError(t("saveFailed"));
@@ -355,7 +355,7 @@ export default function ListingForm({ existing, initialData }: Props) {
           placeholder={lang === "vi"
             ? "Dán nội dung BĐS ở đây rồi nhấn \"Phân tích bằng AI\"…"
             : "Paste listing text here, then tap \"Parse with AI\"…"}
-          rows={5}
+          rows={10}
           className="w-full rounded-xl p-3 text-sm resize-y border border-[var(--border)]"
           style={{ backgroundColor: "var(--bg-input)", color: "var(--text-primary)" }}
         />
@@ -442,7 +442,7 @@ export default function ListingForm({ existing, initialData }: Props) {
         </button>
         <button
           type="button"
-          onClick={() => router.push("/dashboard/listings")}
+          onClick={() => router.push("/dashboard/store")}
           className="px-4 py-2.5 text-sm rounded-lg border border-[var(--border)] text-[var(--text-secondary)] hover:bg-[var(--bg-hover)] transition-colors"
         >
           {t("cancel")}

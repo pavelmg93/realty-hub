@@ -100,13 +100,6 @@ export default function AgentProfilePage() {
   return (
     <div className="p-4 max-w-md mx-auto">
       <div className="flex items-center gap-2 mb-4">
-        <button
-          type="button"
-          onClick={() => router.back()}
-          className="p-2 text-[var(--text-muted)] hover:text-[var(--text-primary)]"
-        >
-          ←
-        </button>
         <h1 className="text-lg font-semibold text-[var(--text-primary)]">Agent Profile</h1>
       </div>
 

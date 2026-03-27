@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, useEffect, useRef } from "react";
 import {
   NHA_TRANG_WARDS,
 } from "@/lib/constants";
@@ -94,6 +95,7 @@ interface Props {
   onChange: (filters: FeedFilterValues) => void;
   onApply: () => void;
   onReset: () => void;
+  onCollapse?: () => void;
   /** For Feed view: list of agents for "Agent" filter */
   agents?: AgentOption[];
 }
@@ -162,23 +164,39 @@ function PriceStepper({
   onChange: (v: string) => void;
 }) {
   const tyVal = parseTyValue(value);
-  const STEP = 0.01; // 0.01 tỷ = 10 million VND
+  const STEP = 1; // 1 tỷ increment
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  // Local text state — only syncs to parent on blur/Enter
+  const [localText, setLocalText] = useState(() =>
+    tyVal != null ? formatTy(tyVal) : ""
+  );
+
+  // Sync from parent when external changes happen (stepper buttons, reset)
+  useEffect(() => {
+    if (!inputRef.current || document.activeElement !== inputRef.current) {
+      setLocalText(tyVal != null ? formatTy(tyVal) : "");
+    }
+  }, [tyVal]);
 
   const handleStep = (dir: 1 | -1) => {
     const current = tyVal ?? 0;
-    const next = Math.max(0, Math.round((current + dir * STEP) * 100) / 100);
+    const next = Math.max(0, +(current + dir * STEP).toFixed(2));
     onChange(next === 0 ? "" : `${next}ty`);
   };
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const raw = e.target.value;
-    if (raw === "") {
+  const commitValue = (raw: string) => {
+    if (raw === "" || raw === ".") {
       onChange("");
+      setLocalText("");
       return;
     }
     const num = parseFloat(raw);
     if (!isNaN(num) && num >= 0) {
       onChange(`${num}ty`);
+      setLocalText(formatTy(num));
+    } else {
+      setLocalText(tyVal != null ? formatTy(tyVal) : "");
     }
   };
 
@@ -190,25 +208,37 @@ function PriceStepper({
           type="button"
           onClick={() => handleStep(-1)}
           disabled={!tyVal || tyVal <= 0}
-          className="flex-none w-8 h-10 flex items-center justify-center rounded-lg border border-[var(--border)] bg-[var(--bg-elevated)] text-[var(--text-secondary)] hover:bg-[var(--bg-hover)] disabled:opacity-30 transition-colors text-lg font-medium"
+          className="flex-none w-8 h-8 flex items-center justify-center rounded-lg border border-[var(--border)] bg-[var(--bg-elevated)] text-[var(--text-secondary)] hover:bg-[var(--bg-hover)] disabled:opacity-30 transition-colors text-lg font-medium"
         >
           −
         </button>
-        <div className="relative flex-1">
-          <input
-            type="text"
-            inputMode="decimal"
-            value={tyVal != null ? formatTy(tyVal) : ""}
-            onChange={handleInputChange}
-            placeholder="0"
-            className="w-full rounded-lg pl-3 pr-8 py-2.5 text-base border border-[var(--border)] bg-[var(--bg-elevated)] text-[var(--text-primary)] focus:outline-none focus:border-[var(--orange)] text-center"
-          />
-          <span className="absolute right-2 top-1/2 -translate-y-1/2 text-xs text-[var(--text-muted)] pointer-events-none">tỷ</span>
-        </div>
+        <input
+          ref={inputRef}
+          type="text"
+          inputMode="decimal"
+          value={localText}
+          onChange={(e) => {
+            const raw = e.target.value;
+            if (raw === "" || /^\d*\.?\d*$/.test(raw)) {
+              setLocalText(raw);
+            }
+          }}
+          onFocus={(e) => e.target.select()}
+          onBlur={(e) => commitValue(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") {
+              e.preventDefault();
+              commitValue((e.target as HTMLInputElement).value);
+              (e.target as HTMLInputElement).blur();
+            }
+          }}
+          placeholder="0"
+          className="flex-1 min-w-0 rounded-lg px-3 py-2 text-sm border border-[var(--border)] bg-[var(--bg-elevated)] text-[var(--text-primary)] focus:outline-none focus:border-[var(--orange)] text-center"
+        />
         <button
           type="button"
           onClick={() => handleStep(1)}
-          className="flex-none w-8 h-10 flex items-center justify-center rounded-lg border border-[var(--border)] bg-[var(--bg-elevated)] text-[var(--text-secondary)] hover:bg-[var(--bg-hover)] transition-colors text-lg font-medium"
+          className="flex-none w-8 h-8 flex items-center justify-center rounded-lg border border-[var(--border)] bg-[var(--bg-elevated)] text-[var(--text-secondary)] hover:bg-[var(--bg-hover)] transition-colors text-lg font-medium"
         >
           +
         </button>
@@ -222,6 +252,7 @@ export default function FeedFilters({
   onChange,
   onApply,
   onReset,
+  onCollapse,
   agents = [],
 }: Props) {
   const { t, lang } = useLanguage();
@@ -497,7 +528,7 @@ export default function FeedFilters({
           </select>
         </div>
         <button
-          onClick={onApply}
+          onClick={() => { onApply(); onCollapse?.(); }}
           className="px-4 py-2 text-white text-sm rounded-lg font-medium transition-colors"
           style={{ backgroundColor: "var(--orange)" }}
         >

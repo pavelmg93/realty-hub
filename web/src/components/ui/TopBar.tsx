@@ -3,22 +3,18 @@
 import Link from "next/link";
 import Image from "next/image";
 import { LangSwitcher } from "./LangSwitcher";
-import { ChevronLeft, Bell } from "lucide-react";
+import { Bell } from "lucide-react";
 
 const FIDT_LOGO_URL = "https://fidt.vn/wp-content/uploads/2023/04/type5-2.svg";
 const HEADER_BG_OFFWHITE = "#f5f5f0";
 
 interface TopBarProps {
-  back?: boolean;
-  backHref?: string;
   title?: string;
   actions?: React.ReactNode;
   notificationCount?: number;
 }
 
 export function TopBar({
-  back,
-  backHref,
   title,
   actions,
   notificationCount = 0,
@@ -32,16 +28,6 @@ export function TopBar({
       }}
     >
       <div className="min-w-[5rem] flex-shrink-0 flex items-center">
-        {back && backHref && (
-          <Link
-            href={backHref}
-            className="flex items-center gap-0.5 text-sm font-medium transition-colors hover:opacity-70"
-            style={{ color: "#032759" }}
-          >
-            <ChevronLeft size={20} strokeWidth={2.5} />
-            <span className="sr-only">Back</span>
-          </Link>
-        )}
       </div>
 
       <div className="flex-1 flex items-center justify-center min-w-0">
