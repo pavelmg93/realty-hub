@@ -186,12 +186,13 @@ function PriceStepper({
   };
 
   const commitValue = (raw: string) => {
-    if (raw === "" || raw === ".") {
+    const normalized = raw.replace(",", ".");
+    if (normalized === "" || normalized === ".") {
       onChange("");
       setLocalText("");
       return;
     }
-    const num = parseFloat(raw);
+    const num = parseFloat(normalized);
     if (!isNaN(num) && num >= 0) {
       onChange(`${num}ty`);
       setLocalText(formatTy(num));
@@ -219,7 +220,7 @@ function PriceStepper({
           value={localText}
           onChange={(e) => {
             const raw = e.target.value;
-            if (raw === "" || /^\d*\.?\d*$/.test(raw)) {
+            if (raw === "" || /^\d*[.,]?\d*$/.test(raw)) {
               setLocalText(raw);
             }
           }}
@@ -233,7 +234,7 @@ function PriceStepper({
             }
           }}
           placeholder="0"
-          className="flex-1 min-w-0 rounded-lg px-3 py-2 text-sm border border-[var(--border)] bg-[var(--bg-elevated)] text-[var(--text-primary)] focus:outline-none focus:border-[var(--orange)] text-center"
+          className="flex-1 min-w-0 rounded-lg px-3 py-2 text-sm border border-[var(--border)] bg-[var(--bg-elevated)] text-[var(--text-primary)] focus:outline-none focus:border-[var(--orange)]"
         />
         <button
           type="button"
@@ -265,7 +266,6 @@ export default function FeedFilters({
 
   const propertyTypeOptions = toOptions("property_type");
   const transactionTypeOptions = toOptions("transaction_type");
-  const statusOptions = toOptions("status");
   const directionOptions = toOptions("direction");
   const structureTypeOptions = toOptions("structure_type");
   const accessRoadOptions = toOptions("access_road");
@@ -298,6 +298,24 @@ export default function FeedFilters({
         </div>
       </div>
 
+      {/* Property Type + Transaction Type — top */}
+      <div className="grid grid-cols-2 gap-3 mb-3">
+        <FilterSelect
+          label={t("property")}
+          value={filters.property_type}
+          options={propertyTypeOptions}
+          onChange={(v) => set("property_type", v)}
+          allLabel={t("all")}
+        />
+        <FilterSelect
+          label={t("transaction")}
+          value={filters.transaction_type}
+          options={transactionTypeOptions}
+          onChange={(v) => set("transaction_type", v)}
+          allLabel={t("all")}
+        />
+      </div>
+
       {/* Price range — tỷ steppers */}
       <div className="grid grid-cols-2 gap-3 mb-3">
         <PriceStepper
@@ -312,7 +330,7 @@ export default function FeedFilters({
         />
       </div>
 
-      {/* Bedrooms & Bathrooms */}
+      {/* Bedrooms + Area */}
       <div className="grid grid-cols-2 gap-3 mb-3">
         <div>
           <label className="block text-xs font-medium mb-1 text-[var(--text-secondary)]">
@@ -329,23 +347,6 @@ export default function FeedFilters({
         </div>
         <div>
           <label className="block text-xs font-medium mb-1 text-[var(--text-secondary)]">
-            {t("minBaths")}
-          </label>
-          <input
-            type="number"
-            value={filters.num_bathrooms_min}
-            onChange={(e) => set("num_bathrooms_min", e.target.value)}
-            placeholder={t("any")}
-            min="0"
-            className="w-full rounded-lg px-3 py-2 text-sm border border-[var(--border)] bg-[var(--bg-elevated)] text-[var(--text-primary)] focus:outline-none focus:border-[var(--orange)]"
-          />
-        </div>
-      </div>
-
-      {/* Area range */}
-      <div className="grid grid-cols-2 gap-3 mb-3">
-        <div>
-          <label className="block text-xs font-medium mb-1 text-[var(--text-secondary)]">
             {t("minArea")}
           </label>
           <input
@@ -353,18 +354,6 @@ export default function FeedFilters({
             value={filters.area_min}
             onChange={(e) => set("area_min", e.target.value)}
             placeholder="0"
-            className="w-full rounded-lg px-3 py-2 text-sm border border-[var(--border)] bg-[var(--bg-elevated)] text-[var(--text-primary)] focus:outline-none focus:border-[var(--orange)]"
-          />
-        </div>
-        <div>
-          <label className="block text-xs font-medium mb-1 text-[var(--text-secondary)]">
-            {t("maxArea")}
-          </label>
-          <input
-            type="number"
-            value={filters.area_max}
-            onChange={(e) => set("area_max", e.target.value)}
-            placeholder={t("any")}
             className="w-full rounded-lg px-3 py-2 text-sm border border-[var(--border)] bg-[var(--bg-elevated)] text-[var(--text-primary)] focus:outline-none focus:border-[var(--orange)]"
           />
         </div>
@@ -388,41 +377,13 @@ export default function FeedFilters({
         />
       </div>
 
-      {/* Other filters — no Legal */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2">
-        <FilterSelect
-          label={t("property")}
-          value={filters.property_type}
-          options={propertyTypeOptions}
-          onChange={(v) => set("property_type", v)}
-          allLabel={t("all")}
-        />
-        <FilterSelect
-          label={t("transaction")}
-          value={filters.transaction_type}
-          options={transactionTypeOptions}
-          onChange={(v) => set("transaction_type", v)}
-          allLabel={t("all")}
-        />
-        <FilterSelect
-          label={t("status")}
-          value={filters.status}
-          options={statusOptions}
-          onChange={(v) => set("status", v)}
-          allLabel={t("all")}
-        />
+      {/* Extras row 1 */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-2">
         <FilterSelect
           label={t("direction")}
           value={filters.direction}
           options={directionOptions}
           onChange={(v) => set("direction", v)}
-          allLabel={t("all")}
-        />
-        <FilterSelect
-          label={t("structure")}
-          value={filters.structure_type}
-          options={structureTypeOptions}
-          onChange={(v) => set("structure_type", v)}
           allLabel={t("all")}
         />
         <FilterSelect
@@ -446,6 +407,17 @@ export default function FeedFilters({
           onChange={(v) => set("building_type", v)}
           allLabel={t("all")}
         />
+      </div>
+
+      {/* Extras row 2 */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-3">
+        <FilterSelect
+          label={t("structure")}
+          value={filters.structure_type}
+          options={structureTypeOptions}
+          onChange={(v) => set("structure_type", v)}
+          allLabel={t("all")}
+        />
         {agents.length > 0 && (
           <FilterSelect
             label={t("agent")}
@@ -460,51 +432,25 @@ export default function FeedFilters({
             allLabel={t("all")}
           />
         )}
-        <div className="flex flex-col gap-2 justify-end">
-          <label className="flex items-center gap-2 text-xs cursor-pointer text-[var(--text-secondary)]">
-            <input
-              type="checkbox"
-              checked={filters.corner_lot === "true"}
-              onChange={(e) =>
-                set("corner_lot", e.target.checked ? "true" : "")
-              }
-              className="rounded accent-[var(--orange)]"
-            />
-            {t("cornerLot")}
-          </label>
-          <label className="flex items-center gap-2 text-xs cursor-pointer text-[var(--text-secondary)]">
-            <input
-              type="checkbox"
-              checked={filters.has_elevator === "true"}
-              onChange={(e) =>
-                set("has_elevator", e.target.checked ? "true" : "")
-              }
-              className="rounded accent-[var(--orange)]"
-            />
-            {t("elevator")}
-          </label>
-          <label className="flex items-center gap-2 text-xs cursor-pointer text-[var(--text-secondary)]">
-            <input
-              type="checkbox"
-              checked={filters.negotiable === "true"}
-              onChange={(e) =>
-                set("negotiable", e.target.checked ? "true" : "")
-              }
-              className="rounded accent-[var(--orange)]"
-            />
-            {t("negotiable")}
-          </label>
-          <label className="flex items-center gap-2 text-xs cursor-pointer text-[var(--text-secondary)]">
-            <input
-              type="checkbox"
-              checked={filters.is_favorited === "true"}
-              onChange={(e) =>
-                set("is_favorited", e.target.checked ? "true" : "")
-              }
-              className="rounded accent-[var(--orange)]"
-            />
-            {t("favoritesOnly")}
-          </label>
+        <div className="flex flex-col gap-1.5 justify-end col-span-2 sm:col-span-2">
+          <div className="flex flex-wrap gap-x-4 gap-y-1.5">
+            <label className="flex items-center gap-2 text-xs cursor-pointer text-[var(--text-secondary)]">
+              <input type="checkbox" checked={filters.corner_lot === "true"} onChange={(e) => set("corner_lot", e.target.checked ? "true" : "")} className="rounded accent-[var(--orange)]" />
+              {t("cornerLot")}
+            </label>
+            <label className="flex items-center gap-2 text-xs cursor-pointer text-[var(--text-secondary)]">
+              <input type="checkbox" checked={filters.has_elevator === "true"} onChange={(e) => set("has_elevator", e.target.checked ? "true" : "")} className="rounded accent-[var(--orange)]" />
+              {t("elevator")}
+            </label>
+            <label className="flex items-center gap-2 text-xs cursor-pointer text-[var(--text-secondary)]">
+              <input type="checkbox" checked={filters.negotiable === "true"} onChange={(e) => set("negotiable", e.target.checked ? "true" : "")} className="rounded accent-[var(--orange)]" />
+              {t("negotiable")}
+            </label>
+            <label className="flex items-center gap-2 text-xs cursor-pointer text-[var(--text-secondary)]">
+              <input type="checkbox" checked={filters.is_favorited === "true"} onChange={(e) => set("is_favorited", e.target.checked ? "true" : "")} className="rounded accent-[var(--orange)]" />
+              {t("favoritesOnly")}
+            </label>
+          </div>
         </div>
       </div>
 

@@ -2,6 +2,27 @@ import { NextRequest, NextResponse } from "next/server";
 import pool from "@/lib/db";
 import { getAuthFromCookies } from "@/lib/auth";
 
+export async function PUT(request: NextRequest) {
+  try {
+    const auth = await getAuthFromCookies();
+    if (!auth) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+    const body = await request.json();
+    const { first_name, last_name, phone, email, dob_year } = body;
+    await pool.query(
+      `UPDATE agents SET first_name = COALESCE($1, first_name), last_name = COALESCE($2, last_name),
+       phone = COALESCE($3, phone), email = COALESCE($4, email), dob_year = $5
+       WHERE id = $6`,
+      [first_name, last_name, phone, email, dob_year ?? null, auth.userId],
+    );
+    return NextResponse.json({ ok: true });
+  } catch (error) {
+    console.error("Agents me PUT error:", error);
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+  }
+}
+
 export async function GET(_request: NextRequest) {
   try {
     const auth = await getAuthFromCookies();
@@ -12,14 +33,14 @@ export async function GET(_request: NextRequest) {
     let agentResult;
     try {
       agentResult = await pool.query(
-        `SELECT id, first_name, last_name, username, phone, email, name, avatar_url, zalo_id
+        `SELECT id, first_name, last_name, username, phone, email, name, avatar_url, zalo_id, dob_year
          FROM agents
          WHERE id = $1`,
         [auth.userId],
       );
     } catch {
       agentResult = await pool.query(
-        `SELECT id, first_name, last_name, username, phone, email, name, zalo_id
+        `SELECT id, first_name, last_name, username, phone, email, name, zalo_id, dob_year
          FROM agents
          WHERE id = $1`,
         [auth.userId],

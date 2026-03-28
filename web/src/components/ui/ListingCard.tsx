@@ -106,6 +106,7 @@ export function ListingCard({
           username: listing.owner_username ?? null,
           phone: listing.owner_phone ?? null,
           avatar_url: listing.owner_avatar_url ?? null,
+          dob_year: listing.owner_dob_year ?? null,
         }
       : null;
   const hasConversation = !!listing.existing_conversation_id;
@@ -217,56 +218,56 @@ export function ListingCard({
             )}
           </div>
 
-          {/* Bottom row: agent avatar+name | phone | message */}
-          <div className="flex items-center gap-2 mt-2 pt-2 border-t border-[var(--border-subtle)]" onClick={(e) => e.preventDefault()}>
+          {/* Bottom: agent info block */}
+          <div className="mt-2 pt-2 border-t border-[var(--border-subtle)]" onClick={(e) => e.preventDefault()}>
             {agent && (
-              <div className="flex-1 min-w-0">
-                <AgentChip agent={agent} size="sm" clickable={!isOwner} />
-              </div>
+              <AgentChip agent={agent} size="sm" clickable={!isOwner} />
             )}
-            {agent?.phone && (
-              <a
-                href={`tel:${agent.phone}`}
-                onClick={(e) => e.stopPropagation()}
-                className="shrink-0 inline-flex items-center justify-center gap-1 p-1.5 rounded-md text-[var(--text-secondary)] hover:text-[var(--orange)] transition-colors text-xs leading-none"
-                title={agent.phone}
-              >
-                <Phone size={14} />
-                <span>{formatPhone(agent.phone)}</span>
-              </a>
-            )}
-            <div className="shrink-0">
-              {isOwner ? (
-                <button
-                  type="button"
-                  onClick={(e) => { e.preventDefault(); onViewMessages?.(); }}
-                  className="flex items-center border rounded-md p-1.5 transition-colors hover:bg-[var(--info)]/10"
-                  style={{ color: "var(--info)", borderColor: "rgba(59, 130, 246, 0.3)" }}
-                  title={t("viewMessages")}
-                >
-                  <MessageSquare size={14} />
-                </button>
-              ) : hasConversation ? (
-                <Link
-                  href={`/dashboard/listings/${listing.id}/view${viewSearch}#messages`}
+            <div className="flex items-center gap-2 mt-1">
+              {agent?.phone && (
+                <a
+                  href={`tel:${agent.phone}`}
                   onClick={(e) => e.stopPropagation()}
-                  className="flex items-center border rounded-md p-1.5 transition-colors hover:bg-[var(--info)]/10"
-                  style={{ color: "var(--info)", borderColor: "rgba(59, 130, 246, 0.3)" }}
-                  title={t("viewMessages")}
+                  className="inline-flex items-center gap-1 text-[var(--text-secondary)] hover:text-[var(--orange)] transition-colors text-xs leading-none"
+                  title={agent.phone}
                 >
-                  <MessageSquare size={14} />
-                </Link>
-              ) : (
-                <button
-                  type="button"
-                  onClick={(e) => { e.preventDefault(); onMessage?.(); }}
-                  className="flex items-center border rounded-md p-1.5 transition-colors hover:bg-[var(--info)]/10"
-                  style={{ color: "var(--info)", borderColor: "rgba(59, 130, 246, 0.3)" }}
-                  title={t("message")}
-                >
-                  <MessageSquare size={14} />
-                </button>
+                  <Phone size={12} />
+                  <span>{formatPhone(agent.phone)}</span>
+                </a>
               )}
+              <div className="ml-auto shrink-0">
+                {isOwner ? (
+                  <button
+                    type="button"
+                    onClick={(e) => { e.preventDefault(); onViewMessages?.(); }}
+                    className="flex items-center border rounded-md p-1.5 transition-colors hover:bg-[var(--info)]/10"
+                    style={{ color: "var(--info)", borderColor: "rgba(59, 130, 246, 0.3)" }}
+                    title={t("viewMessages")}
+                  >
+                    <MessageSquare size={14} />
+                  </button>
+                ) : hasConversation ? (
+                  <Link
+                    href={`/dashboard/listings/${listing.id}/view${viewSearch}#messages`}
+                    onClick={(e) => e.stopPropagation()}
+                    className="flex items-center border rounded-md p-1.5 transition-colors hover:bg-[var(--info)]/10"
+                    style={{ color: "var(--info)", borderColor: "rgba(59, 130, 246, 0.3)" }}
+                    title={t("viewMessages")}
+                  >
+                    <MessageSquare size={14} />
+                  </Link>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={(e) => { e.preventDefault(); onMessage?.(); }}
+                    className="flex items-center border rounded-md p-1.5 transition-colors hover:bg-[var(--info)]/10"
+                    style={{ color: "var(--info)", borderColor: "rgba(59, 130, 246, 0.3)" }}
+                    title={t("message")}
+                  >
+                    <MessageSquare size={14} />
+                  </button>
+                )}
+              </div>
             </div>
           </div>
         </div>
@@ -343,56 +344,56 @@ export function ListingCard({
           </div>
         )}
 
-        {/* Bottom row: avatar+name | phone | message */}
-        <div className="flex items-center gap-2 mt-2 pt-2 border-t border-[var(--border-subtle)]">
+        {/* Bottom: agent info block */}
+        <div className="mt-2 pt-2 border-t border-[var(--border-subtle)]">
           {agent && (
-            <div className="flex-1 min-w-0">
-              <AgentChip agent={agent} size="sm" clickable={!isOwner} />
-            </div>
+            <AgentChip agent={agent} size="sm" clickable={!isOwner} />
           )}
-          {agent?.phone && (
-            <a
-              href={`tel:${agent.phone}`}
-              onClick={(e) => e.stopPropagation()}
-              className="shrink-0 inline-flex items-center justify-center gap-1 p-1.5 rounded-md text-[var(--text-secondary)] hover:text-[var(--orange)] transition-colors text-xs leading-none"
-              title={agent.phone}
-            >
-              <Phone size={14} />
-              <span>{formatPhone(agent.phone)}</span>
-            </a>
-          )}
-          <div className="shrink-0">
-            {isOwner ? (
-              <button
-                type="button"
-                onClick={(e) => { e.preventDefault(); onViewMessages?.(); }}
-                className="flex items-center border rounded-md p-1.5 transition-colors hover:bg-[var(--info)]/10"
-                style={{ color: "var(--info)", borderColor: "rgba(59, 130, 246, 0.3)" }}
-                title={t("viewMessages")}
-              >
-                <MessageSquare size={14} />
-              </button>
-            ) : hasConversation ? (
-              <Link
-                href={`/dashboard/listings/${listing.id}/view${viewSearch}#messages`}
+          <div className="flex items-center gap-2 mt-1">
+            {agent?.phone && (
+              <a
+                href={`tel:${agent.phone}`}
                 onClick={(e) => e.stopPropagation()}
-                className="flex items-center border rounded-md p-1.5 transition-colors hover:bg-[var(--info)]/10"
-                style={{ color: "var(--info)", borderColor: "rgba(59, 130, 246, 0.3)" }}
-                title={t("viewMessages")}
+                className="inline-flex items-center gap-1 text-[var(--text-secondary)] hover:text-[var(--orange)] transition-colors text-[11px] leading-none"
+                title={agent.phone}
               >
-                <MessageSquare size={14} />
-              </Link>
-            ) : (
-              <button
-                type="button"
-                onClick={(e) => { e.preventDefault(); onMessage?.(); }}
-                className="flex items-center border rounded-md p-1.5 transition-colors hover:bg-[var(--info)]/10"
-                style={{ color: "var(--info)", borderColor: "rgba(59, 130, 246, 0.3)" }}
-                title={t("message")}
-              >
-                <MessageSquare size={14} />
-              </button>
+                <Phone size={11} />
+                <span>{formatPhone(agent.phone)}</span>
+              </a>
             )}
+            <div className="ml-auto shrink-0">
+              {isOwner ? (
+                <button
+                  type="button"
+                  onClick={(e) => { e.preventDefault(); onViewMessages?.(); }}
+                  className="flex items-center border rounded-md p-1.5 transition-colors hover:bg-[var(--info)]/10"
+                  style={{ color: "var(--info)", borderColor: "rgba(59, 130, 246, 0.3)" }}
+                  title={t("viewMessages")}
+                >
+                  <MessageSquare size={14} />
+                </button>
+              ) : hasConversation ? (
+                <Link
+                  href={`/dashboard/listings/${listing.id}/view${viewSearch}#messages`}
+                  onClick={(e) => e.stopPropagation()}
+                  className="flex items-center border rounded-md p-1.5 transition-colors hover:bg-[var(--info)]/10"
+                  style={{ color: "var(--info)", borderColor: "rgba(59, 130, 246, 0.3)" }}
+                  title={t("viewMessages")}
+                >
+                  <MessageSquare size={14} />
+                </Link>
+              ) : (
+                <button
+                  type="button"
+                  onClick={(e) => { e.preventDefault(); onMessage?.(); }}
+                  className="flex items-center border rounded-md p-1.5 transition-colors hover:bg-[var(--info)]/10"
+                  style={{ color: "var(--info)", borderColor: "rgba(59, 130, 246, 0.3)" }}
+                  title={t("message")}
+                >
+                  <MessageSquare size={14} />
+                </button>
+              )}
+            </div>
           </div>
         </div>
       </div>

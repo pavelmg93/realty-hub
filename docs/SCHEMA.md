@@ -47,6 +47,7 @@ Platform users. All accounts created via `scripts/create_agent.sh` — no public
 | `phone` | varchar(50) | |
 | `email` | varchar(255) | |
 | `zalo_id` | varchar(100) | future use |
+| `dob_year` | smallint | birth year (e.g. 1993) |
 | `notes` | text | |
 | `created_at` | timestamp | default now() |
 

@@ -6,6 +6,16 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Session 42z — 2026-03-28 — Card Layout, Filter Reorg, DOB Year
+
+#### Changed
+- **Card info block restructured** — Phone number + icon on separate line below agent avatar/name on 1-wide and 2-wide cards (both Feed and Store variants).
+- **Price filter comma decimal** — Inputs accept ',' or '.' as decimal separator (e.g. "4,2" → 4.2 tỷ). Normalized on blur/Enter.
+- **DOB Year on profile + cards** — New field on profile page (auto-saves on blur). Year appended to agent name on listing cards via AgentChip. Migration 024 adds `dob_year smallint` to agents table.
+- **Filter panel reorganized** — Property Type + Transaction Type promoted to top row. Removed min bathrooms, max area, and status filters. Extras grouped in two compact rows of 4 columns. Checkboxes in flex-wrap layout.
+
+---
+
 ### Session 41 — 2026-03-27 — Filter UX + Status Fixes
 
 #### Changed

@@ -43,6 +43,7 @@ export async function GET(
         a.phone AS owner_phone,
         a.email AS owner_email,
         a.avatar_url AS owner_avatar_url,
+        a.dob_year AS owner_dob_year,
         (SELECT c.id FROM conversations c
          WHERE c.listing_id = pl.id
            AND ((c.agent_1_id = $2 AND c.agent_2_id = pl.agent_id)

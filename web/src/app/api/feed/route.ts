@@ -179,6 +179,7 @@ export async function GET(request: NextRequest) {
         a.last_name AS owner_last_name,
         a.phone AS owner_phone,
         a.email AS owner_email,
+        a.dob_year AS owner_dob_year,
         c.id AS existing_conversation_id,
         (SELECT COUNT(*) FROM listing_photos lp WHERE lp.listing_id = pl.id) AS photo_count,
         (SELECT lp.file_path FROM listing_photos lp WHERE lp.listing_id = pl.id ORDER BY lp.is_primary DESC, lp.display_order LIMIT 1) AS primary_photo,

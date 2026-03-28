@@ -10,6 +10,7 @@ interface AgentChipProps {
     username: string | null;
     phone?: string | null;
     avatar_url?: string | null;
+    dob_year?: number | null;
   };
   size?: "sm" | "md";
   showOnline?: boolean;
@@ -22,10 +23,10 @@ export function AgentChip({
   showOnline = false,
   clickable = true,
 }: AgentChipProps) {
-  const displayName =
-    [agent.first_name, agent.last_name].filter(Boolean).join(" ") ||
+  const nameParts = [agent.first_name, agent.last_name].filter(Boolean).join(" ") ||
     agent.username ||
     "?";
+  const displayName = agent.dob_year ? `${nameParts} ${agent.dob_year}` : nameParts;
   const initials = displayName.slice(0, 2).toUpperCase();
   const inner = (
     <div

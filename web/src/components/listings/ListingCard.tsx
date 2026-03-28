@@ -121,6 +121,7 @@ export default function ListingCard({
     username: listing.owner_username ?? null,
     phone: listing.owner_phone ?? null,
     avatar_url: listing.owner_avatar_url ?? null,
+    dob_year: listing.owner_dob_year ?? null,
   } : null;
   const wardDisplay = [listing.ward_new, listing.ward].filter(Boolean).join(" / ") || null;
 
@@ -209,33 +210,33 @@ export default function ListingCard({
             </div>
           )}
 
-          {/* Bottom row: agent avatar+name | phone | message */}
-          <div className="flex items-center gap-2 mt-2 pt-2 border-t border-[var(--border-subtle)]" onClick={(e) => e.preventDefault()}>
+          {/* Bottom: agent info block */}
+          <div className="mt-2 pt-2 border-t border-[var(--border-subtle)]" onClick={(e) => e.preventDefault()}>
             {agent && (
-              <div className="flex-1 min-w-0">
-                <AgentChip agent={agent} size="sm" clickable={false} />
-              </div>
+              <AgentChip agent={agent} size="sm" clickable={false} />
             )}
-            {agent?.phone && (
-              <a
-                href={`tel:${agent.phone}`}
-                onClick={(e) => e.stopPropagation()}
-                className="shrink-0 inline-flex items-center justify-center gap-1 p-1.5 rounded-md text-[var(--text-secondary)] hover:text-[var(--orange)] transition-colors text-xs leading-none"
-                title={agent.phone}
+            <div className="flex items-center gap-2 mt-1">
+              {agent?.phone && (
+                <a
+                  href={`tel:${agent.phone}`}
+                  onClick={(e) => e.stopPropagation()}
+                  className="inline-flex items-center gap-1 text-[var(--text-secondary)] hover:text-[var(--orange)] transition-colors text-xs leading-none"
+                  title={agent.phone}
+                >
+                  <Phone size={12} />
+                  <span>{formatPhone(agent.phone)}</span>
+                </a>
+              )}
+              <button
+                type="button"
+                onClick={(e) => { e.preventDefault(); e.stopPropagation(); router.push("/dashboard/messages"); }}
+                className="ml-auto shrink-0 flex items-center border rounded-md p-1.5 transition-colors hover:bg-[var(--info)]/10"
+                style={{ color: "var(--info)", borderColor: "rgba(59, 130, 246, 0.3)" }}
+                title={t("viewMessages")}
               >
-                <Phone size={14} />
-                <span>{formatPhone(agent.phone)}</span>
-              </a>
-            )}
-            <button
-              type="button"
-              onClick={(e) => { e.preventDefault(); e.stopPropagation(); router.push("/dashboard/messages"); }}
-              className="shrink-0 flex items-center border rounded-md p-1.5 transition-colors hover:bg-[var(--info)]/10"
-              style={{ color: "var(--info)", borderColor: "rgba(59, 130, 246, 0.3)" }}
-              title={t("viewMessages")}
-            >
-              <MessageSquare size={14} />
-            </button>
+                <MessageSquare size={14} />
+              </button>
+            </div>
           </div>
         </div>
       </Link>
@@ -326,33 +327,33 @@ export default function ListingCard({
           </div>
         )}
 
-        {/* Bottom row: avatar+name | phone | message */}
-        <div className="flex items-center gap-2 mt-2 pt-2 border-t border-[var(--border-subtle)]" onClick={(e) => e.preventDefault()}>
+        {/* Bottom: agent info block */}
+        <div className="mt-2 pt-2 border-t border-[var(--border-subtle)]" onClick={(e) => e.preventDefault()}>
           {agent && (
-            <div className="flex-1 min-w-0">
-              <AgentChip agent={agent} size="sm" clickable={false} />
-            </div>
+            <AgentChip agent={agent} size="sm" clickable={false} />
           )}
-          {agent?.phone && (
-            <a
-              href={`tel:${agent.phone}`}
-              onClick={(e) => e.stopPropagation()}
-              className="shrink-0 inline-flex items-center justify-center gap-1 p-1.5 rounded-md text-[var(--text-secondary)] hover:text-[var(--orange)] transition-colors text-xs leading-none"
-              title={agent.phone}
+          <div className="flex items-center gap-2 mt-1">
+            {agent?.phone && (
+              <a
+                href={`tel:${agent.phone}`}
+                onClick={(e) => e.stopPropagation()}
+                className="inline-flex items-center gap-1 text-[var(--text-secondary)] hover:text-[var(--orange)] transition-colors text-[11px] leading-none"
+                title={agent.phone}
+              >
+                <Phone size={11} />
+                <span>{formatPhone(agent.phone)}</span>
+              </a>
+            )}
+            <button
+              type="button"
+              onClick={(e) => { e.preventDefault(); e.stopPropagation(); router.push("/dashboard/messages"); }}
+              className="ml-auto shrink-0 flex items-center border rounded-md p-1.5 transition-colors hover:bg-[var(--info)]/10"
+              style={{ color: "var(--info)", borderColor: "rgba(59, 130, 246, 0.3)" }}
+              title={t("viewMessages")}
             >
-              <Phone size={14} />
-              <span>{formatPhone(agent.phone)}</span>
-            </a>
-          )}
-          <button
-            type="button"
-            onClick={(e) => { e.preventDefault(); e.stopPropagation(); router.push("/dashboard/messages"); }}
-            className="shrink-0 flex items-center border rounded-md p-1.5 transition-colors hover:bg-[var(--info)]/10"
-            style={{ color: "var(--info)", borderColor: "rgba(59, 130, 246, 0.3)" }}
-            title={t("viewMessages")}
-          >
-            <MessageSquare size={14} />
-          </button>
+              <MessageSquare size={14} />
+            </button>
+          </div>
         </div>
       </div>
     </Link>

@@ -21,6 +21,7 @@ export default function ProfilePage() {
     name: string | null;
     avatar_url: string | null;
     zalo_id: string | null;
+    dob_year: number | null;
     listing_count: number;
   } | null>(null);
   const [contactVisible, setContactVisible] = useState<Record<string, boolean>>({
@@ -310,6 +311,44 @@ export default function ProfilePage() {
               <span className="w-5 h-5 rounded-full bg-white/80 border border-[var(--border)]" />
             </span>
           </div>
+        </div>
+      </section>
+
+      {/* DOB Year */}
+      <section className="mb-6">
+        <h3 className="text-sm font-bold uppercase tracking-wider text-[var(--text-muted)] mb-3 px-1">
+          {lang === "vi" ? "Năm sinh" : "Year of Birth"}
+        </h3>
+        <div
+          className="rounded-xl overflow-hidden border border-[var(--border)] p-4"
+          style={{ backgroundColor: "var(--bg-surface)" }}
+        >
+          <div className="flex items-center gap-3">
+            <input
+              type="number"
+              min={1950}
+              max={2010}
+              value={agent?.dob_year ?? ""}
+              onChange={(e) => {
+                const val = e.target.value ? parseInt(e.target.value, 10) : null;
+                setAgent((a) => a ? { ...a, dob_year: val } : null);
+              }}
+              onBlur={async () => {
+                if (!agent) return;
+                await fetch("/api/agents/me", {
+                  method: "PUT",
+                  headers: { "Content-Type": "application/json" },
+                  credentials: "include",
+                  body: JSON.stringify({ dob_year: agent.dob_year }),
+                });
+              }}
+              placeholder={lang === "vi" ? "VD: 1993" : "e.g. 1993"}
+              className="w-full rounded-lg px-3 py-2 text-sm border border-[var(--border)] bg-[var(--bg-elevated)] text-[var(--text-primary)] focus:outline-none focus:border-[var(--orange)]"
+            />
+          </div>
+          <p className="text-xs text-[var(--text-muted)] mt-2">
+            {lang === "vi" ? "Hiển thị trên thẻ BĐS của bạn" : "Shown on your listing cards"}
+          </p>
         </div>
       </section>
 
