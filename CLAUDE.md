@@ -116,7 +116,7 @@ docker exec -i realty-hub-app-postgres-1 psql -U re_nhatrang -d re_nhatrang \
 - DB: `re_nhatrang`
 - Container: `realty-hub-app-postgres-1`
 
-**Current migration level: 024**
+**Current migration level: 025**
 
 ---
 

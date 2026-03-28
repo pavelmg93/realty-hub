@@ -15,6 +15,7 @@ import {
   BUILDING_TYPES,
   formatPrice,
   generateTitleStandardized,
+  WARD_DISPLAY_NAME,
 } from "@/lib/constants";
 import { TranslateButton } from "@/components/ui/TranslateButton";
 import DynamicListingMap from "@/components/map/DynamicListingMap";
@@ -256,7 +257,8 @@ function ListingViewPageInner() {
     const txnLabel = getFieldValueLabel("transaction_type", listing.transaction_type, "vi") || label(listing.transaction_type, TRANSACTION_TYPES);
     const priceStr = listing.price_raw || (listing.price_vnd ? formatPrice(listing.price_vnd) : "");
     const area = listing.area_m2 ? `${listing.area_m2}m²` : "";
-    const ward = listing.ward ? `P. ${listing.ward}` : "";
+    const wardVn = listing.ward_new || listing.ward;
+    const ward = wardVn ? `P. ${WARD_DISPLAY_NAME[wardVn] || wardVn}` : "";
     const street = listing.street || "";
     const address = listing.address_raw || [street, ward].filter(Boolean).join(", ");
 
@@ -418,10 +420,45 @@ function ListingViewPageInner() {
   };
 
   return (
-    <div className="max-w-4xl mx-auto px-4 sm:px-6">
-      {/* Top actions bar — owner only */}
-      {isOwner && (
-        <div className="flex flex-wrap items-center gap-2 mb-4 p-3 rounded-xl border border-[var(--border)]" style={{ backgroundColor: "var(--bg-surface)" }}>
+    <div className="max-w-4xl mx-auto px-4 sm:px-6 pt-4">
+
+      {/* Header: two-line title + nav buttons */}
+      <div className="flex items-start justify-between mb-3">
+        <div className="flex-1 min-w-0 mr-4">
+          {/* Line 1: street address */}
+          <p className="text-2xl sm:text-3xl font-bold text-[var(--text-primary)] leading-tight">
+            {listing.street || ""}
+          </p>
+          {/* Line 2: specs (title_standardized) */}
+          <p className="text-2xl sm:text-3xl font-bold text-[var(--text-primary)] leading-tight mt-0.5">
+            {listing.title_standardized || generateTitleStandardized(listing)}
+          </p>
+        </div>
+        <div className="flex gap-2 shrink-0">
+          {adjacentIds.prev && (
+            <button
+              onClick={() => router.push(`/dashboard/listings/${adjacentIds.prev}/view?from=${fromParam}`)}
+              className="px-3 py-2 text-sm rounded-lg border border-[var(--border)] text-[var(--text-secondary)] hover:bg-[var(--bg-hover)] transition-colors"
+              title={t("prev")}
+            >
+              &larr; {t("prev")}
+            </button>
+          )}
+          {adjacentIds.next && (
+            <button
+              onClick={() => router.push(`/dashboard/listings/${adjacentIds.next}/view?from=${fromParam}`)}
+              className="px-3 py-2 text-sm rounded-lg border border-[var(--border)] text-[var(--text-secondary)] hover:bg-[var(--bg-hover)] transition-colors"
+              title={t("next")}
+            >
+              {t("next")} &rarr;
+            </button>
+          )}
+        </div>
+      </div>
+
+      {/* Action buttons — below nav, above photo */}
+      <div className="flex flex-wrap items-center gap-2 mb-5">
+        {isOwner && (
           <button
             type="button"
             onClick={() => router.push(`/dashboard/listings/${listing.id}/edit`)}
@@ -430,15 +467,15 @@ function ListingViewPageInner() {
           >
             {t("edit")}
           </button>
-          <button
-            type="button"
-            onClick={() => setShowShareCard((v) => !v)}
-            className={`inline-flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-lg border transition-colors ${showShareCard ? "border-[var(--orange)] text-[var(--orange)]" : "border-[var(--border)] text-[var(--text-primary)] hover:bg-[var(--bg-hover)]"}`}
-          >
-            <Share2 size={16} /> {t("createPost")}
-          </button>
-        </div>
-      )}
+        )}
+        <button
+          type="button"
+          onClick={() => setShowShareCard((v) => !v)}
+          className={`inline-flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-lg border transition-colors ${showShareCard ? "border-[var(--orange)] text-[var(--orange)]" : "border-[var(--border)] text-[var(--text-primary)] hover:bg-[var(--bg-hover)]"}`}
+        >
+          <Share2 size={16} /> {t("createPost")}
+        </button>
+      </div>
 
       {/* Share card panel */}
       {showShareCard && (
@@ -486,40 +523,6 @@ function ListingViewPageInner() {
           </div>
         </div>
       )}
-
-      {/* Header: two-line title + nav buttons */}
-      <div className="flex items-start justify-between mb-5">
-        <div className="flex-1 min-w-0 mr-4">
-          {/* Line 1: street address */}
-          <p className="text-2xl sm:text-3xl font-bold text-[var(--text-primary)] leading-tight">
-            {listing.street || ""}
-          </p>
-          {/* Line 2: specs (title_standardized) */}
-          <p className="text-2xl sm:text-3xl font-bold text-[var(--text-primary)] leading-tight mt-0.5">
-            {listing.title_standardized || generateTitleStandardized(listing)}
-          </p>
-        </div>
-        <div className="flex gap-2 shrink-0">
-          {adjacentIds.prev && (
-            <button
-              onClick={() => router.push(`/dashboard/listings/${adjacentIds.prev}/view?from=${fromParam}`)}
-              className="px-3 py-2 text-sm rounded-lg border border-[var(--border)] text-[var(--text-secondary)] hover:bg-[var(--bg-hover)] transition-colors"
-              title={t("prev")}
-            >
-              &larr; {t("prev")}
-            </button>
-          )}
-          {adjacentIds.next && (
-            <button
-              onClick={() => router.push(`/dashboard/listings/${adjacentIds.next}/view?from=${fromParam}`)}
-              className="px-3 py-2 text-sm rounded-lg border border-[var(--border)] text-[var(--text-secondary)] hover:bg-[var(--bg-hover)] transition-colors"
-              title={t("next")}
-            >
-              {t("next")} &rarr;
-            </button>
-          )}
-        </div>
-      </div>
 
       {/* Photo carousel */}
       {photos.length > 0 && (

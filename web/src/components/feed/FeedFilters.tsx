@@ -3,32 +3,12 @@
 import { useState, useEffect, useRef } from "react";
 import {
   NHA_TRANG_WARDS,
+  NEW_WARD_OPTIONS,
+  OLD_TO_NEW_WARD,
+  NEW_TO_OLD_WARDS,
 } from "@/lib/constants";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { FIELD_VALUE_LABELS } from "@/lib/i18n";
-
-const NEW_WARD_OPTIONS: Record<string, string> = {
-  "Van Thanh": "Vạn Thạnh",
-  "Loc Tho": "Lộc Thọ",
-  "Vinh Nguyen": "Vĩnh Nguyên",
-  "Tan Tien": "Tân Tiến",
-  "Phuoc Hoa": "Phước Hòa",
-  "Vinh Hoa": "Vĩnh Hòa",
-  "Vinh Hai": "Vĩnh Hải",
-  "Vinh Phuoc": "Vĩnh Phước",
-  "Vinh Tho": "Vĩnh Thọ",
-  "Vinh Luong": "Vĩnh Lương",
-  "Vinh Phuong": "Vĩnh Phương",
-  "Ngoc Hiep": "Ngọc Hiệp",
-  "Phuong Sai": "Phương Sài",
-  "Vinh Ngoc": "Vĩnh Ngọc",
-  "Vinh Thanh": "Vĩnh Thạnh",
-  "Vinh Hiep": "Vĩnh Hiệp",
-  "Vinh Trung": "Vĩnh Trung",
-  "Phuoc Hai": "Phước Hải",
-  "Phuoc Long": "Phước Long",
-  "Vinh Truong": "Vĩnh Trường",
-};
 
 export interface FeedFilterValues {
   property_type: string;
@@ -365,14 +345,24 @@ export default function FeedFilters({
           label={t("wardOld")}
           value={filters.ward}
           options={Object.fromEntries(NHA_TRANG_WARDS.map((w) => [w, w]))}
-          onChange={(v) => set("ward", v)}
+          onChange={(v) => {
+            const newWard = OLD_TO_NEW_WARD[v] || (v in NEW_WARD_OPTIONS ? v : "");
+            onChange({ ...filters, ward: v, ...(newWard ? { ward_new: newWard } : {}) });
+          }}
           allLabel={t("all")}
         />
         <FilterSelect
           label={t("wardNew")}
           value={filters.ward_new}
           options={NEW_WARD_OPTIONS}
-          onChange={(v) => set("ward_new", v)}
+          onChange={(v) => {
+            const oldWards = NEW_TO_OLD_WARDS[v];
+            if (oldWards) {
+              onChange({ ...filters, ward_new: v, ward: "" });
+            } else {
+              onChange({ ...filters, ward_new: v, ward: v });
+            }
+          }}
           allLabel={t("all")}
         />
       </div>

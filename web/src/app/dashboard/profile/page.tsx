@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
 import { useLanguage } from "@/contexts/LanguageContext";
 import Link from "next/link";
-import { formatPrice } from "@/lib/constants";
+import { formatPrice, generateTitleStandardized } from "@/lib/constants";
 
 export default function ProfilePage() {
   const { user, refreshUser, logout } = useAuth();
@@ -33,12 +33,19 @@ export default function ProfilePage() {
   const [listings, setListings] = useState<Array<{
     id: number;
     ward: string | null;
+    ward_new: string | null;
     street: string | null;
     price_vnd: number | null;
     property_type: string | null;
     area_m2: number | null;
     status: string;
     primary_photo: string | null;
+    title_standardized: string | null;
+    num_floors: number | null;
+    frontage_m: number | null;
+    depth_m: number | null;
+    price_short: string | null;
+    commission: string | null;
   }>>([]);
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
@@ -380,11 +387,10 @@ export default function ProfilePage() {
               )}
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-medium text-[var(--text-primary)] truncate">
-                  {listing.ward || listing.street || `#${listing.id}`}
+                  {listing.street || `#${listing.id}`}
                 </p>
-                <p className="text-xs text-[var(--text-muted)]">
-                  {listing.price_vnd != null ? formatPrice(listing.price_vnd) : "—"}
-                  {listing.area_m2 != null ? ` · ${listing.area_m2}m²` : ""}
+                <p className="text-sm font-medium text-[var(--text-primary)] truncate">
+                  {listing.title_standardized || generateTitleStandardized(listing)}
                 </p>
               </div>
             </Link>

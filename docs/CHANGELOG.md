@@ -6,6 +6,16 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Session 43 — 2026-03-28 — Ward Mapping + Layout + Navigation
+
+#### Changed
+- **REA-128: Ward mapping overhaul** — Centralized ward data in constants.ts (WARD_DISPLAY_NAME, NEW_WARD_OPTIONS, OLD_TO_NEW_WARD, NEW_TO_OLD_WARDS). Cascading dropdowns: selecting old ward auto-fills new ward; selecting merged new ward clears old ward (multiple possible). Vietnamese ward names displayed on cards and listing detail share text. FeedFilters now includes all 22 post-merger wards (was missing Vĩnh Thái, Phước Đồng). Migration 025 adds idx_parsed_ward_new index.
+- **REA-122: FIDT header spacing** — Added consistent pt-4 to listing detail page container. Spacing between header and title is now identical for owned and non-owned listings.
+- **REA-121: Edit/Create Post repositioned** — Moved action buttons below Prev/Next navigation on listing detail. Create Post now visible to all agents (not just owner). Edit remains owner-only.
+- **REA-131: Profile My Listings title** — Two-line title per ADR-005: Line 1 = street, Line 2 = title_standardized. API updated to return title fields. Removed ward/price from title area.
+
+---
+
 ### Session 42z — 2026-03-28 — Card Layout, Filter Reorg, DOB Year
 
 #### Changed

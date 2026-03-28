@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { Listing } from "@/lib/types";
-import { generateTitleStandardized } from "@/lib/constants";
+import { generateTitleStandardized, formatWardDisplay } from "@/lib/constants";
 import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
@@ -123,7 +123,7 @@ export default function ListingCard({
     avatar_url: listing.owner_avatar_url ?? null,
     dob_year: listing.owner_dob_year ?? null,
   } : null;
-  const wardDisplay = [listing.ward_new, listing.ward].filter(Boolean).join(" / ") || null;
+  const wardDisplay = formatWardDisplay(listing.ward_new, listing.ward);
 
   // ── 1-wide: horizontal card ──
   if (cols === 1) {

@@ -4,7 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { AgentChip } from "./AgentChip";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { generateTitleStandardized } from "@/lib/constants";
+import { generateTitleStandardized, formatWardDisplay } from "@/lib/constants";
 import { MessageSquare, Heart, MapPin, Phone } from "lucide-react";
 import { useState } from "react";
 import type { Listing } from "@/lib/types";
@@ -146,7 +146,7 @@ export function ListingCard({
   const line1 = listing.street || "";
   const line2 = listing.title_standardized || generateTitleStandardized(listing);
 
-  const wardDisplay = [listing.ward_new, listing.ward].filter(Boolean).join(" / ") || null;
+  const wardDisplay = formatWardDisplay(listing.ward_new, listing.ward);
 
   // ── 1-wide: horizontal card (larger fonts, maximize space) ──
   if (cols === 1) {

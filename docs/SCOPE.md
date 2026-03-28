@@ -67,15 +67,15 @@
 
 ### Tasks (execute top-down)
 
-* [ ] **[REA-128] Ward mapping overhaul** — Audit nha_trang_wards table vs REA-67 seed data. Fix cascading dropdown behavior (old↔new ward). Ward display on cards: "New Ward / Old Ward". Verify search indexes include ward. End-to-end test: create → feed → filter by ward.
-* [ ] **[REA-122] FIDT header to listing title spacing** — Consistent pt-4 / LAYOUT.CONTENT_TOP_PADDING on all listing detail pages regardless of ownership.
-* [ ] **[REA-121] Move Edit/Create Post below Prev/Next** — Reposition action buttons below navigation on full listing detail. Edit hidden for non-owners.
-* [ ] **[REA-131] Profile My Listings: standardized title** — Two-line title per ADR-005. Line 1 = street, Line 2 = title_standardized. No ward in title, no address_raw.
+* [x] **[REA-128] Ward mapping overhaul** — Audit nha_trang_wards table vs REA-67 seed data. Fix cascading dropdown behavior (old↔new ward). Ward display on cards: "New Ward / Old Ward". Verify search indexes include ward. End-to-end test: create → feed → filter by ward.
+* [x] **[REA-122] FIDT header to listing title spacing** — Consistent pt-4 / LAYOUT.CONTENT_TOP_PADDING on all listing detail pages regardless of ownership.
+* [x] **[REA-121] Move Edit/Create Post below Prev/Next** — Reposition action buttons below navigation on full listing detail. Edit hidden for non-owners.
+* [x] **[REA-131] Profile My Listings: standardized title** — Two-line title per ADR-005. Line 1 = street, Line 2 = title_standardized. No ward in title, no address_raw.
 
 ### End of session checklist
-* [ ] `cd web && npx tsc --noEmit` — must be clean
+* [x] `cd web && npx tsc --noEmit` — must be clean
 * [ ] Verify ward cascading: select old ward → new ward auto-fills, and vice versa
-* [ ] Update `CLAUDE.md`, session log, CHANGELOG
+* [x] Update `CLAUDE.md`, session log, CHANGELOG
 * [ ] Commit: `Session 43: Ward mapping + layout + navigation fixes`
 * [ ] Stop. Do not push.
 

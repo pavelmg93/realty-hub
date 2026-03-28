@@ -14,6 +14,9 @@ import {
   BUILDING_TYPES,
   LISTING_STATUSES,
   NHA_TRANG_WARDS,
+  NEW_WARD_OPTIONS,
+  OLD_TO_NEW_WARD,
+  NEW_TO_OLD_WARDS,
   generateCommissionDisplay,
 } from "@/lib/constants";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -316,31 +319,6 @@ function LocationPicker({ data, onChange }: { data: ListingInput; onChange: (u: 
   );
 }
 
-/** New administrative ward groupings (post-2025 merger) */
-const NEW_WARD_OPTIONS: Record<string, string> = {
-  "Van Thanh": "Vạn Thạnh",
-  "Loc Tho": "Lộc Thọ",
-  "Vinh Nguyen": "Vĩnh Nguyên",
-  "Tan Tien": "Tân Tiến",
-  "Phuoc Hoa": "Phước Hòa",
-  "Vinh Hoa": "Vĩnh Hòa",
-  "Vinh Hai": "Vĩnh Hải",
-  "Vinh Phuoc": "Vĩnh Phước",
-  "Vinh Tho": "Vĩnh Thọ",
-  "Vinh Luong": "Vĩnh Lương",
-  "Vinh Phuong": "Vĩnh Phương",
-  "Ngoc Hiep": "Ngọc Hiệp",
-  "Phuong Sai": "Phương Sài",
-  "Vinh Ngoc": "Vĩnh Ngọc",
-  "Vinh Thanh": "Vĩnh Thạnh",
-  "Vinh Hiep": "Vĩnh Hiệp",
-  "Vinh Trung": "Vĩnh Trung",
-  "Phuoc Hai": "Phước Hải",
-  "Phuoc Long": "Phước Long",
-  "Vinh Truong": "Vĩnh Trường",
-  "Vinh Thai": "Vĩnh Thái",
-  "Phuoc Dong": "Phước Đồng",
-};
 
 const STATUS_LABEL_KEYS: Record<string, string> = {
   just_listed: "justListed",
@@ -515,13 +493,25 @@ export default function DatabaseView({ data, onChange, isEdit = false }: Props) 
           label={t("wardOld")}
           value={data.ward}
           options={Object.fromEntries(NHA_TRANG_WARDS.map((w) => [w, w]))}
-          onChange={(v) => set("ward", v)}
+          onChange={(v) => {
+            if (!v) { setMultiple({ ward: "", ward_new: "" }); return; }
+            const newWard = OLD_TO_NEW_WARD[v] || (v in NEW_WARD_OPTIONS ? v : "");
+            setMultiple({ ward: v, ...(newWard ? { ward_new: newWard } : {}) });
+          }}
         />
         <SelectField
           label={t("wardNew")}
           value={data.ward_new}
           options={NEW_WARD_OPTIONS}
-          onChange={(v) => set("ward_new", v)}
+          onChange={(v) => {
+            if (!v) { setMultiple({ ward_new: "", ward: "" }); return; }
+            const oldWards = NEW_TO_OLD_WARDS[v];
+            if (oldWards) {
+              setMultiple({ ward_new: v, ward: "" });
+            } else {
+              setMultiple({ ward_new: v, ward: v });
+            }
+          }}
         />
       </Row>
 
