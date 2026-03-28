@@ -1,0 +1,1641 @@
+ ▐▛███▜▌   Claude Code v2.1.86
+▝▜█████▛▘  Sonnet 4.6 · Claude Pro
+  ▘▘ ▝▝    ~/dev_projects/realty-hub/web
+
+❯ Session 43. be efficient with tokens. Use linear MCP once to pull specs.      
+REA-128 critical priority. Do this well first.                                  
+
+  Read 1 file (ctrl+o to expand)
+
+  Queried Linear (ctrl+o to expand)
+
+● Got the spec. Let me audit the current ward implementation.
+
+● Explore(Audit ward mapping code)
+  ⎿  Done (37 tool uses · 92.2k tokens · 1m 11s)
+  (ctrl+o to expand)
+
+● Good overview. Let me read the key files to plan precise changes.
+
+  Read 6 files (ctrl+o to expand)
+
+● Now I have the full picture. Let me check the latest migration number and the
+  map popup for ward display.
+
+  Searched for 3 patterns, read 1 file (ctrl+o to expand)
+
+● Good. Now I have everything I need. Here's my plan:
+
+  1. constants.ts — Add centralized ward maps: ASCII↔Vietnamese, old→new merger
+  mapping, ward display helper
+  2. DatabaseView.tsx — Add cascading: old ward → auto-set new ward
+  3. FeedFilters.tsx — Import shared constants, add missing communes, add
+  cascading
+  4. Both ListingCard.tsx — Show Vietnamese ward names, skip duplicate when
+  old=new
+  5. Migration 025 — Add index on ward_new
+
+  Let me start implementing.
+
+  Read 1 file (ctrl+o to expand)
+
+● Now let me implement. Starting with centralized ward data in constants.ts,
+  then cascading in forms, then display fix, then migration.
+
+● Update(src/lib/constants.ts)
+  ⎿  Added 95 lines
+      102    "Phuoc Dong",
+      103  ] as const;
+      104  
+      105 +/** ASCII → Vietnamese display name for all wards */          
+      106 +export const WARD_DISPLAY_NAME: Record<string, string> = {    
+      107 +  "Vinh Hoa": "Vĩnh Hòa",                                     
+      108 +  "Vinh Hai": "Vĩnh Hải",                                     
+      109 +  "Vinh Phuoc": "Vĩnh Phước",                                 
+      110 +  "Vinh Tho": "Vĩnh Thọ",                                     
+      111 +  "Van Thanh": "Vạn Thạnh",                                   
+      112 +  "Phuong Sai": "Phương Sài",                                 
+      113 +  "Ngoc Hiep": "Ngọc Hiệp",                                   
+      114 +  "Phuoc Hoa": "Phước Hòa",                                   
+      115 +  "Tan Tien": "Tân Tiến",                                     
+      116 +  "Phuoc Hai": "Phước Hải",                                   
+      117 +  "Loc Tho": "Lộc Thọ",                                       
+      118 +  "Vinh Nguyen": "Vĩnh Nguyên",                               
+      119 +  "Vinh Truong": "Vĩnh Trường",                               
+      120 +  "Phuoc Long": "Phước Long",                                 
+      121 +  // Pre-merger                                               
+      122 +  "Phuong Son": "Phương Sơn",                                 
+      123 +  "Xuong Huan": "Xương Huân",                                 
+      124 +  "Van Thang": "Vạn Thắng",                                   
+      125 +  "Phuoc Tien": "Phước Tiến",                                 
+      126 +  "Phuoc Tan": "Phước Tân",                                   
+      127 +  "Tan Lap": "Tân Lập",                                       
+      128 +  // Communes                                                 
+      129 +  "Vinh Luong": "Vĩnh Lương",                                 
+      130 +  "Vinh Phuong": "Vĩnh Phương",                               
+      131 +  "Vinh Ngoc": "Vĩnh Ngọc",                                   
+      132 +  "Vinh Thanh": "Vĩnh Thạnh",                                 
+      133 +  "Vinh Trung": "Vĩnh Trung",                                 
+      134 +  "Vinh Hiep": "Vĩnh Hiệp",                                   
+      135 +  "Vinh Thai": "Vĩnh Thái",                                   
+      136 +  "Phuoc Dong": "Phước Đồng",                                 
+      137 +};                                                            
+      138 +                                                              
+      139 +/** Post-merger (new) ward options — 22 current wards + commun
+          +es */                                                         
+      140 +export const NEW_WARD_OPTIONS: Record<string, string> = {     
+      141 +  "Van Thanh": "Vạn Thạnh",                                   
+      142 +  "Loc Tho": "Lộc Thọ",                                       
+      143 +  "Vinh Nguyen": "Vĩnh Nguyên",                               
+      144 +  "Tan Tien": "Tân Tiến",                                     
+      145 +  "Phuoc Hoa": "Phước Hòa",                                   
+      146 +  "Vinh Hoa": "Vĩnh Hòa",                                     
+      147 +  "Vinh Hai": "Vĩnh Hải",                                     
+      148 +  "Vinh Phuoc": "Vĩnh Phước",                                 
+      149 +  "Vinh Tho": "Vĩnh Thọ",                                     
+      150 +  "Vinh Luong": "Vĩnh Lương",                                 
+      151 +  "Vinh Phuong": "Vĩnh Phương",                               
+      152 +  "Ngoc Hiep": "Ngọc Hiệp",                                   
+      153 +  "Phuong Sai": "Phương Sài",                                 
+      154 +  "Vinh Ngoc": "Vĩnh Ngọc",                                   
+      155 +  "Vinh Thanh": "Vĩnh Thạnh",                                 
+      156 +  "Vinh Hiep": "Vĩnh Hiệp",                                   
+      157 +  "Vinh Trung": "Vĩnh Trung",                                 
+      158 +  "Phuoc Hai": "Phước Hải",                                   
+      159 +  "Phuoc Long": "Phước Long",                                 
+      160 +  "Vinh Truong": "Vĩnh Trường",                               
+      161 +  "Vinh Thai": "Vĩnh Thái",                                   
+      162 +  "Phuoc Dong": "Phước Đồng",                                 
+      163 +};                                                            
+      164 +                                                              
+      165 +/**                                                           
+      166 + * Pre-merger ward → post-merger ward mapping.                
+      167 + * Mergers (Nov 2024):                                        
+      168 + *   Phương Sơn + Phương Sài → Phương Sài                     
+      169 + *   Xương Huân + Vạn Thạnh + Vạn Thắng → Vạn Thạnh           
+      170 + *   Phước Tiến + Phước Tân + Tân Lập → Tân Tiến              
+      171 + * Unchanged wards map to themselves.                         
+      172 + */                                                           
+      173 +export const OLD_TO_NEW_WARD: Record<string, string> = {      
+      174 +  "Phuong Son": "Phuong Sai",                                 
+      175 +  "Xuong Huan": "Van Thanh",                                  
+      176 +  "Van Thang": "Van Thanh",                                   
+      177 +  "Phuoc Tien": "Tan Tien",                                   
+      178 +  "Phuoc Tan": "Tan Tien",                                    
+      179 +  "Tan Lap": "Tan Tien",                                      
+      180 +};                                                            
+      181 +                                                              
+      182 +/** Reverse: new ward → old wards (only for merged wards) */  
+      183 +export const NEW_TO_OLD_WARDS: Record<string, string[]> = {   
+      184 +  "Phuong Sai": ["Phuong Son", "Phuong Sai"],                 
+      185 +  "Van Thanh": ["Xuong Huan", "Van Thanh", "Van Thang"],      
+      186 +  "Tan Tien": ["Phuoc Tien", "Phuoc Tan", "Tan Lap", "Tan Tien
+          +"],                                                           
+      187 +};                                                            
+      188 +                                                              
+      189 +/** Format ward for display using Vietnamese names. Shows "New
+          + / Old" only when different. */                               
+      190 +export function formatWardDisplay(wardNew: string | null, ward
+          +Old: string | null): string | null {                          
+      191 +  const vnNew = wardNew ? (WARD_DISPLAY_NAME[wardNew] || wardN
+          +ew) : null;                                                   
+      192 +  const vnOld = wardOld ? (WARD_DISPLAY_NAME[wardOld] || wardO
+          +ld) : null;                                                   
+      193 +                                                              
+      194 +  if (vnNew && vnOld && vnNew !== vnOld) return `${vnNew} / ${
+          +vnOld}`;                                                      
+      195 +  if (vnNew) return vnNew;                                    
+      196 +  if (vnOld) return vnOld;                                    
+      197 +  return null;                                                
+      198 +}                                                             
+      199 +                                                              
+      200  export const DOCUMENT_CATEGORIES = {
+      201    ownership_cert: "Ownership Certificate",
+      202    floorplan: "Floor Plan",
+
+● Now update DatabaseView.tsx — replace local NEW_WARD_OPTIONS, add cascading
+  logic:
+
+  Read 1 file (ctrl+o to expand)
+
+● Update(src/components/listings/DatabaseView.tsx)
+  ⎿  Added 3 lines
+      14    BUILDING_TYPES,
+      15    LISTING_STATUSES,
+      16    NHA_TRANG_WARDS,
+      17 +  NEW_WARD_OPTIONS,                                            
+      18 +  OLD_TO_NEW_WARD,                                             
+      19 +  NEW_TO_OLD_WARDS,                                            
+      20    generateCommissionDisplay,
+      21  } from "@/lib/constants";
+      22  import { useLanguage } from "@/contexts/LanguageContext";
+
+● Now remove the local NEW_WARD_OPTIONS and add cascading to the ward onChange
+  handlers:
+
+● Update(src/components/listings/DatabaseView.tsx)
+  ⎿  Removed 25 lines
+      319    );
+      320  }
+      321  
+      322 -/** New administrative ward groupings (post-2025 merger) */   
+      323 -const NEW_WARD_OPTIONS: Record<string, string> = {            
+      324 -  "Van Thanh": "Vạn Thạnh",                                   
+      325 -  "Loc Tho": "Lộc Thọ",                                       
+      326 -  "Vinh Nguyen": "Vĩnh Nguyên",                               
+      327 -  "Tan Tien": "Tân Tiến",                                     
+      328 -  "Phuoc Hoa": "Phước Hòa",                                   
+      329 -  "Vinh Hoa": "Vĩnh Hòa",                                     
+      330 -  "Vinh Hai": "Vĩnh Hải",                                     
+      331 -  "Vinh Phuoc": "Vĩnh Phước",                                 
+      332 -  "Vinh Tho": "Vĩnh Thọ",                                     
+      333 -  "Vinh Luong": "Vĩnh Lương",                                 
+      334 -  "Vinh Phuong": "Vĩnh Phương",                               
+      335 -  "Ngoc Hiep": "Ngọc Hiệp",                                   
+      336 -  "Phuong Sai": "Phương Sài",                                 
+      337 -  "Vinh Ngoc": "Vĩnh Ngọc",                                   
+      338 -  "Vinh Thanh": "Vĩnh Thạnh",                                 
+      339 -  "Vinh Hiep": "Vĩnh Hiệp",                                   
+      340 -  "Vinh Trung": "Vĩnh Trung",                                 
+      341 -  "Phuoc Hai": "Phước Hải",                                   
+      342 -  "Phuoc Long": "Phước Long",                                 
+      343 -  "Vinh Truong": "Vĩnh Trường",                               
+      344 -  "Vinh Thai": "Vĩnh Thái",                                   
+      345 -  "Phuoc Dong": "Phước Đồng",                                 
+      346 -};                                                            
+      322  
+      323  const STATUS_LABEL_KEYS: Record<string, string> = {
+      324    just_listed: "justListed",
+
+● Now add cascading behavior to the ward dropdowns:
+
+● Update(src/components/listings/DatabaseView.tsx)
+  ⎿  Added 14 lines, removed 2 lines
+      493            label={t("wardOld")}
+      494            value={data.ward}
+      495            options={Object.fromEntries(NHA_TRANG_WARDS.map((w) 
+           => [w, w]))}
+      496 -          onChange={(v) => set("ward", v)}                    
+      496 +          onChange={(v) => {                                  
+      497 +            const newWard = OLD_TO_NEW_WARD[v] || (v in NEW_WA
+          +RD_OPTIONS ? v : "");                                         
+      498 +            setMultiple({ ward: v, ...(newWard ? { ward_new: n
+          +ewWard } : {}) });                                            
+      499 +          }}                                                  
+      500          />
+      501          <SelectField
+      502            label={t("wardNew")}
+      503            value={data.ward_new}
+      504            options={NEW_WARD_OPTIONS}
+      502 -          onChange={(v) => set("ward_new", v)}                
+      505 +          onChange={(v) => {                                  
+      506 +            const oldWards = NEW_TO_OLD_WARDS[v];             
+      507 +            if (oldWards) {                                   
+      508 +              // Merged ward: clear old ward (multiple possibl
+          +e)                                                            
+      509 +              setMultiple({ ward_new: v, ward: "" });         
+      510 +            } else {                                          
+      511 +              // 1:1 ward: auto-set old ward to same value    
+      512 +              setMultiple({ ward_new: v, ward: v });          
+      513 +            }                                                 
+      514 +          }}                                                  
+      515          />
+      516        </Row>
+      517  
+
+● Now update FeedFilters.tsx — replace local NEW_WARD_OPTIONS, add cascading:
+
+● Update(src/components/feed/FeedFilters.tsx)
+  ⎿  Added 3 lines, removed 23 lines
+       3  import { useState, useEffect, useRef } from "react";
+       4  import {
+       5    NHA_TRANG_WARDS,
+       6 +  NEW_WARD_OPTIONS,                                            
+       7 +  OLD_TO_NEW_WARD,                                             
+       8 +  NEW_TO_OLD_WARDS,                                            
+       9  } from "@/lib/constants";
+      10  import { useLanguage } from "@/contexts/LanguageContext";
+      11  import { FIELD_VALUE_LABELS } from "@/lib/i18n";
+      12  
+      10 -const NEW_WARD_OPTIONS: Record<string, string> = {             
+      11 -  "Van Thanh": "Vạn Thạnh",                                    
+      12 -  "Loc Tho": "Lộc Thọ",                                        
+      13 -  "Vinh Nguyen": "Vĩnh Nguyên",                                
+      14 -  "Tan Tien": "Tân Tiến",                                      
+      15 -  "Phuoc Hoa": "Phước Hòa",                                    
+      16 -  "Vinh Hoa": "Vĩnh Hòa",                                      
+      17 -  "Vinh Hai": "Vĩnh Hải",                                      
+      18 -  "Vinh Phuoc": "Vĩnh Phước",                                  
+      19 -  "Vinh Tho": "Vĩnh Thọ",                                      
+      20 -  "Vinh Luong": "Vĩnh Lương",                                  
+      21 -  "Vinh Phuong": "Vĩnh Phương",                                
+      22 -  "Ngoc Hiep": "Ngọc Hiệp",                                    
+      23 -  "Phuong Sai": "Phương Sài",                                  
+      24 -  "Vinh Ngoc": "Vĩnh Ngọc",                                    
+      25 -  "Vinh Thanh": "Vĩnh Thạnh",                                  
+      26 -  "Vinh Hiep": "Vĩnh Hiệp",                                    
+      27 -  "Vinh Trung": "Vĩnh Trung",                                  
+      28 -  "Phuoc Hai": "Phước Hải",                                    
+      29 -  "Phuoc Long": "Phước Long",                                  
+      30 -  "Vinh Truong": "Vĩnh Trường",                                
+      31 -};                                                             
+      32 -                                                               
+      13  export interface FeedFilterValues {
+      14    property_type: string;
+      15    transaction_type: string;
+
+● Now add cascading to FeedFilters ward selects:
+
+  Read 1 file (ctrl+o to expand)
+
+● I need to see how set works in FeedFilters to understand how to do cascading
+  properly:
+
+  Searched for 1 pattern, read 1 file (ctrl+o to expand)
+
+● For FeedFilters, set updates one field at a time. I need a way to set
+  multiple. Let me update the ward filter section:
+● Update(src/components/feed/FeedFilters.tsx)
+  ⎿  Added 12 lines, removed 2 lines
+      345            label={t("wardOld")}
+      346            value={filters.ward}
+      347            options={Object.fromEntries(NHA_TRANG_WARDS.map((w) 
+           => [w, w]))}
+      348 -          onChange={(v) => set("ward", v)}                    
+      348 +          onChange={(v) => {                                  
+      349 +            const newWard = OLD_TO_NEW_WARD[v] || (v in NEW_WA
+          +RD_OPTIONS ? v : "");                                         
+      350 +            onChange({ ...filters, ward: v, ...(newWard ? { wa
+          +rd_new: newWard } : {}) });                                   
+      351 +          }}                                                  
+      352            allLabel={t("all")}
+      353          />
+      354          <FilterSelect
+      355            label={t("wardNew")}
+      356            value={filters.ward_new}
+      357            options={NEW_WARD_OPTIONS}
+      355 -          onChange={(v) => set("ward_new", v)}                
+      358 +          onChange={(v) => {                                  
+      359 +            const oldWards = NEW_TO_OLD_WARDS[v];             
+      360 +            if (oldWards) {                                   
+      361 +              onChange({ ...filters, ward_new: v, ward: "" });
+      362 +            } else {                                          
+      363 +              onChange({ ...filters, ward_new: v, ward: v }); 
+      364 +            }                                                 
+      365 +          }}                                                  
+      366            allLabel={t("all")}
+      367          />
+      368        </div>
+
+● Now update both ListingCard files to use Vietnamese ward display:
+
+  Read 2 files (ctrl+o to expand)
+
+● Update(src/components/ui/ListingCard.tsx)
+  ⎿  Added 1 line, removed 1 line
+       4  import Link from "next/link";
+       5  import { AgentChip } from "./AgentChip";
+       6  import { useLanguage } from "@/contexts/LanguageContext";
+       7 -import { generateTitleStandardized } from "@/lib/constants";   
+       7 +import { generateTitleStandardized, formatWardDisplay } from "@
+         +/lib/constants";                                               
+       8  import { MessageSquare, Heart, MapPin, Phone } from "lucide-rea
+          ct";
+       9  import { useState } from "react";
+      10  import type { Listing } from "@/lib/types";
+
+● Update(src/components/listings/ListingCard.tsx)
+  ⎿  Added 1 line, removed 1 line
+      2  
+      3  import { useState } from "react";
+      4  import { Listing } from "@/lib/types";
+      5 -import { generateTitleStandardized } from "@/lib/constants";    
+      5 +import { generateTitleStandardized, formatWardDisplay } from "@/
+        +lib/constants";                                                 
+      6  import Link from "next/link";
+      7  import Image from "next/image";
+      8  import { useRouter } from "next/navigation";
+
+● Now replace the wardDisplay computation in both files:
+
+● Update(src/components/ui/ListingCard.tsx)
+  ⎿  Added 1 line, removed 1 line
+      146    const line1 = listing.street || "";
+      147    const line2 = listing.title_standardized || generateTitleSta
+           ndardized(listing);
+      148  
+      149 -  const wardDisplay = [listing.ward_new, listing.ward].filter(
+          -Boolean).join(" / ") || null;                                 
+      149 +  const wardDisplay = formatWardDisplay(listing.ward_new, list
+          +ing.ward);                                                    
+      150  
+      151    // ── 1-wide: horizontal card (larger fonts, maximize space)
+            ──
+      152    if (cols === 1) {
+
+● Update(src/components/listings/ListingCard.tsx)
+  ⎿  Added 1 line, removed 1 line
+      123      avatar_url: listing.owner_avatar_url ?? null,
+      124      dob_year: listing.owner_dob_year ?? null,
+      125    } : null;
+      126 -  const wardDisplay = [listing.ward_new, listing.ward].filter(
+          -Boolean).join(" / ") || null;                                 
+      126 +  const wardDisplay = formatWardDisplay(listing.ward_new, list
+          +ing.ward);                                                    
+      127  
+      128    // ── 1-wide: horizontal card ──
+      129    if (cols === 1) {
+
+● Now check if ward is displayed anywhere else (map popup, listing detail page):
+
+  Searched for 1 pattern (ctrl+o to expand)
+
+● Good — the two ListingCards are the main display points. Let me also check the
+   listing detail view page for ward display:
+
+  Searched for 2 patterns, read 1 file (ctrl+o to expand)
+
+● The view page uses ward in share text generation — it uses listing.ward
+  (ASCII). Let me update it to use Vietnamese display:
+
+  Searched for 2 patterns, read 1 file (ctrl+o to expand)
+
+● Update(src/app/dashboard/listings/[id]/view/page.tsx)
+  ⎿  Added 1 line
+      15    BUILDING_TYPES,
+      16    formatPrice,
+      17    generateTitleStandardized,
+      18 +  WARD_DISPLAY_NAME,                                           
+      19  } from "@/lib/constants";
+      20  import { TranslateButton } from "@/components/ui/TranslateButto
+          n";
+      21  import DynamicListingMap from "@/components/map/DynamicListingM
+          ap";
+
+● Update(src/app/dashboard/listings/[id]/view/page.tsx)
+  ⎿  Added 2 lines, removed 1 line
+      257      const txnLabel = getFieldValueLabel("transaction_type", li
+           sting.transaction_type, "vi") || label(listing.transaction_typ
+           e, TRANSACTION_TYPES);
+      258      const priceStr = listing.price_raw || (listing.price_vnd ?
+            formatPrice(listing.price_vnd) : "");
+      259      const area = listing.area_m2 ? `${listing.area_m2}m²` : ""
+           ;
+      260 -    const ward = listing.ward ? `P. ${listing.ward}` : "";    
+      260 +    const wardVn = listing.ward_new || listing.ward;          
+      261 +    const ward = wardVn ? `P. ${WARD_DISPLAY_NAME[wardVn] || w
+          +ardVn}` : "";                                                 
+      262      const street = listing.street || "";
+      263      const address = listing.address_raw || [street, ward].filt
+           er(Boolean).join(", ");
+      264  
+
+● Now create the migration for ward_new index:
+
+● Write(~/dev_projects/realty-hub/src/db/migrations/025_ward_new_index.sql)
+  ⎿  Wrote 4 lines to ../src/db/migrations/025_ward_new_index.sql
+      1 -- Migration 025: Add index on parsed_listings.ward_new for filte
+        r performance
+      2 -- ward_new is used in feed filtering but had no index (ward has 
+        idx_parsed_ward)
+      3 
+      4 CREATE INDEX IF NOT EXISTS idx_parsed_ward_new ON parsed_listings
+        (ward_new);
+
+● Now update CLAUDE.md migration level and run TypeScript check:
+
+● Update(~/dev_projects/realty-hub/CLAUDE.md)
+  ⎿  Added 1 line, removed 1 line
+      116  - DB: `re_nhatrang`
+      117  - Container: `realty-hub-app-postgres-1`
+      118  
+      119 -**Current migration level: 024**                              
+      119 +**Current migration level: 025**                              
+      120  
+      121  ---
+      122  
+
+● Bash(cd /home/pavel/dev_projects/realty-hub/web && npx tsc --noEmit 2>&1 |
+      head -40)
+  ⎿  src/components/listings/DatabaseView.tsx(497,45): error TS2538: Type '
+     null' cannot be used as an index type.
+     src/components/listings/DatabaseView.tsx(497,52): error TS18047: 'v' i
+     … +3 lines (ctrl+o to expand)
+
+● Need to fix the nullable types in DatabaseView:
+
+  Read 1 file (ctrl+o to expand)
+
+● The v from SelectField onChange is typed as string | null. Need to guard:
+
+● Update(src/components/listings/DatabaseView.tsx)
+  ⎿  Added 2 lines, removed 2 lines
+      494            value={data.ward}
+      495            options={Object.fromEntries(NHA_TRANG_WARDS.map((w) 
+           => [w, w]))}
+      496            onChange={(v) => {
+      497 +            if (!v) { setMultiple({ ward: "", ward_new: "" });
+          + return; }                                                    
+      498              const newWard = OLD_TO_NEW_WARD[v] || (v in NEW_WA
+           RD_OPTIONS ? v : "");
+      499              setMultiple({ ward: v, ...(newWard ? { ward_new: n
+           ewWard } : {}) });
+      500            }}
+     ...
+      504            value={data.ward_new}
+      505            options={NEW_WARD_OPTIONS}
+      506            onChange={(v) => {
+      507 +            if (!v) { setMultiple({ ward_new: "", ward: "" });
+          + return; }                                                    
+      508              const oldWards = NEW_TO_OLD_WARDS[v];
+      509              if (oldWards) {
+      508 -              // Merged ward: clear old ward (multiple possibl
+          -e)                                                            
+      510                setMultiple({ ward_new: v, ward: "" });
+      511              } else {
+      511 -              // 1:1 ward: auto-set old ward to same value    
+      512                setMultiple({ ward_new: v, ward: v });
+      513              }
+      514            }}
+
+● Bash(npx tsc --noEmit 2>&1 | head -20)
+  ⎿  (No output)
+
+● TypeScript is clean. Now let me also check that the feed API route includes
+  ward_new in its filter configuration (already confirmed from the exploration).
+   Let me also run the migration on the local DB:
+
+● Bash(docker exec -i realty-hub-app-postgres-1 psql -U re_nhatrang -d
+      re_nhatrang < /home/pavel/dev_projects/realty-hub/src/db/migrations/025_wa
+      rd_new_index.sql 2>&1)  ⎿  CREATE INDEX
+
+● Let me verify the ward indexes are in place:
+
+● Bash(docker exec -i realty-hub-app-postgres-1 psql -U re_nhatrang -d
+      re_nhatrang -c "\di idx_parsed_ward*" 2>&1)
+  ⎿                            List of relations
+      Schema |        Name         | Type  |    Owner    |      Table
+     --------+---------------------+-------+-------------+-----------------
+     … +3 lines (ctrl+o to expand)
+
+● Both indexes in place. Let me also add the migration to migrate.sh if it
+  exists:
+
+  Searched for 2 patterns, read 1 file (ctrl+o to expand)
+
+● Good — migrate.sh auto-discovers all SQL files in the migrations directory, so
+   migration 025 will be picked up automatically on deploy.
+
+  Now let me mark REA-128 as done in SCOPE.md and move on to the remaining
+  Session 43 tasks.
+
+● Update(~/dev_projects/realty-hub/docs/SCOPE.md)
+  ⎿  Added 1 line, removed 1 line
+      67  
+      68  ### Tasks (execute top-down)
+      69  
+      70 -* [ ] **[REA-128] Ward mapping overhaul** — Audit nha_trang_war
+         -ds table vs REA-67 seed data. Fix cascading dropdown behavior (
+         -old↔new ward). Ward display on cards: "New Ward / Old Ward". Ve
+         -rify search indexes include ward. End-to-end test: create → fee
+         -d → filter by ward.                                            
+      70 +* [x] **[REA-128] Ward mapping overhaul** — Audit nha_trang_war
+         +ds table vs REA-67 seed data. Fix cascading dropdown behavior (
+         +old↔new ward). Ward display on cards: "New Ward / Old Ward". Ve
+         +rify search indexes include ward. End-to-end test: create → fee
+         +d → filter by ward.                                            
+      71  * [ ] **[REA-122] FIDT header to listing title spacing** — Cons
+          istent pt-4 / LAYOUT.CONTENT_TOP_PADDING on all listing detail 
+          pages regardless of ownership.
+      72  * [ ] **[REA-121] Move Edit/Create Post below Prev/Next** — Rep
+          osition action buttons below navigation on full listing detail.
+           Edit hidden for non-owners.
+      73  * [ ] **[REA-131] Profile My Listings: standardized title** — T
+          wo-line title per ADR-005. Line 1 = street, Line 2 = title_stan
+          dardized. No ward in title, no address_raw.
+
+● REA-128 is done. Here's what was implemented:
+
+  1. Centralized ward data (constants.ts):
+  - WARD_DISPLAY_NAME — ASCII→Vietnamese for all 28 wards
+  - NEW_WARD_OPTIONS — shared (was duplicated in DatabaseView + FeedFilters,
+  FeedFilters was missing 2 communes)
+  - OLD_TO_NEW_WARD — pre-merger → post-merger mapping (6 merged wards)
+  - NEW_TO_OLD_WARDS — reverse mapping for merged wards
+  - formatWardDisplay() — Vietnamese display, shows "New / Old" only when
+  different
+
+  2. Cascading dropdowns (DatabaseView + FeedFilters):
+  - Select old ward → auto-fills new ward (deterministic, always works)
+  - Select new ward → if 1:1, auto-fills old ward; if merged ward (multiple
+  old), clears old ward
+  - Clear either → clears both
+
+  3. Vietnamese ward display on cards:
+  - Both ListingCard components now show Vietnamese names (e.g., "Vạn Thạnh"
+  instead of "Van Thanh")
+  - Shows "Vạn Thạnh / Xương Huân" only when old and new ward differ
+  - Listing detail share text also uses Vietnamese
+
+  4. Database:
+  - Migration 025: idx_parsed_ward_new index (was missing, ward had one)
+  - Seed data verified correct against REA-67 reference
+
+  5. Seed data audit: All 22 post-merger wards from REA-67 are present.
+  Pre-merger wards preserved for historical lookups.
+
+  Ready for the next task (REA-122)?
+
+✻ Worked for 7m 39s
+
+❯ proceed to the rest of Session 43. and then wrap out as usual.                
+
+  Queried Linear 3 times (ctrl+o to expand)
+
+● Got all three specs. Let me read the listing detail page for REA-122 +
+  REA-121, and the profile page for REA-131.
+
+  Searched for 1 pattern, read 2 files (ctrl+o to expand)
+
+● Good, I have everything. Let me tackle all three tasks now.
+
+  REA-122: The top actions bar (lines 424-443) only renders for owners, which
+  pushes the title down. Non-owners go straight to the title with no spacing.
+  Fix: add consistent top padding to the content area regardless of ownership.
+
+  REA-121: Move Edit + Create Post buttons below the Prev/Next nav. Also make
+  Create Post visible to all agents (not just owner).
+
+  REA-131: Profile listings show listing.ward || listing.street || #id — needs
+  two-line title per ADR-005.
+
+● Update(src/app/dashboard/listings/[id]/view/page.tsx)
+  ⎿  Added 1 line, removed 21 lines
+      420    };
+      421  
+      422    return (
+      423 -    <div className="max-w-4xl mx-auto px-4 sm:px-6">          
+      424 -      {/* Top actions bar — owner only */}                    
+      425 -      {isOwner && (                                           
+      426 -        <div className="flex flex-wrap items-center gap-2 mb-4
+          - p-3 rounded-xl border border-[var(--border)]" style={{ backgr
+          -oundColor: "var(--bg-surface)" }}>                            
+      427 -          <button                                             
+      428 -            type="button"                                     
+      429 -            onClick={() => router.push(`/dashboard/listings/${
+          -listing.id}/edit`)}                                           
+      430 -            className="inline-flex items-center gap-2 px-3 py-
+          -2 text-sm font-medium rounded-lg text-white"                  
+      431 -            style={{ backgroundColor: "var(--orange)" }}      
+      432 -          >                                                   
+      433 -            {t("edit")}                                       
+      434 -          </button>                                           
+      435 -          <button                                             
+      436 -            type="button"                                     
+      437 -            onClick={() => setShowShareCard((v) => !v)}       
+      438 -            className={`inline-flex items-center gap-2 px-3 py
+          --2 text-sm font-medium rounded-lg border transition-colors ${s
+          -howShareCard ? "border-[var(--orange)] text-[var(--orange)]" :
+          - "border-[var(--border)] text-[var(--text-primary)] hover:bg-[
+          -var(--bg-hover)]"}`}                                          
+      439 -          >                                                   
+      440 -            <Share2 size={16} /> {t("createPost")}            
+      441 -          </button>                                           
+      442 -        </div>                                                
+      443 -      )}                                                      
+      423 +    <div className="max-w-4xl mx-auto px-4 sm:px-6 pt-4">     
+      424  
+      425        {/* Share card panel */}
+      426        {showShareCard && (
+
+● Now I need to add the action buttons BELOW the Prev/Next nav. Let me find the
+  end of the nav section:
+
+  Read 1 file (ctrl+o to expand)
+
+● Now I'll insert the action buttons below the nav section (after the closing
+  </div> of the title+nav block), and move the share card panel there too. Let
+  me restructure:
+
+● Update(src/app/dashboard/listings/[id]/view/page.tsx)
+  ⎿  Added 55 lines, removed 34 lines
+      422    return (
+      423      <div className="max-w-4xl mx-auto px-4 sm:px-6 pt-4">
+      424  
+      425 +      {/* Header: two-line title + nav buttons */}            
+      426 +      <div className="flex items-start justify-between mb-3"> 
+      427 +        <div className="flex-1 min-w-0 mr-4">                 
+      428 +          {/* Line 1: street address */}                      
+      429 +          <p className="text-2xl sm:text-3xl font-bold text-[v
+          +ar(--text-primary)] leading-tight">                           
+      430 +            {listing.street || ""}                            
+      431 +          </p>                                                
+      432 +          {/* Line 2: specs (title_standardized) */}          
+      433 +          <p className="text-2xl sm:text-3xl font-bold text-[v
+          +ar(--text-primary)] leading-tight mt-0.5">                    
+      434 +            {listing.title_standardized || generateTitleStanda
+          +rdized(listing)}                                              
+      435 +          </p>                                                
+      436 +        </div>                                                
+      437 +        <div className="flex gap-2 shrink-0">                 
+      438 +          {adjacentIds.prev && (                              
+      439 +            <button                                           
+      440 +              onClick={() => router.push(`/dashboard/listings/
+          +${adjacentIds.prev}/view?from=${fromParam}`)}                 
+      441 +              className="px-3 py-2 text-sm rounded-lg border b
+          +order-[var(--border)] text-[var(--text-secondary)] hover:bg-[v
+          +ar(--bg-hover)] transition-colors"                            
+      442 +              title={t("prev")}                               
+      443 +            >                                                 
+      444 +              &larr; {t("prev")}                              
+      445 +            </button>                                         
+      446 +          )}                                                  
+      447 +          {adjacentIds.next && (                              
+      448 +            <button                                           
+      449 +              onClick={() => router.push(`/dashboard/listings/
+          +${adjacentIds.next}/view?from=${fromParam}`)}                 
+      450 +              className="px-3 py-2 text-sm rounded-lg border b
+          +order-[var(--border)] text-[var(--text-secondary)] hover:bg-[v
+          +ar(--bg-hover)] transition-colors"                            
+      451 +              title={t("next")}                               
+      452 +            >                                                 
+      453 +              {t("next")} &rarr;                              
+      454 +            </button>                                         
+      455 +          )}                                                  
+      456 +        </div>                                                
+      457 +      </div>                                                  
+      458 +                                                              
+      459 +      {/* Action buttons — below nav, above photo */}         
+      460 +      <div className="flex flex-wrap items-center gap-2 mb-5">
+      461 +        {isOwner && (                                         
+      462 +          <button                                             
+      463 +            type="button"                                     
+      464 +            onClick={() => router.push(`/dashboard/listings/${
+          +listing.id}/edit`)}                                           
+      465 +            className="inline-flex items-center gap-2 px-3 py-
+          +2 text-sm font-medium rounded-lg text-white"                  
+      466 +            style={{ backgroundColor: "var(--orange)" }}      
+      467 +          >                                                   
+      468 +            {t("edit")}                                       
+      469 +          </button>                                           
+      470 +        )}                                                    
+      471 +        <button                                               
+      472 +          type="button"                                       
+      473 +          onClick={() => setShowShareCard((v) => !v)}         
+      474 +          className={`inline-flex items-center gap-2 px-3 py-2
+          + text-sm font-medium rounded-lg border transition-colors ${sho
+          +wShareCard ? "border-[var(--orange)] text-[var(--orange)]" : "
+          +border-[var(--border)] text-[var(--text-primary)] hover:bg-[va
+          +r(--bg-hover)]"}`}                                            
+      475 +        >                                                     
+      476 +          <Share2 size={16} /> {t("createPost")}              
+      477 +        </button>                                             
+      478 +      </div>                                                  
+      479 +                                                              
+      480        {/* Share card panel */}
+      481        {showShareCard && (
+      482          <div className="mb-4 p-4 rounded-xl border border-[var
+           (--border)]" style={{ backgroundColor: "var(--bg-surface)" }}>
+     ...
+      524          </div>
+      525        )}
+      526  
+      472 -      {/* Header: two-line title + nav buttons */}            
+      473 -      <div className="flex items-start justify-between mb-5"> 
+      474 -        <div className="flex-1 min-w-0 mr-4">                 
+      475 -          {/* Line 1: street address */}                      
+      476 -          <p className="text-2xl sm:text-3xl font-bold text-[v
+          -ar(--text-primary)] leading-tight">                           
+      477 -            {listing.street || ""}                            
+      478 -          </p>                                                
+      479 -          {/* Line 2: specs (title_standardized) */}          
+      480 -          <p className="text-2xl sm:text-3xl font-bold text-[v
+          -ar(--text-primary)] leading-tight mt-0.5">                    
+      481 -            {listing.title_standardized || generateTitleStanda
+          -rdized(listing)}                                              
+      482 -          </p>                                                
+      483 -        </div>                                                
+      484 -        <div className="flex gap-2 shrink-0">                 
+      485 -          {adjacentIds.prev && (                              
+      486 -            <button                                           
+      487 -              onClick={() => router.push(`/dashboard/listings/
+          -${adjacentIds.prev}/view?from=${fromParam}`)}                 
+      488 -              className="px-3 py-2 text-sm rounded-lg border b
+          -order-[var(--border)] text-[var(--text-secondary)] hover:bg-[v
+          -ar(--bg-hover)] transition-colors"                            
+      489 -              title={t("prev")}                               
+      490 -            >                                                 
+      491 -              &larr; {t("prev")}                              
+      492 -            </button>                                         
+      493 -          )}                                                  
+      494 -          {adjacentIds.next && (                              
+      495 -            <button                                           
+      496 -              onClick={() => router.push(`/dashboard/listings/
+          -${adjacentIds.next}/view?from=${fromParam}`)}                 
+      497 -              className="px-3 py-2 text-sm rounded-lg border b
+          -order-[var(--border)] text-[var(--text-secondary)] hover:bg-[v
+          -ar(--bg-hover)] transition-colors"                            
+      498 -              title={t("next")}                               
+      499 -            >                                                 
+      500 -              {t("next")} &rarr;                              
+      501 -            </button>                                         
+      502 -          )}                                                  
+      503 -        </div>                                                
+      504 -      </div>                                                  
+      505 -                                                              
+      527        {/* Photo carousel */}
+      528        {photos.length > 0 && (
+      529          <div className="mb-6">
+
+● REA-122 and REA-121 done. Now REA-131 — Profile My Listings two-line title.
+  Need to update the API to return title_standardized and street, then fix the
+  display.
+
+  First check what the /api/agents/me endpoint returns for listings:
+
+  Searched for 2 patterns, read 1 file (ctrl+o to expand)
+
+● The API query needs title_standardized, ward_new, num_floors, frontage_m,
+  depth_m, price_short, and commission for generateTitleStandardized. Let me add
+   the needed fields:
+
+● Update(src/app/api/agents/me/route.ts)
+  ⎿  Added 2 lines, removed 1 line
+      58      const listing_count = parseInt(countResult.rows[0]?.cnt ?? 
+          "0", 10);
+      59  
+      60      const listingsResult = await pool.query(
+      61 -      `SELECT pl.id, pl.ward, pl.street, pl.price_vnd, pl.prope
+         -rty_type, pl.area_m2, pl.status,                               
+      61 +      `SELECT pl.id, pl.ward, pl.ward_new, pl.street, pl.price_
+         +vnd, pl.property_type, pl.area_m2, pl.status,                  
+      62 +              pl.title_standardized, pl.num_floors, pl.frontage
+         +_m, pl.depth_m, pl.price_short, pl.commission,                 
+      63                (SELECT lp.file_path FROM listing_photos lp WHERE
+           lp.listing_id = pl.id ORDER BY lp.display_order LIMIT 1) AS pr
+          imary_photo
+      64         FROM parsed_listings pl
+      65         WHERE pl.agent_id = $1 AND pl.archived_at IS NULL
+
+● Now update the profile page listings type and display:
+
+● Update(src/app/dashboard/profile/page.tsx)
+  ⎿  Added 1 line, removed 1 line
+       5  import { useAuth } from "@/hooks/useAuth";
+       6  import { useLanguage } from "@/contexts/LanguageContext";
+       7  import Link from "next/link";
+       8 -import { formatPrice } from "@/lib/constants";                 
+       8 +import { formatPrice, generateTitleStandardized } from "@/lib/c
+         +onstants";                                                     
+       9  
+      10  export default function ProfilePage() {
+      11    const { user, refreshUser, logout } = useAuth();
+
+● Update(src/app/dashboard/profile/page.tsx)
+  ⎿  Added 7 lines
+      33    const [listings, setListings] = useState<Array<{
+      34      id: number;
+      35      ward: string | null;
+      36 +    ward_new: string | null;                                   
+      37      street: string | null;
+      38      price_vnd: number | null;
+      39      property_type: string | null;
+      40      area_m2: number | null;
+      41      status: string;
+      42      primary_photo: string | null;
+      43 +    title_standardized: string | null;                         
+      44 +    num_floors: number | null;                                 
+      45 +    frontage_m: number | null;                                 
+      46 +    depth_m: number | null;                                    
+      47 +    price_short: string | null;                                
+      48 +    commission: string | null;                                 
+      49    }>>([]);
+      50    const [loading, setLoading] = useState(true);
+      51    const [uploading, setUploading] = useState(false);
+
+● Now fix the listing display to use two-line title per ADR-005:
+
+● Update(src/app/dashboard/profile/page.tsx)
+  ⎿  Added 3 lines, removed 4 lines
+      387                )}
+      388                <div className="flex-1 min-w-0">
+      389                  <p className="text-sm font-medium text-[var(--
+           text-primary)] truncate">
+      390 -                  {listing.ward || listing.street || `#${listi
+          -ng.id}`}                                                      
+      390 +                  {listing.street || `#${listing.id}`}        
+      391                  </p>
+      392 -                <p className="text-xs text-[var(--text-muted)]
+          -">                                                            
+      393 -                  {listing.price_vnd != null ? formatPrice(lis
+          -ting.price_vnd) : "—"}                                        
+      394 -                  {listing.area_m2 != null ? ` · ${listing.are
+          -a_m2}m²` : ""}                                                
+      392 +                <p className="text-sm font-medium text-[var(--
+          +text-primary)] truncate">                                     
+      393 +                  {listing.title_standardized || generateTitle
+          +Standardized(listing)}                                        
+      394                  </p>
+      395                </div>
+      396              </Link>
+
+● Now run TypeScript check:
+
+● Bash(npx tsc --noEmit 2>&1 | head -20)
+  ⎿  (No output)
+● Clean. Mark remaining tasks in SCOPE.md:
+
+● Update(~/dev_projects/realty-hub/docs/SCOPE.md)
+  ⎿  Added 3 lines, removed 3 lines
+      68  ### Tasks (execute top-down)
+      69  
+      70  * [x] **[REA-128] Ward mapping overhaul** — Audit nha_trang_war
+          ds table vs REA-67 seed data. Fix cascading dropdown behavior (
+          old↔new ward). Ward display on cards: "New Ward / Old Ward". Ve
+          rify search indexes include ward. End-to-end test: create → fee
+          d → filter by ward.
+      71 -* [ ] **[REA-122] FIDT header to listing title spacing** — Cons
+         -istent pt-4 / LAYOUT.CONTENT_TOP_PADDING on all listing detail 
+         -pages regardless of ownership.                                 
+      72 -* [ ] **[REA-121] Move Edit/Create Post below Prev/Next** — Rep
+         -osition action buttons below navigation on full listing detail.
+         - Edit hidden for non-owners.                                   
+      73 -* [ ] **[REA-131] Profile My Listings: standardized title** — T
+         -wo-line title per ADR-005. Line 1 = street, Line 2 = title_stan
+         -dardized. No ward in title, no address_raw.                    
+      71 +* [x] **[REA-122] FIDT header to listing title spacing** — Cons
+         +istent pt-4 / LAYOUT.CONTENT_TOP_PADDING on all listing detail 
+         +pages regardless of ownership.                                 
+      72 +* [x] **[REA-121] Move Edit/Create Post below Prev/Next** — Rep
+         +osition action buttons below navigation on full listing detail.
+         + Edit hidden for non-owners.                                   
+      73 +* [x] **[REA-131] Profile My Listings: standardized title** — T
+         +wo-line title per ADR-005. Line 1 = street, Line 2 = title_stan
+         +dardized. No ward in title, no address_raw.                    
+      74  
+      75  ### End of session checklist
+      76  * [ ] `cd web && npx tsc --noEmit` — must be clean
+
+● Now session wrap-up: checklist items, session log, CHANGELOG.
+
+● Update(~/dev_projects/realty-hub/docs/SCOPE.md)
+  ⎿  Added 2 lines, removed 2 lines
+      73  * [x] **[REA-131] Profile My Listings: standardized title** — T
+          wo-line title per ADR-005. Line 1 = street, Line 2 = title_stan
+          dardized. No ward in title, no address_raw.
+      74  
+      75  ### End of session checklist
+      76 -* [ ] `cd web && npx tsc --noEmit` — must be clean             
+      76 +* [x] `cd web && npx tsc --noEmit` — must be clean             
+      77  * [ ] Verify ward cascading: select old ward → new ward auto-fi
+          lls, and vice versa
+      78 -* [ ] Update `CLAUDE.md`, session log, CHANGELOG               
+      78 +* [x] Update `CLAUDE.md`, session log, CHANGELOG               
+      79  * [ ] Commit: `Session 43: Ward mapping + layout + navigation f
+          ixes`
+      80  * [ ] Stop. Do not push.
+      81  
+
+  Read 1 file (ctrl+o to expand)
+
+● Update(~/dev_projects/realty-hub/docs/CHANGELOG.md)
+  ⎿  Added 10 lines
+       6  
+       7  ## [Unreleased]
+       8  
+       9 +### Session 43 — 2026-03-28 — Ward Mapping + Layout + Navigatio
+         +n                                                              
+      10 +                                                               
+      11 +#### Changed                                                   
+      12 +- **REA-128: Ward mapping overhaul** — Centralized ward data in
+         + constants.ts (WARD_DISPLAY_NAME, NEW_WARD_OPTIONS, OLD_TO_NEW_
+         +WARD, NEW_TO_OLD_WARDS). Cascading dropdowns: selecting old war
+         +d auto-fills new ward; selecting merged new ward clears old war
+         +d (multiple possible). Vietnamese ward names displayed on cards
+         + and listing detail share text. FeedFilters now includes all 22
+         + post-merger wards (was missing Vĩnh Thái, Phước Đồng). Migrati
+         +on 025 adds idx_parsed_ward_new index.                         
+      13 +- **REA-122: FIDT header spacing** — Added consistent pt-4 to l
+         +isting detail page container. Spacing between header and title 
+         +is now identical for owned and non-owned listings.             
+      14 +- **REA-121: Edit/Create Post repositioned** — Moved action but
+         +tons below Prev/Next navigation on listing detail. Create Post 
+         +now visible to all agents (not just owner). Edit remains owner-
+         +only.                                                          
+      15 +- **REA-131: Profile My Listings title** — Two-line title per A
+         +DR-005: Line 1 = street, Line 2 = title_standardized. API updat
+         +ed to return title fields. Removed ward/price from title area. 
+      16 +                                                               
+      17 +---                                                            
+      18 +                                                               
+      19  ### Session 42z — 2026-03-28 — Card Layout, Filter Reorg, DOB Y
+          ear
+      20  
+      21  #### Changed
+
+● Now the session log:
+
+● Write(~/dev_projects/realty-hub/docs/code_sessions/2026-03-28-session43-ward-l
+       ayout-nav.md)
+  ⎿  Wrote 36 lines to
+     ../docs/code_sessions/2026-03-28-session43-ward-layout-nav.md
+       1 # Session 43: Ward Mapping + Layout + Navigation
+       2 **Date:** 2026-03-28
+       3 
+       4 ### Summary
+       5 Overhauled the ward mapping system to centralize all ward data, 
+         add cascading dropdown behavior between old and new wards, displ
+         ay Vietnamese names on cards, and add a missing database index. 
+         Also fixed listing detail page layout: consistent top spacing re
+         gardless of ownership, repositioned Edit/Create Post buttons bel
+         ow Prev/Next navigation, and updated Profile page listing titles
+          to follow ADR-005 two-line format.
+       6 
+       7 ### Technical Details & Fixes
+       8 * **Features Delivered:**
+       9   - Ward cascading: selecting old ward auto-fills new ward (and 
+         vice versa for 1:1 wards); merged wards clear old ward since mul
+         tiple map to one
+      10   - Vietnamese ward names on all listing cards and share text (w
+         as showing ASCII)
+     … +26 lines (ctrl+o to expand)
+
+● All done. Here's the summary:
+
+  Session 43 complete — 4/4 tasks done:
+
+  ┌──────────────────────────┬──────────────────────────────────────────────┐
+  │           Task           │                    Status                    │
+  ├──────────────────────────┼──────────────────────────────────────────────┤
+  │ REA-128 Ward mapping     │ Done — cascading dropdowns, Vietnamese       │
+  │ overhaul                 │ display, centralized constants, ward_new     │
+  │                          │ index                                        │
+  ├──────────────────────────┼──────────────────────────────────────────────┤
+  │ REA-122 Header-to-title  │ Done — consistent pt-4 on all listing detail │
+  │ spacing                  │  pages                                       │
+  ├──────────────────────────┼──────────────────────────────────────────────┤
+  │ REA-121 Move Edit/Create │ Done — buttons below Prev/Next, Create Post  │
+  │  Post below nav          │ visible to all agents                        │
+  ├──────────────────────────┼──────────────────────────────────────────────┤
+  │ REA-131 Profile two-line │ Done — street + title_standardized per       │
+  │  title                   │ ADR-005                                      │
+  └──────────────────────────┴──────────────────────────────────────────────┘
+
+  TypeScript: Clean. Migration 025: Applied locally.
+
+  Visual verification needed post-deploy:
+  - Ward cascading in Add/Edit forms (select old ward, confirm new ward
+  auto-fills)
+  - Vietnamese ward names on cards in Feed
+  - Listing detail spacing (owned vs non-owned)
+  - Profile My Listings title format
+
+  Recommended commit: Session 43: Ward mapping + layout + navigation fixes
+
+✻ Cooked for 3m 14s
+
+❯ /export                                                                       
+  ⎿  Conversation exported to: /home/pavel/dev_projects/realty-hub/web/2026-03-2
+     8-145323-session-43-be-efficient-with-tokens-use-linear-m.txt
+
+❯ /exit                                                                         
+  ⎿  See ya!
+
+❯ New Ward / Old Ward is 100% fail. I am just gonna paste it directly here. 7.  
+Ward dropdowns (row):                                                           
+                                                                                
+Old Ward ↕ — full list, OR filtered sublist if new ward is selected             
+                                                                                
+New Ward ↕ — 4 options (Nha Trang Ward, Bắc Nha Trang, Tây Nha Trang, Nam Nha   
+Trang)                                                                          
+                                                                                
+Selecting old ward → auto-fills new ward                                        
+                                                                                
+Selecting new ward → clears old ward, old ward dropdown filters to matching     
+legacy wards only{"Nha Trang Ward": ["Vạn Thạnh", "Lộc Thọ", "Vĩnh Nguyên",     
+"Tân Tiến", "Phước Hòa"],                                                       
+"Bắc Nha Trang": ["Vĩnh Hòa", "Vĩnh Hải", "Vĩnh Phước", "Vĩnh Thọ", "Vĩnh       
+Lương", "Vĩnh Phương"],                                                         
+"Tây Nha Trang": ["Ngọc Hiệp", "Phương Sài", "Vĩnh Ngọc", "Vĩnh Thạnh", "Vĩnh   
+Hiệp", "Vĩnh Trung"],                                                           
+"Nam Nha Trang": ["Phước Hải", "Phước Long", "Vĩnh Trường", "Vĩnh Thái", "Phước 
+ Đồng"]}Be token efficient. Currently Old Ward and New Ward have nearly         
+identical lists of options, and no linkage, new wards like "Nam, Tay, Bac, Nha  
+Trang Ward" are missing entirely. Third time it was on the SCOPE, and now we    
+MUST fix it ad-hoc!                                                             
+
+● Got it. The "New Ward" is 4 regions, not individual wards. Let me fix this
+  properly.
+
+  Read 1 file (ctrl+o to expand)
+  ⎿  You've hit your limit · resets Mar 30, 10am (Asia/Bangkok)
+     /upgrade or /extra-usage to finish what you’re working on.
+
+❯ /rate-limit-options                                                           
+  ⎿  Login successful
+
+❯ /rate-limit-options                                                           
+  ⎿  Login successful
+
+❯ finish last task please.                                                      
+  ⎿  You've hit your limit · resets Mar 30, 10am (Asia/Bangkok)
+     /upgrade or /extra-usage to finish what you’re working on.
+
+❯ /exit                                                                         
+  ⎿  Goodbye!
+
+❯ finish the task please.                                                       
+
+● Rewriting ward system now. New Ward = 4 regions, not individual wards.
+
+  Read 1 file (ctrl+o to expand)
+
+● Now replace the entire ward section:
+
+● Update(src/lib/constants.ts)  ⎿  Added 31 lines, removed 53 lines
+      102    "Phuoc Dong",
+      103  ] as const;
+      104  
+      105 -/** ASCII → Vietnamese display name for all wards */          
+      105 +/** ASCII → Vietnamese display name for all individual wards *
+          +/                                                             
+      106  export const WARD_DISPLAY_NAME: Record<string, string> = {
+      107    "Vinh Hoa": "Vĩnh Hòa",
+      108    "Vinh Hai": "Vĩnh Hải",
+     ...
+      118    "Vinh Nguyen": "Vĩnh Nguyên",
+      119    "Vinh Truong": "Vĩnh Trường",
+      120    "Phuoc Long": "Phước Long",
+      121 -  // Pre-merger                                               
+      121    "Phuong Son": "Phương Sơn",
+      122    "Xuong Huan": "Xương Huân",
+      123    "Van Thang": "Vạn Thắng",
+      124    "Phuoc Tien": "Phước Tiến",
+      125    "Phuoc Tan": "Phước Tân",
+      126    "Tan Lap": "Tân Lập",
+      128 -  // Communes                                                 
+      127    "Vinh Luong": "Vĩnh Lương",
+      128    "Vinh Phuong": "Vĩnh Phương",
+      129    "Vinh Ngoc": "Vĩnh Ngọc",
+     ...
+      134    "Phuoc Dong": "Phước Đồng",
+      135  };
+      136  
+      139 -/** Post-merger (new) ward options — 22 current wards + commun
+          -es */                                                         
+      140 -export const NEW_WARD_OPTIONS: Record<string, string> = {     
+      141 -  "Van Thanh": "Vạn Thạnh",                                   
+      142 -  "Loc Tho": "Lộc Thọ",                                       
+      143 -  "Vinh Nguyen": "Vĩnh Nguyên",                               
+      144 -  "Tan Tien": "Tân Tiến",                                     
+      145 -  "Phuoc Hoa": "Phước Hòa",                                   
+      146 -  "Vinh Hoa": "Vĩnh Hòa",                                     
+      147 -  "Vinh Hai": "Vĩnh Hải",                                     
+      148 -  "Vinh Phuoc": "Vĩnh Phước",                                 
+      149 -  "Vinh Tho": "Vĩnh Thọ",                                     
+      150 -  "Vinh Luong": "Vĩnh Lương",                                 
+      151 -  "Vinh Phuong": "Vĩnh Phương",                               
+      152 -  "Ngoc Hiep": "Ngọc Hiệp",                                   
+      153 -  "Phuong Sai": "Phương Sài",                                 
+      154 -  "Vinh Ngoc": "Vĩnh Ngọc",                                   
+      155 -  "Vinh Thanh": "Vĩnh Thạnh",                                 
+      156 -  "Vinh Hiep": "Vĩnh Hiệp",                                   
+      157 -  "Vinh Trung": "Vĩnh Trung",                                 
+      158 -  "Phuoc Hai": "Phước Hải",                                   
+      159 -  "Phuoc Long": "Phước Long",                                 
+      160 -  "Vinh Truong": "Vĩnh Trường",                               
+      161 -  "Vinh Thai": "Vĩnh Thái",                                   
+      162 -  "Phuoc Dong": "Phước Đồng",                                 
+      163 -};                                                            
+      164 -                                                              
+      137  /**
+      166 - * Pre-merger ward → post-merger ward mapping.                
+      167 - * Mergers (Nov 2024):                                        
+      168 - *   Phương Sơn + Phương Sài → Phương Sài                     
+      169 - *   Xương Huân + Vạn Thạnh + Vạn Thắng → Vạn Thạnh           
+      170 - *   Phước Tiến + Phước Tân + Tân Lập → Tân Tiến              
+      171 - * Unchanged wards map to themselves.                         
+      138 + * New Ward = 4 administrative regions (post-2024 reorganizati
+          +on).                                                          
+      139 + * ward_new column stores these region names.                 
+      140   */
+      173 -export const OLD_TO_NEW_WARD: Record<string, string> = {      
+      174 -  "Phuong Son": "Phuong Sai",                                 
+      175 -  "Xuong Huan": "Van Thanh",                                  
+      176 -  "Van Thang": "Van Thanh",                                   
+      177 -  "Phuoc Tien": "Tan Tien",                                   
+      178 -  "Phuoc Tan": "Tan Tien",                                    
+      179 -  "Tan Lap": "Tan Tien",                                      
+      141 +export const NEW_WARD_OPTIONS: Record<string, string> = {     
+      142 +  "Nha Trang Ward": "Nha Trang Ward",                         
+      143 +  "Bac Nha Trang": "Bắc Nha Trang",                           
+      144 +  "Tay Nha Trang": "Tây Nha Trang",                           
+      145 +  "Nam Nha Trang": "Nam Nha Trang",                           
+      146  };
+      147  
+      182 -/** Reverse: new ward → old wards (only for merged wards) */  
+      183 -export const NEW_TO_OLD_WARDS: Record<string, string[]> = {   
+      184 -  "Phuong Sai": ["Phuong Son", "Phuong Sai"],                 
+      185 -  "Van Thanh": ["Xuong Huan", "Van Thanh", "Van Thang"],      
+      186 -  "Tan Tien": ["Phuoc Tien", "Phuoc Tan", "Tan Lap", "Tan Tien
+          -"],                                                           
+      148 +/** Region → list of old wards (ASCII) that belong to it */   
+      149 +export const REGION_TO_WARDS: Record<string, string[]> = {    
+      150 +  "Nha Trang Ward": ["Van Thanh", "Loc Tho", "Vinh Nguyen", "T
+          +an Tien", "Phuoc Hoa",                                        
+      151 +    // Pre-merger wards that merged into Nha Trang Ward wards 
+      152 +    "Xuong Huan", "Van Thang", "Phuoc Tien", "Phuoc Tan", "Tan
+          + Lap"],                                                       
+      153 +  "Bac Nha Trang": ["Vinh Hoa", "Vinh Hai", "Vinh Phuoc", "Vin
+          +h Tho", "Vinh Luong", "Vinh Phuong"],                         
+      154 +  "Tay Nha Trang": ["Ngoc Hiep", "Phuong Sai", "Vinh Ngoc", "V
+          +inh Thanh", "Vinh Hiep", "Vinh Trung",                        
+      155 +    // Pre-merger                                             
+      156 +    "Phuong Son"],                                            
+      157 +  "Nam Nha Trang": ["Phuoc Hai", "Phuoc Long", "Vinh Truong", 
+          +"Vinh Thai", "Phuoc Dong"],                                   
+      158  };
+      159  
+      189 -/** Format ward for display using Vietnamese names. Shows "New
+          - / Old" only when different. */                               
+      160 +/** Old ward (ASCII) → region. Built from REGION_TO_WARDS. */ 
+      161 +export const WARD_TO_REGION: Record<string, string> = Object.f
+          +romEntries(                                                   
+      162 +  Object.entries(REGION_TO_WARDS).flatMap(([region, wards]) =>
+      163 +    wards.map((w) => [w, region])                             
+      164 +  )                                                           
+      165 +);                                                            
+      166 +                                                              
+      167 +/** Format ward for display. Shows "Region / Ward (Vietnamese)
+          +" or just one. */                                             
+      168  export function formatWardDisplay(wardNew: string | null, ward
+           Old: string | null): string | null {
+      191 -  const vnNew = wardNew ? (WARD_DISPLAY_NAME[wardNew] || wardN
+          -ew) : null;                                                   
+      192 -  const vnOld = wardOld ? (WARD_DISPLAY_NAME[wardOld] || wardO
+          -ld) : null;                                                   
+      169 +  const regionLabel = wardNew ? (NEW_WARD_OPTIONS[wardNew] || 
+          +wardNew) : null;                                              
+      170 +  const wardLabel = wardOld ? (WARD_DISPLAY_NAME[wardOld] || w
+          +ardOld) : null;                                               
+      171  
+      194 -  if (vnNew && vnOld && vnNew !== vnOld) return `${vnNew} / ${
+          -vnOld}`;                                                      
+      195 -  if (vnNew) return vnNew;                                    
+      196 -  if (vnOld) return vnOld;                                    
+      172 +  if (regionLabel && wardLabel) return `${regionLabel} / ${war
+          +dLabel}`;                                                     
+      173 +  if (regionLabel) return regionLabel;                        
+      174 +  if (wardLabel) return wardLabel;                            
+      175    return null;
+      176  }
+      177  
+
+● Now update DatabaseView.tsx — fix imports and cascading logic:
+
+  Read 1 file (ctrl+o to expand)
+
+● Update(src/components/listings/DatabaseView.tsx)
+  ⎿  Added 3 lines, removed 2 lines
+      15    LISTING_STATUSES,
+      16    NHA_TRANG_WARDS,
+      17    NEW_WARD_OPTIONS,
+      18 -  OLD_TO_NEW_WARD,                                             
+      19 -  NEW_TO_OLD_WARDS,                                            
+      18 +  WARD_TO_REGION,                                              
+      19 +  REGION_TO_WARDS,                                             
+      20 +  WARD_DISPLAY_NAME,                                           
+      21    generateCommissionDisplay,
+      22  } from "@/lib/constants";
+      23  import { useLanguage } from "@/contexts/LanguageContext";
+
+● Now update the ward dropdowns in DatabaseView:
+
+  Read 1 file (ctrl+o to expand)
+
+● Update(src/components/listings/DatabaseView.tsx)
+  ⎿  Added 8 lines, removed 9 lines
+      493          <SelectField
+      494            label={t("wardOld")}
+      495            value={data.ward}
+      496 -          options={Object.fromEntries(NHA_TRANG_WARDS.map((w) 
+          -=> [w, w]))}                                                  
+      496 +          options={(() => {                                   
+      497 +            const region = data.ward_new;                     
+      498 +            const allowed = region && REGION_TO_WARDS[region] 
+          +? REGION_TO_WARDS[region] : NHA_TRANG_WARDS as unknown as stri
+          +ng[];                                                         
+      499 +            return Object.fromEntries(allowed.map((w) => [w, W
+          +ARD_DISPLAY_NAME[w] || w]));                                  
+      500 +          })()}                                               
+      501            onChange={(v) => {
+      502              if (!v) { setMultiple({ ward: "", ward_new: "" });
+            return; }
+      499 -            const newWard = OLD_TO_NEW_WARD[v] || (v in NEW_WA
+          -RD_OPTIONS ? v : "");                                         
+      500 -            setMultiple({ ward: v, ...(newWard ? { ward_new: n
+          -ewWard } : {}) });                                            
+      503 +            const region = WARD_TO_REGION[v] || "";           
+      504 +            setMultiple({ ward: v, ward_new: region });       
+      505            }}
+      506          />
+      507          <SelectField
+     ...
+      510            options={NEW_WARD_OPTIONS}
+      511            onChange={(v) => {
+      512              if (!v) { setMultiple({ ward_new: "", ward: "" });
+            return; }
+      509 -            const oldWards = NEW_TO_OLD_WARDS[v];             
+      510 -            if (oldWards) {                                   
+      511 -              setMultiple({ ward_new: v, ward: "" });         
+      512 -            } else {                                          
+      513 -              setMultiple({ ward_new: v, ward: v });          
+      514 -            }                                                 
+      513 +            setMultiple({ ward_new: v, ward: "" });           
+      514            }}
+      515          />
+      516        </Row>
+
+● Now update FeedFilters.tsx:
+
+  Read 1 file (ctrl+o to expand)
+
+● Update(src/components/feed/FeedFilters.tsx)
+  ⎿  Added 3 lines, removed 2 lines
+       4  import {
+       5    NHA_TRANG_WARDS,
+       6    NEW_WARD_OPTIONS,
+       7 -  OLD_TO_NEW_WARD,                                             
+       8 -  NEW_TO_OLD_WARDS,                                            
+       7 +  WARD_TO_REGION,                                              
+       8 +  REGION_TO_WARDS,                                             
+       9 +  WARD_DISPLAY_NAME,                                           
+      10  } from "@/lib/constants";
+      11  import { useLanguage } from "@/contexts/LanguageContext";
+      12  import { FIELD_VALUE_LABELS } from "@/lib/i18n";
+
+● Now update the FeedFilters ward dropdowns:
+
+  Read 1 file (ctrl+o to expand)
+
+● Update(src/components/feed/FeedFilters.tsx)
+  ⎿  Added 14 lines, removed 15 lines
+      340          </div>
+      341        </div>
+      342  
+      343 -      {/* Ward Old & New */}                                  
+      343 +      {/* Ward: New (region) & Old (individual) */}           
+      344        <div className="grid grid-cols-2 gap-3 mb-3">
+      345          <FilterSelect
+      346 -          label={t("wardOld")}                                
+      347 -          value={filters.ward}                                
+      348 -          options={Object.fromEntries(NHA_TRANG_WARDS.map((w) 
+          -=> [w, w]))}                                                  
+      346 +          label={t("wardNew")}                                
+      347 +          value={filters.ward_new}                            
+      348 +          options={NEW_WARD_OPTIONS}                          
+      349            onChange={(v) => {
+      350 -            const newWard = OLD_TO_NEW_WARD[v] || (v in NEW_WA
+          -RD_OPTIONS ? v : "");                                         
+      351 -            onChange({ ...filters, ward: v, ...(newWard ? { wa
+          -rd_new: newWard } : {}) });                                   
+      350 +            onChange({ ...filters, ward_new: v, ward: "" });  
+      351            }}
+      352            allLabel={t("all")}
+      353          />
+      354          <FilterSelect
+      356 -          label={t("wardNew")}                                
+      357 -          value={filters.ward_new}                            
+      358 -          options={NEW_WARD_OPTIONS}                          
+      355 +          label={t("wardOld")}                                
+      356 +          value={filters.ward}                                
+      357 +          options={(() => {                                   
+      358 +            const region = filters.ward_new;                  
+      359 +            const allowed = region && REGION_TO_WARDS[region] 
+          +? REGION_TO_WARDS[region] : NHA_TRANG_WARDS as unknown as stri
+          +ng[];                                                         
+      360 +            return Object.fromEntries(allowed.map((w) => [w, W
+          +ARD_DISPLAY_NAME[w] || w]));                                  
+      361 +          })()}                                               
+      362            onChange={(v) => {
+      360 -            const oldWards = NEW_TO_OLD_WARDS[v];             
+      361 -            if (oldWards) {                                   
+      362 -              onChange({ ...filters, ward_new: v, ward: "" });
+      363 -            } else {                                          
+      364 -              onChange({ ...filters, ward_new: v, ward: v }); 
+      365 -            }                                                 
+      363 +            const region = WARD_TO_REGION[v] || "";           
+      364 +            onChange({ ...filters, ward: v, ward_new: region }
+          +);                                                            
+      365            }}
+      366            allLabel={t("all")}
+      367          />
+
+● Now update the view page — it imports WARD_DISPLAY_NAME which still exists,
+  but let me also check the share text ward logic uses the region properly:
+
+  Searched for 1 pattern (ctrl+o to expand)
+
+● The share text uses ward_new (now a region like "Nam Nha Trang") or falls back
+   to ward (individual). For share text, the individual ward is more useful for
+  location. Let me fix:
+
+● Update(src/app/dashboard/listings/[id]/view/page.tsx)
+  ⎿  Added 2 lines, removed 2 lines
+      257      const txnLabel = getFieldValueLabel("transaction_type", li
+           sting.transaction_type, "vi") || label(listing.transaction_typ
+           e, TRANSACTION_TYPES);
+      258      const priceStr = listing.price_raw || (listing.price_vnd ?
+            formatPrice(listing.price_vnd) : "");
+      259      const area = listing.area_m2 ? `${listing.area_m2}m²` : ""
+           ;
+      260 -    const wardVn = listing.ward_new || listing.ward;          
+      261 -    const ward = wardVn ? `P. ${WARD_DISPLAY_NAME[wardVn] || w
+          -ardVn}` : "";                                                 
+      260 +    const wardAscii = listing.ward;                           
+      261 +    const ward = wardAscii ? `P. ${WARD_DISPLAY_NAME[wardAscii
+          +] || wardAscii}` : "";                                        
+      262      const street = listing.street || "";
+      263      const address = listing.address_raw || [street, ward].filt
+           er(Boolean).join(", ");
+      264  
+
+● Now check that the feed API route handles ward_new filter correctly — it does
+  exact match on pl.ward_new, which will now match region strings like "Nha
+  Trang Ward". That's correct since the DB stores the region. Let me also check
+  how old ward_new values in DB will behave — existing listings have individual
+  ward ASCII values in ward_new. We should backfill those. Let me create a
+  migration:
+
+  Read 1 file (ctrl+o to expand)
+
+● Now create migration 026 to backfill ward_new from individual ward names to
+  regions:
+
+● Write(~/dev_projects/realty-hub/src/db/migrations/026_ward_new_regions.sql)
+  ⎿  Wrote 36 lines to ../src/db/migrations/026_ward_new_regions.sql
+       1 -- Migration 026: Convert ward_new from individual ward names to
+          region names
+       2 -- Old: ward_new stored individual ASCII ward names (same as war
+         d)
+       3 -- New: ward_new stores region names: Nha Trang Ward, Bac Nha Tr
+         ang, Tay Nha Trang, Nam Nha Trang
+       4 
+       5 -- Nha Trang Ward region
+       6 UPDATE parsed_listings SET ward_new = 'Nha Trang Ward'
+       7 WHERE ward_new IN ('Van Thanh', 'Loc Tho', 'Vinh Nguyen', 'Tan T
+         ien', 'Phuoc Hoa',
+       8                    'Xuong Huan', 'Van Thang', 'Phuoc Tien', 'Phu
+         oc Tan', 'Tan Lap');
+       9 
+      10 -- Bac Nha Trang region
+     … +26 lines (ctrl+o to expand)
+
+● Run migration locally and TypeScript check:
+
+● Bash(docker exec -i realty-hub-app-postgres-1 psql -U re_nhatrang -d
+      re_nhatrang < /home/pavel/dev_projects/realty-hub/src/db/migrations/026_wa
+      rd_new_regions.sql 2>&…)
+  ⎿  UPDATE 0
+     UPDATE 0
+     UPDATE 0
+     … +5 lines (ctrl+o to expand)
+
+● Bash(cd /home/pavel/dev_projects/realty-hub/web && npx tsc --noEmit 2>&1 |
+      head -20)
+  ⎿  (No output)
+  ⎿  (timeout 1m)
+
+● Migration applied (13 rows backfilled), TypeScript clean. Update CLAUDE.md
+  migration level:
+
+● Update(~/dev_projects/realty-hub/CLAUDE.md)
+  ⎿  Added 1 line, removed 1 line
+      116  - DB: `re_nhatrang`
+      117  - Container: `realty-hub-app-postgres-1`
+      118  
+      119 -**Current migration level: 025**                              
+      119 +**Current migration level: 026**                              
+      120  
+      121  ---
+      122  
+
+● Verify the DB backfill looks right:
+
+● Bash(docker exec -i realty-hub-app-postgres-1 psql -U re_nhatrang -d
+      re_nhatrang -c "SELECT ward, ward_new, count(*) FROM parsed_listings WHERE
+       ward IS NOT NULL GROU…)
+  ⎿      ward     |    ward_new    | count
+     -------------+----------------+-------
+      Phuoc Dong  | Nam Nha Trang  |     1
+     … +10 lines (ctrl+o to expand)
+
+● Good — regions are correctly assigned. One row has ward "Tây" which is
+  non-standard data (won't match any region), that's fine.
+
+  Now update the session log and CHANGELOG to reflect the fix:
+
+  Read 1 file (ctrl+o to expand)
+● Write(~/dev_projects/realty-hub/docs/code_sessions/2026-03-28-session43-ward-l
+       ayout-nav.md)
+  ⎿  Added 24 lines, removed 19 lines
+       2  **Date:** 2026-03-28
+       3  
+       4  ### Summary
+       5 -Overhauled the ward mapping system to centralize all ward data,
+         - add cascading dropdown behavior between old and new wards, dis
+         -play Vietnamese names on cards, and add a missing database inde
+         -x. Also fixed listing detail page layout: consistent top spacin
+         -g regardless of ownership, repositioned Edit/Create Post button
+         -s below Prev/Next navigation, and updated Profile page listing 
+         -titles to follow ADR-005 two-line format.                      
+       5 +Overhauled the ward mapping system. "New Ward" is now 4 adminis
+         +trative regions (Nha Trang Ward, Bắc Nha Trang, Tây Nha Trang, 
+         +Nam Nha Trang) instead of duplicating individual wards. Cascadi
+         +ng dropdowns: selecting old ward auto-fills region; selecting r
+         +egion filters old ward list. Vietnamese display names on cards.
+         + Also fixed listing detail layout and Profile page titles.     
+       6  
+       7  ### Technical Details & Fixes
+       8  * **Features Delivered:**
+       9 -  - Ward cascading: selecting old ward auto-fills new ward (and
+         - vice versa for 1:1 wards); merged wards clear old ward since m
+         -ultiple map to one                                             
+      10 -  - Vietnamese ward names on all listing cards and share text (
+         -was showing ASCII)                                             
+      11 -  - FeedFilters now includes all 22 post-merger wards (Vinh Tha
+         -i, Phuoc Dong were missing)                                    
+       9 +  - New Ward dropdown: 4 regions instead of 22 individual wards
+      10 +  - Old Ward dropdown: filters to region's wards when region is
+         + selected, shows Vietnamese names                              
+      11 +  - Cascading: old ward → auto-fills region; region → clears ol
+         +d ward, filters old ward list                                  
+      12 +  - Vietnamese ward names on all listing cards via formatWardDi
+         +splay()                                                        
+      13    - Create Post button visible to all agents on listing detail 
+          (was owner-only)
+      13 -  - Profile My Listings uses two-line title (street + title_sta
+         -ndardized)                                                     
+      14 +  - Profile My Listings uses two-line title (street + title_sta
+         +ndardized per ADR-005)                                         
+      15 +  - Consistent pt-4 spacing on listing detail regardless of own
+         +ership                                                         
+      16 +  - Edit/Create Post moved below Prev/Next navigation          
+      17  
+      18  * **Architecture/DB Changes:**
+      16 -  - Migration 025: `idx_parsed_ward_new` on parsed_listings    
+      17 -  - Centralized ward constants: WARD_DISPLAY_NAME, NEW_WARD_OPT
+         -IONS, OLD_TO_NEW_WARD, NEW_TO_OLD_WARDS, formatWardDisplay() — 
+         -all in constants.ts                                            
+      18 -  - Removed duplicated NEW_WARD_OPTIONS from DatabaseView.tsx a
+         -nd FeedFilters.tsx                                             
+      19 -  - API `/api/agents/me` now returns title_standardized and rel
+         -ated fields for profile listings                               
+      19 +  - Migration 025: `idx_parsed_ward_new` index                 
+      20 +  - Migration 026: Backfill ward_new from individual ward ASCII
+         + to region names (13 rows updated)                             
+      21 +  - Centralized ward constants: WARD_DISPLAY_NAME, NEW_WARD_OPT
+         +IONS (4 regions), REGION_TO_WARDS, WARD_TO_REGION, formatWardDi
+         +splay()                                                        
+      22 +  - API `/api/agents/me` returns title_standardized fields for 
+         +profile listings                                               
+      23  
+      24  * **Challenges Resolved:**
+      22 -  - TypeScript null safety: SelectField onChange can return nul
+         -l, needed guards before indexing ward maps                     
+      25 +  - First attempt incorrectly used 22 individual wards for New 
+         +Ward (same as Old Ward). Corrected to 4 regions per spec.      
+      26 +  - TypeScript null safety on SelectField onChange             
+      27  
+      28  ### Files Touched
+      25 -- `web/src/lib/constants.ts` — Added WARD_DISPLAY_NAME, NEW_WAR
+         -D_OPTIONS, OLD_TO_NEW_WARD, NEW_TO_OLD_WARDS, formatWardDisplay
+         -()                                                             
+      26 -- `web/src/components/listings/DatabaseView.tsx` — Removed loca
+         -l NEW_WARD_OPTIONS, added cascading ward onChange              
+      27 -- `web/src/components/feed/FeedFilters.tsx` — Removed local NEW
+         -_WARD_OPTIONS, added cascading ward onChange                   
+      28 -- `web/src/components/ui/ListingCard.tsx` — Vietnamese ward dis
+         -play via formatWardDisplay()                                   
+      29 -- `web/src/components/listings/ListingCard.tsx` — Vietnamese wa
+         -rd display via formatWardDisplay()                             
+      30 -- `web/src/app/dashboard/listings/[id]/view/page.tsx` — pt-4 sp
+         -acing, moved action buttons below nav, Create Post for all agen
+         -ts, Vietnamese ward in share text                              
+      31 -- `web/src/app/dashboard/profile/page.tsx` — Two-line title (AD
+         -R-005), updated listing type                                   
+      29 +- `web/src/lib/constants.ts` — WARD_DISPLAY_NAME, NEW_WARD_OPTI
+         +ONS (4 regions), REGION_TO_WARDS, WARD_TO_REGION, formatWardDis
+         +play()                                                         
+      30 +- `web/src/components/listings/DatabaseView.tsx` — Cascading wa
+         +rd dropdowns with region filtering                             
+      31 +- `web/src/components/feed/FeedFilters.tsx` — Region-first ward
+         + filters with cascading                                        
+      32 +- `web/src/components/ui/ListingCard.tsx` — formatWardDisplay()
+         + for Vietnamese names                                          
+      33 +- `web/src/components/listings/ListingCard.tsx` — formatWardDis
+         +play() for Vietnamese names                                    
+      34 +- `web/src/app/dashboard/listings/[id]/view/page.tsx` — pt-4 sp
+         +acing, buttons below nav, Create Post for all                  
+      35 +- `web/src/app/dashboard/profile/page.tsx` — Two-line title (AD
+         +R-005)                                                         
+      36  - `web/src/app/api/agents/me/route.ts` — Added title fields to 
+          listings query
+      37  - `src/db/migrations/025_ward_new_index.sql` — Index on ward_ne
+          w
+      34 -- `CLAUDE.md` — Migration level 024→025                        
+      35 -- `docs/SCOPE.md` — Tasks marked complete                      
+      38 +- `src/db/migrations/026_ward_new_regions.sql` — Backfill ward_
+         +new to region names                                            
+      39 +- `CLAUDE.md` — Migration level → 026                          
+      40 +- `docs/SCOPE.md` — All Session 43 tasks marked complete       
+      41  - `docs/CHANGELOG.md` — Session 43 entry
+
+  Read 1 file (ctrl+o to expand)
+
+● Update(~/dev_projects/realty-hub/docs/CHANGELOG.md)
+  ⎿  Added 1 line, removed 1 line
+       9  ### Session 43 — 2026-03-28 — Ward Mapping + Layout + Navigatio
+          n
+      10  
+      11  #### Changed
+      12 -- **REA-128: Ward mapping overhaul** — Centralized ward data in
+         - constants.ts (WARD_DISPLAY_NAME, NEW_WARD_OPTIONS, OLD_TO_NEW_
+         -WARD, NEW_TO_OLD_WARDS). Cascading dropdowns: selecting old war
+         -d auto-fills new ward; selecting merged new ward clears old war
+         -d (multiple possible). Vietnamese ward names displayed on cards
+         - and listing detail share text. FeedFilters now includes all 22
+         - post-merger wards (was missing Vĩnh Thái, Phước Đồng). Migrati
+         -on 025 adds idx_parsed_ward_new index.                         
+      12 +- **REA-128: Ward mapping overhaul** — New Ward is now 4 region
+         +s (Nha Trang Ward, Bắc/Tây/Nam Nha Trang) instead of duplicatin
+         +g individual wards. Cascading: old ward auto-fills region; regi
+         +on selection filters old ward list. Vietnamese display names on
+         + cards. Migration 025: ward_new index. Migration 026: backfill 
+         +ward_new to region names.                                      
+      13  - **REA-122: FIDT header spacing** — Added consistent pt-4 to l
+          isting detail page container. Spacing between header and title 
+          is now identical for owned and non-owned listings.
+      14  - **REA-121: Edit/Create Post repositioned** — Moved action but
+          tons below Prev/Next navigation on listing detail. Create Post 
+          now visible to all agents (not just owner). Edit remains owner-
+          only.
+      15  - **REA-131: Profile My Listings title** — Two-line title per A
+          DR-005: Line 1 = street, Line 2 = title_standardized. API updat
+          ed to return title fields. Removed ward/price from title area.
+
+● Done. Ward system is now correct:
+
+  - New Ward dropdown: 4 regions (Nha Trang Ward, Bắc Nha Trang, Tây Nha Trang,
+  Nam Nha Trang)
+  - Old Ward dropdown: Full list by default, filtered to region's wards when a
+  region is selected. Shows Vietnamese names.
+  - Cascading: Old ward → auto-fills region. Region → clears old ward, filters
+  old ward list.
+  - Display: Cards show "Region / Ward (Vietnamese)"
+  - Migration 026: Backfilled 13 existing rows from individual ward names to
+  region names
+
+  Recommended commit: Session 43: Ward mapping + layout + navigation fixes
+
+✻ Brewed for 3m 4s

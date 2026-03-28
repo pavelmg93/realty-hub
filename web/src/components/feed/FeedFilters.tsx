@@ -4,8 +4,9 @@ import { useState, useEffect, useRef } from "react";
 import {
   NHA_TRANG_WARDS,
   NEW_WARD_OPTIONS,
-  OLD_TO_NEW_WARD,
-  NEW_TO_OLD_WARDS,
+  WARD_TO_REGION,
+  REGION_TO_WARDS,
+  WARD_DISPLAY_NAME,
 } from "@/lib/constants";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { FIELD_VALUE_LABELS } from "@/lib/i18n";
@@ -339,29 +340,28 @@ export default function FeedFilters({
         </div>
       </div>
 
-      {/* Ward Old & New */}
+      {/* Ward: New (region) & Old (individual) */}
       <div className="grid grid-cols-2 gap-3 mb-3">
-        <FilterSelect
-          label={t("wardOld")}
-          value={filters.ward}
-          options={Object.fromEntries(NHA_TRANG_WARDS.map((w) => [w, w]))}
-          onChange={(v) => {
-            const newWard = OLD_TO_NEW_WARD[v] || (v in NEW_WARD_OPTIONS ? v : "");
-            onChange({ ...filters, ward: v, ...(newWard ? { ward_new: newWard } : {}) });
-          }}
-          allLabel={t("all")}
-        />
         <FilterSelect
           label={t("wardNew")}
           value={filters.ward_new}
           options={NEW_WARD_OPTIONS}
           onChange={(v) => {
-            const oldWards = NEW_TO_OLD_WARDS[v];
-            if (oldWards) {
-              onChange({ ...filters, ward_new: v, ward: "" });
-            } else {
-              onChange({ ...filters, ward_new: v, ward: v });
-            }
+            onChange({ ...filters, ward_new: v, ward: "" });
+          }}
+          allLabel={t("all")}
+        />
+        <FilterSelect
+          label={t("wardOld")}
+          value={filters.ward}
+          options={(() => {
+            const region = filters.ward_new;
+            const allowed = region && REGION_TO_WARDS[region] ? REGION_TO_WARDS[region] : NHA_TRANG_WARDS as unknown as string[];
+            return Object.fromEntries(allowed.map((w) => [w, WARD_DISPLAY_NAME[w] || w]));
+          })()}
+          onChange={(v) => {
+            const region = WARD_TO_REGION[v] || "";
+            onChange({ ...filters, ward: v, ward_new: region });
           }}
           allLabel={t("all")}
         />

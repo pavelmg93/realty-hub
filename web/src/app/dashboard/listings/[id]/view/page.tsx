@@ -257,8 +257,8 @@ function ListingViewPageInner() {
     const txnLabel = getFieldValueLabel("transaction_type", listing.transaction_type, "vi") || label(listing.transaction_type, TRANSACTION_TYPES);
     const priceStr = listing.price_raw || (listing.price_vnd ? formatPrice(listing.price_vnd) : "");
     const area = listing.area_m2 ? `${listing.area_m2}m²` : "";
-    const wardVn = listing.ward_new || listing.ward;
-    const ward = wardVn ? `P. ${WARD_DISPLAY_NAME[wardVn] || wardVn}` : "";
+    const wardAscii = listing.ward;
+    const ward = wardAscii ? `P. ${WARD_DISPLAY_NAME[wardAscii] || wardAscii}` : "";
     const street = listing.street || "";
     const address = listing.address_raw || [street, ward].filter(Boolean).join(", ");
 

@@ -102,7 +102,7 @@ export const NHA_TRANG_WARDS = [
   "Phuoc Dong",
 ] as const;
 
-/** ASCII → Vietnamese display name for all wards */
+/** ASCII → Vietnamese display name for all individual wards */
 export const WARD_DISPLAY_NAME: Record<string, string> = {
   "Vinh Hoa": "Vĩnh Hòa",
   "Vinh Hai": "Vĩnh Hải",
@@ -118,82 +118,60 @@ export const WARD_DISPLAY_NAME: Record<string, string> = {
   "Vinh Nguyen": "Vĩnh Nguyên",
   "Vinh Truong": "Vĩnh Trường",
   "Phuoc Long": "Phước Long",
-  // Pre-merger
   "Phuong Son": "Phương Sơn",
   "Xuong Huan": "Xương Huân",
   "Van Thang": "Vạn Thắng",
   "Phuoc Tien": "Phước Tiến",
   "Phuoc Tan": "Phước Tân",
   "Tan Lap": "Tân Lập",
-  // Communes
   "Vinh Luong": "Vĩnh Lương",
   "Vinh Phuong": "Vĩnh Phương",
   "Vinh Ngoc": "Vĩnh Ngọc",
   "Vinh Thanh": "Vĩnh Thạnh",
   "Vinh Trung": "Vĩnh Trung",
   "Vinh Hiep": "Vĩnh Hiệp",
-  "Vinh Thai": "Vĩnh Thái",
-  "Phuoc Dong": "Phước Đồng",
-};
-
-/** Post-merger (new) ward options — 22 current wards + communes */
-export const NEW_WARD_OPTIONS: Record<string, string> = {
-  "Van Thanh": "Vạn Thạnh",
-  "Loc Tho": "Lộc Thọ",
-  "Vinh Nguyen": "Vĩnh Nguyên",
-  "Tan Tien": "Tân Tiến",
-  "Phuoc Hoa": "Phước Hòa",
-  "Vinh Hoa": "Vĩnh Hòa",
-  "Vinh Hai": "Vĩnh Hải",
-  "Vinh Phuoc": "Vĩnh Phước",
-  "Vinh Tho": "Vĩnh Thọ",
-  "Vinh Luong": "Vĩnh Lương",
-  "Vinh Phuong": "Vĩnh Phương",
-  "Ngoc Hiep": "Ngọc Hiệp",
-  "Phuong Sai": "Phương Sài",
-  "Vinh Ngoc": "Vĩnh Ngọc",
-  "Vinh Thanh": "Vĩnh Thạnh",
-  "Vinh Hiep": "Vĩnh Hiệp",
-  "Vinh Trung": "Vĩnh Trung",
-  "Phuoc Hai": "Phước Hải",
-  "Phuoc Long": "Phước Long",
-  "Vinh Truong": "Vĩnh Trường",
   "Vinh Thai": "Vĩnh Thái",
   "Phuoc Dong": "Phước Đồng",
 };
 
 /**
- * Pre-merger ward → post-merger ward mapping.
- * Mergers (Nov 2024):
- *   Phương Sơn + Phương Sài → Phương Sài
- *   Xương Huân + Vạn Thạnh + Vạn Thắng → Vạn Thạnh
- *   Phước Tiến + Phước Tân + Tân Lập → Tân Tiến
- * Unchanged wards map to themselves.
+ * New Ward = 4 administrative regions (post-2024 reorganization).
+ * ward_new column stores these region names.
  */
-export const OLD_TO_NEW_WARD: Record<string, string> = {
-  "Phuong Son": "Phuong Sai",
-  "Xuong Huan": "Van Thanh",
-  "Van Thang": "Van Thanh",
-  "Phuoc Tien": "Tan Tien",
-  "Phuoc Tan": "Tan Tien",
-  "Tan Lap": "Tan Tien",
+export const NEW_WARD_OPTIONS: Record<string, string> = {
+  "Nha Trang Ward": "Nha Trang Ward",
+  "Bac Nha Trang": "Bắc Nha Trang",
+  "Tay Nha Trang": "Tây Nha Trang",
+  "Nam Nha Trang": "Nam Nha Trang",
 };
 
-/** Reverse: new ward → old wards (only for merged wards) */
-export const NEW_TO_OLD_WARDS: Record<string, string[]> = {
-  "Phuong Sai": ["Phuong Son", "Phuong Sai"],
-  "Van Thanh": ["Xuong Huan", "Van Thanh", "Van Thang"],
-  "Tan Tien": ["Phuoc Tien", "Phuoc Tan", "Tan Lap", "Tan Tien"],
+/** Region → list of old wards (ASCII) that belong to it */
+export const REGION_TO_WARDS: Record<string, string[]> = {
+  "Nha Trang Ward": ["Van Thanh", "Loc Tho", "Vinh Nguyen", "Tan Tien", "Phuoc Hoa",
+    // Pre-merger wards that merged into Nha Trang Ward wards
+    "Xuong Huan", "Van Thang", "Phuoc Tien", "Phuoc Tan", "Tan Lap"],
+  "Bac Nha Trang": ["Vinh Hoa", "Vinh Hai", "Vinh Phuoc", "Vinh Tho", "Vinh Luong", "Vinh Phuong"],
+  "Tay Nha Trang": ["Ngoc Hiep", "Phuong Sai", "Vinh Ngoc", "Vinh Thanh", "Vinh Hiep", "Vinh Trung",
+    // Pre-merger
+    "Phuong Son"],
+  "Nam Nha Trang": ["Phuoc Hai", "Phuoc Long", "Vinh Truong", "Vinh Thai", "Phuoc Dong"],
 };
 
-/** Format ward for display using Vietnamese names. Shows "New / Old" only when different. */
+/** Old ward (ASCII) → region. Built from REGION_TO_WARDS. */
+export const WARD_TO_REGION: Record<string, string> = Object.fromEntries(
+  Object.entries(REGION_TO_WARDS).flatMap(([region, wards]) =>
+    wards.map((w) => [w, region])
+  )
+);
+
+/** Format ward for display. Shows "Region / Ward (Vietnamese)" or just one. */
 export function formatWardDisplay(wardNew: string | null, wardOld: string | null): string | null {
-  const vnNew = wardNew ? (WARD_DISPLAY_NAME[wardNew] || wardNew) : null;
-  const vnOld = wardOld ? (WARD_DISPLAY_NAME[wardOld] || wardOld) : null;
+  const regionLabel = wardNew ? (NEW_WARD_OPTIONS[wardNew] || wardNew) : null;
+  const wardLabel = wardOld ? (WARD_DISPLAY_NAME[wardOld] || wardOld) : null;
 
-  if (vnNew && vnOld && vnNew !== vnOld) return `${vnNew} / ${vnOld}`;
-  if (vnNew) return vnNew;
-  if (vnOld) return vnOld;
+  if (regionLabel && wardLabel) return `${regionLabel} / ${wardLabel}`;
+  if (regionLabel) return regionLabel;
+  if (wardLabel) return wardLabel;
   return null;
 }
 

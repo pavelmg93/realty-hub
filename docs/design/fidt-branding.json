@@ -1,0 +1,220 @@
+{
+  "status": "ok",
+  "brand": {
+    "domain": "fidt.vn",
+    "title": "FIDT",
+    "description": "FIDT INVESTMENT CONSULTING AND ASSET MANAGEMENT JOINT STOCK COMPANY, founded in 2016 (originally Bien An Toan Joint Stock Company), provides investment consulting and asset management services to a diverse client base. With over 5,000 clients and more than VND 15,700 billion in assets under management, the firm delivers tailored financial solutions, portfolio management, and advisory services to help individuals and institutions achieve their wealth‑creation goals.",
+    "slogan": "Wealth For Life - Giải pháp trọn vẹn",
+    "colors": [
+      {
+        "hex": "#fc944c",
+        "name": "Pastel Orange"
+      },
+      {
+        "hex": "#04245c",
+        "name": "Black Sea Night"
+      },
+      {
+        "hex": "#040404",
+        "name": "Armor Wash"
+      }
+    ],
+    "logos": [
+      {
+        "url": "https://media.brand.dev/a14b4543-4f89-4cab-84b1-1c7501b0b80d.jpg",
+        "mode": "has_opaque_background",
+        "colors": [
+          {
+            "hex": "#102b5a",
+            "name": "Ambassador Blue"
+          },
+          {
+            "hex": "#e8ddcd",
+            "name": "Aged White"
+          },
+          {
+            "hex": "#797c99",
+            "name": "Stormy Horizon"
+          }
+        ],
+        "resolution": {
+          "width": 200,
+          "height": 200,
+          "aspect_ratio": 1
+        },
+        "type": "icon"
+      },
+      {
+        "url": "https://media.brand.dev/33a2e6cb-4ec5-45fa-80f5-c94441dd5e5b.png",
+        "mode": "has_opaque_background",
+        "colors": [
+          {
+            "hex": "#1a3762",
+            "name": "Passionate Blue"
+          },
+          {
+            "hex": "#eebfa0",
+            "name": "Madrid Beige"
+          },
+          {
+            "hex": "#96a5b7",
+            "name": "Moon Shadow"
+          }
+        ],
+        "resolution": {
+          "width": 180,
+          "height": 180,
+          "aspect_ratio": 1
+        },
+        "type": "icon"
+      },
+      {
+        "url": "https://media.brand.dev/a1e52657-63f8-4334-8468-af6af241580b.svg",
+        "mode": "light",
+        "colors": [
+          {
+            "hex": "#fc944c",
+            "name": "Pastel Orange"
+          },
+          {
+            "hex": "#04245c",
+            "name": "Black Sea Night"
+          }
+        ],
+        "resolution": {
+          "width": 86,
+          "height": 50,
+          "aspect_ratio": 1.72
+        },
+        "type": "logo"
+      },
+      {
+        "url": "https://media.brand.dev/ac92e525-7d1b-4ce1-9ed8-e8a5b3db40e4.svg",
+        "mode": "light",
+        "colors": [
+          {
+            "hex": "#040404",
+            "name": "Armor Wash"
+          }
+        ],
+        "resolution": {
+          "width": 512,
+          "height": 512,
+          "aspect_ratio": 1
+        },
+        "type": "icon"
+      },
+      {
+        "url": "https://media.brand.dev/35494edb-a90b-4742-8350-196839e8e374.png",
+        "mode": "has_opaque_background",
+        "colors": [
+          {
+            "hex": "#163061",
+            "name": "Mythical Night"
+          },
+          {
+            "hex": "#eec0a2",
+            "name": "Madrid Beige"
+          },
+          {
+            "hex": "#8f9eb4",
+            "name": "Foghorn"
+          }
+        ],
+        "resolution": {
+          "width": 150,
+          "height": 150,
+          "aspect_ratio": 1
+        },
+        "type": "icon"
+      }
+    ],
+    "backdrops": [
+      {
+        "url": "https://media.brand.dev/fe0c7fcd-a9c1-40f4-82b4-8d7b7f6b643b.jpg",
+        "colors": [
+          {
+            "hex": "#b99a35",
+            "name": "Gold Taffeta"
+          },
+          {
+            "hex": "#f7eed9",
+            "name": "Nova White"
+          },
+          {
+            "hex": "#c3aa76",
+            "name": "Gold Rush"
+          }
+        ],
+        "resolution": {
+          "width": 1000,
+          "height": 169,
+          "aspect_ratio": 5.92
+        }
+      },
+      {
+        "url": "https://media.brand.dev/7baf721f-a681-4a74-a995-868e8dc35446.jpg",
+        "colors": [
+          {
+            "hex": "#1e355d",
+            "name": "Ending Navy Blue"
+          },
+          {
+            "hex": "#8a7474",
+            "name": "Plum Haze"
+          },
+          {
+            "hex": "#e1dad7",
+            "name": "Porcelain Goldfish"
+          }
+        ],
+        "resolution": {
+          "width": 1000,
+          "height": 580,
+          "aspect_ratio": 1.72
+        }
+      }
+    ],
+    "address": {
+      "street": "17-19 Tôn Thất Tùng",
+      "city": "Ho Chi Minh City",
+      "country": "Vietnam",
+      "country_code": "VN",
+      "postal_code": "71012"
+    },
+    "socials": [
+      {
+        "type": "facebook",
+        "url": "https://facebook.com/FIDTNT"
+      },
+      {
+        "type": "youtube",
+        "url": "https://youtube.com/@fidttuvandautuquanlytaisan"
+      }
+    ],
+    "email": "cskh@fidt.vn",
+    "phone": null,
+    "is_nsfw": false,
+    "industries": {
+      "eic": [
+        {
+          "industry": "Finance",
+          "subindustry": "Investment Management & WealthTech"
+        },
+        {
+          "industry": "Finance",
+          "subindustry": "Accounting, Tax & Financial Planning Tools"
+        }
+      ]
+    },
+    "links": {
+      "blog": null,
+      "careers": "https://fidt.vn/tuyen-dung-khoi-bao-hiem/",
+      "privacy": null,
+      "terms": null,
+      "contact": null,
+      "pricing": "https://fidt.vn/ky-thi-danh-gia-nang-luc-hoach-dinh-tai-chinh-ca-nhan/"
+    }
+  },
+  "code": 200
+}

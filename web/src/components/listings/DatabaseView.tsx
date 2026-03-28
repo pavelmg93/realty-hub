@@ -15,8 +15,9 @@ import {
   LISTING_STATUSES,
   NHA_TRANG_WARDS,
   NEW_WARD_OPTIONS,
-  OLD_TO_NEW_WARD,
-  NEW_TO_OLD_WARDS,
+  WARD_TO_REGION,
+  REGION_TO_WARDS,
+  WARD_DISPLAY_NAME,
   generateCommissionDisplay,
 } from "@/lib/constants";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -492,11 +493,15 @@ export default function DatabaseView({ data, onChange, isEdit = false }: Props) 
         <SelectField
           label={t("wardOld")}
           value={data.ward}
-          options={Object.fromEntries(NHA_TRANG_WARDS.map((w) => [w, w]))}
+          options={(() => {
+            const region = data.ward_new;
+            const allowed = region && REGION_TO_WARDS[region] ? REGION_TO_WARDS[region] : NHA_TRANG_WARDS as unknown as string[];
+            return Object.fromEntries(allowed.map((w) => [w, WARD_DISPLAY_NAME[w] || w]));
+          })()}
           onChange={(v) => {
             if (!v) { setMultiple({ ward: "", ward_new: "" }); return; }
-            const newWard = OLD_TO_NEW_WARD[v] || (v in NEW_WARD_OPTIONS ? v : "");
-            setMultiple({ ward: v, ...(newWard ? { ward_new: newWard } : {}) });
+            const region = WARD_TO_REGION[v] || "";
+            setMultiple({ ward: v, ward_new: region });
           }}
         />
         <SelectField
@@ -505,12 +510,7 @@ export default function DatabaseView({ data, onChange, isEdit = false }: Props) 
           options={NEW_WARD_OPTIONS}
           onChange={(v) => {
             if (!v) { setMultiple({ ward_new: "", ward: "" }); return; }
-            const oldWards = NEW_TO_OLD_WARDS[v];
-            if (oldWards) {
-              setMultiple({ ward_new: v, ward: "" });
-            } else {
-              setMultiple({ ward_new: v, ward: v });
-            }
+            setMultiple({ ward_new: v, ward: "" });
           }}
         />
       </Row>
