@@ -22,12 +22,12 @@
 * [x] **[REA-129] Replace /dashboard/listings links with My Store** — grep for dashboard/listings, replace list route only (not individual /[id] routes). All "My Listings" navigation → My Store.
 
 ### End of session checklist
-* [ ] `cd web && npx tsc --noEmit` — must be clean
-* [ ] Verify grep for ghost back arrows returns zero
-* [ ] Verify grep for /dashboard/listings (list route) returns zero
-* [ ] Update `CLAUDE.md`: session counter
-* [ ] Write `docs/code_sessions/2026-03-27-session41-filter-status-fixes.md`
-* [ ] Update `docs/CHANGELOG.md`
+* [x] `cd web && npx tsc --noEmit` — must be clean
+* [x] Verify grep for ghost back arrows returns zero
+* [x] Verify grep for /dashboard/listings (list route) returns zero
+* [x] Update `CLAUDE.md`: session counter
+* [x] Write `docs/code_sessions/2026-03-27-session41-filter-status-fixes.md`
+* [x] Update `docs/CHANGELOG.md`
 * [ ] `git add -A && git commit -m "Session 41: Filter UX + status dropdown + ghost arrows + title casing"`
 * [ ] Stop. Do not push.
 

@@ -6,6 +6,20 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Session 41 — 2026-03-27 — Filter UX + Status Fixes
+
+#### Changed
+- **REA-112: Filter UX fixes (11 items)** — Rewrote PriceStepper with local text state for decimal input support. Stepper increments by 1.0 tỷ (was 0.01). "tỷ" moved to label. Select-all on focus. Filter panel collapses on Apply. Orange border + count on Filter button when active. Listing count visible in map view. Consistent toolbar spacing.
+- **REA-113: Edit listing status dropdown** — Hidden system-only statuses (just_listed, price_increased, price_dropped) from edit dropdown. Description textarea doubled (5→10 rows). Auto price status on save already implemented in API.
+- **REA-115: Ghost back arrows removed** — Removed all back buttons from TopBar (ChevronLeft), agents page, CRM person page, listing view error state. Users rely on browser back.
+- **REA-129: /dashboard/listings → My Store** — All list-route links replaced with /dashboard/store. `from=listings` → `from=store`.
+
+#### Fixed
+- **REA-112.9: Back-button filter state** — Filters + search query now preserved in sessionStorage and restored on back navigation (Feed + Store).
+- **REA-132: ALL CAPS audit** — Verified generateTitleStandardized() and regenerate-titles.sh produce correct case. No CSS uppercase on title elements. Existing DB values regenerated on deploy.
+
+---
+
 ### Session 42 — 2026-03-27 — Card Consistency + Visual Polish
 
 #### Changed
