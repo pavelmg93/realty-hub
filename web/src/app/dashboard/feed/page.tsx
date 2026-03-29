@@ -63,9 +63,31 @@ export default function FeedPage() {
     } catch {}
   }, [viewMode]);
 
-  // Read saved scroll + filters on mount — apply after data loads
+  // Read URL params (from saved searches) or sessionStorage on mount
   useEffect(() => {
     try {
+      const url = new URL(window.location.href);
+      const urlParams = url.searchParams;
+
+      // If URL has query params (e.g. from saved search click), apply them as filters
+      if (urlParams.toString()) {
+        const q = urlParams.get("q") || "";
+        if (q) {
+          setSearchQuery(q);
+          setActiveSearch(q);
+        }
+        const newFilters = { ...DEFAULT_FILTERS };
+        for (const key of Object.keys(DEFAULT_FILTERS) as (keyof FeedFilterValues)[]) {
+          const val = urlParams.get(key);
+          if (val) newFilters[key] = val;
+        }
+        setFilters(newFilters);
+        // Clean URL without reload
+        window.history.replaceState({}, "", url.pathname);
+        return;
+      }
+
+      // Otherwise restore from sessionStorage (back-navigation)
       const savedY = sessionStorage.getItem("realtyhub_scroll_feed");
       if (savedY) {
         sessionStorage.removeItem("realtyhub_scroll_feed");

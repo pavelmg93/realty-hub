@@ -6,6 +6,14 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Session 43x — 2026-03-29 — Gear Icon + Saved Search Fix
+
+#### Changed
+- **Edit button → gear icon** — Replaced text "Edit" button with orange gear (Settings) icon on owned listing cards. Matches message icon button styling. Applied to both 1-wide and 2-wide views in owner cards (My Store/My Listings) and feed/favorites UI cards.
+- **Saved searches populate filters** — Clicking search icon on a saved search in CRM now navigates to feed with URL params that populate filters and search query. Filters tab stays collapsed. URL cleaned after applying.
+
+---
+
 ### Session 43 — 2026-03-28 — Ward Mapping + Layout + Navigation
 
 #### Changed

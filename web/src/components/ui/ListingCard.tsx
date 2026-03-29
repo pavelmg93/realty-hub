@@ -5,7 +5,8 @@ import Link from "next/link";
 import { AgentChip } from "./AgentChip";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { generateTitleStandardized, formatWardDisplay } from "@/lib/constants";
-import { MessageSquare, Heart, MapPin, Phone } from "lucide-react";
+import { MessageSquare, Heart, MapPin, Phone, Settings } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import type { Listing } from "@/lib/types";
 
@@ -94,6 +95,7 @@ export function ListingCard({
   onBeforeNavigate,
 }: ListingCardProps) {
   const { t } = useLanguage();
+  const router = useRouter();
   const photoUrl = listing.primary_photo
     ? `/api/files/${listing.primary_photo}`
     : null;
@@ -235,7 +237,18 @@ export function ListingCard({
                   <span>{formatPhone(agent.phone)}</span>
                 </a>
               )}
-              <div className="ml-auto shrink-0">
+              <div className="ml-auto shrink-0 flex items-center gap-1.5">
+                {isOwner && (
+                  <button
+                    type="button"
+                    onClick={(e) => { e.preventDefault(); e.stopPropagation(); router.push(`/dashboard/listings/${listing.id}/edit`); }}
+                    className="flex items-center border rounded-md p-1.5 transition-colors hover:bg-[var(--orange)]/10"
+                    style={{ color: "var(--orange)", borderColor: "rgba(232, 119, 34, 0.3)" }}
+                    title={t("edit")}
+                  >
+                    <Settings size={14} />
+                  </button>
+                )}
                 {isOwner ? (
                   <button
                     type="button"
@@ -361,7 +374,18 @@ export function ListingCard({
                 <span>{formatPhone(agent.phone)}</span>
               </a>
             )}
-            <div className="ml-auto shrink-0">
+            <div className="ml-auto shrink-0 flex items-center gap-1.5">
+              {isOwner && (
+                <button
+                  type="button"
+                  onClick={(e) => { e.preventDefault(); e.stopPropagation(); router.push(`/dashboard/listings/${listing.id}/edit`); }}
+                  className="flex items-center border rounded-md p-1.5 transition-colors hover:bg-[var(--orange)]/10"
+                  style={{ color: "var(--orange)", borderColor: "rgba(232, 119, 34, 0.3)" }}
+                  title={t("edit")}
+                >
+                  <Settings size={14} />
+                </button>
+              )}
               {isOwner ? (
                 <button
                   type="button"

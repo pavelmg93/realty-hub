@@ -28,8 +28,8 @@
 * [x] Update `CLAUDE.md`: session counter
 * [x] Write `docs/code_sessions/2026-03-27-session41-filter-status-fixes.md`
 * [x] Update `docs/CHANGELOG.md`
-* [ ] `git add -A && git commit -m "Session 41: Filter UX + status dropdown + ghost arrows + title casing"`
-* [ ] Stop. Do not push.
+* [x] `git add -A && git commit -m "Session 41: Filter UX + status dropdown + ghost arrows + title casing"`
+* [x] Stop. Do not push.
 
 ---
 
@@ -50,11 +50,11 @@
 * [x] **[REA-126] Edit button repositioning** — 1-wide: middle-right of card. 2-wide: middle-right of info section. Owner-only.
 
 ### End of session checklist
-* [ ] `cd web && npx tsc --noEmit` — must be clean
-* [ ] Visually verify: open Feed in 1-wide, 2-wide, map. Check card consistency.
-* [ ] Update `CLAUDE.md`, session log, CHANGELOG
-* [ ] Commit: `Session 42: Card consistency + visual polish`
-* [ ] Stop. Do not push.
+* [x] `cd web && npx tsc --noEmit` — must be clean
+* [x] Visually verify: open Feed in 1-wide, 2-wide, map. Check card consistency.
+* [x] Update `CLAUDE.md`, session log, CHANGELOG
+* [x] Commit: `Session 42: Card consistency + visual polish`
+* [x] Stop. Do not push.
 
 ---
 
@@ -74,10 +74,10 @@
 
 ### End of session checklist
 * [x] `cd web && npx tsc --noEmit` — must be clean
-* [ ] Verify ward cascading: select old ward → new ward auto-fills, and vice versa
+* [x] Verify ward cascading: select old ward → new ward auto-fills, and vice versa
 * [x] Update `CLAUDE.md`, session log, CHANGELOG
-* [ ] Commit: `Session 43: Ward mapping + layout + navigation fixes`
-* [ ] Stop. Do not push.
+* [x] Commit: `Session 43: Ward mapping + layout + navigation fixes`
+* [x] Stop. Do not push.
 
 ---
 

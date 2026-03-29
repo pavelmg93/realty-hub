@@ -7,7 +7,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { Heart, MapPin, Phone, MessageSquare } from "lucide-react";
+import { Heart, MapPin, Phone, MessageSquare, Settings } from "lucide-react";
 import { AgentChip } from "@/components/ui/AgentChip";
 
 function formatPhone(phone: string): string {
@@ -189,14 +189,16 @@ export default function ListingCard({
             )}
           </div>
 
-          {/* Edit button — middle-right of card (vertically centered, absolute) */}
+          {/* Edit gear icon — middle-right of card (vertically centered, absolute) */}
           {!isArchived && isOwner && (
             <button
               type="button"
               onClick={(e) => { e.preventDefault(); e.stopPropagation(); router.push(`/dashboard/listings/${listing.id}/edit`); }}
-              className="absolute right-3 top-1/2 -translate-y-1/2 px-2.5 py-1 text-[11px] border rounded font-medium border-[var(--orange)]/30 text-[var(--orange)] hover:bg-[var(--orange)]/10"
+              className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center border rounded-md p-1.5 transition-colors hover:bg-[var(--orange)]/10"
+              style={{ color: "var(--orange)", borderColor: "rgba(232, 119, 34, 0.3)" }}
+              title={t("edit")}
             >
-              {t("edit")}
+              <Settings size={14} />
             </button>
           )}
           {isArchived && (
@@ -298,14 +300,16 @@ export default function ListingCard({
           {line2 && <p className="text-sm font-bold text-[var(--text-primary)] truncate leading-tight">{line2}</p>}
         </div>
 
-        {/* Edit button — middle-right of info section (absolute) */}
+        {/* Edit gear icon — top-right of info section (absolute) */}
         {!isArchived && isOwner && (
           <button
             type="button"
             onClick={(e) => { e.preventDefault(); e.stopPropagation(); router.push(`/dashboard/listings/${listing.id}/edit`); }}
-            className="absolute right-2.5 top-2.5 px-2.5 py-1 text-[11px] border rounded font-medium border-[var(--orange)]/30 text-[var(--orange)] hover:bg-[var(--orange)]/10"
+            className="absolute right-2.5 top-2.5 flex items-center border rounded-md p-1.5 transition-colors hover:bg-[var(--orange)]/10"
+            style={{ color: "var(--orange)", borderColor: "rgba(232, 119, 34, 0.3)" }}
+            title={t("edit")}
           >
-            {t("edit")}
+            <Settings size={14} />
           </button>
         )}
         {isArchived && (
