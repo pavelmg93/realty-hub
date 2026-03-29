@@ -10,7 +10,7 @@ const SYSTEM_PROMPT = `Bạn là chuyên gia phân tích tin rao bất động s
 Trả về ONLY JSON hợp lệ với cấu trúc sau:
 {
   "fields": {
-    "property_type": "nha_pho" | "can_ho" | "dat" | "villa" | "nha_rieng" | "phong_tro" | "mat_bang" | "kho_xuong" | null,
+    "property_type": "nha" | "nha_pho" | "can_ho" | "dat" | "biet_thu" | "nha_rieng" | "phong_tro" | "mat_bang" | "kho_xuong" | null,
     "transaction_type": "ban" | "cho_thue" | null,
     "price_vnd": number | null,
     "price_raw": "chuỗi giá gốc" | null,
@@ -300,10 +300,10 @@ function parseWithMock(text: string): ParseResponse {
     fields.property_type = "dat";
     confidence.property_type = 0.7;
   } else if (/biệt thự|biet thu|villa/i.test(text)) {
-    fields.property_type = "villa";
+    fields.property_type = "biet_thu";
     confidence.property_type = 0.8;
   } else if (/nhà|nha/i.test(text)) {
-    fields.property_type = "nha_pho";
+    fields.property_type = "nha";
     confidence.property_type = 0.5;
   }
 
@@ -381,13 +381,14 @@ function parseWithMock(text: string): ParseResponse {
 
 /** Python property_type keys → DB enum values */
 const PYTHON_PROP_TYPE_MAP: Record<string, string> = {
-  nha: "nha_pho",
+  nha: "nha",
+  nha_pho: "nha_pho",
   dat: "dat",
   can_ho: "can_ho",
   phong_tro: "phong_tro",
-  biet_thu: "villa",
+  biet_thu: "biet_thu",
   mat_bang: "mat_bang",
-  khach_san: "mat_bang", // closest match in enum
+  khach_san: "khach_san", // closest match in enum
 };
 
 /** Run the Vietnamese regex parser as a subprocess. Returns null on any failure. */

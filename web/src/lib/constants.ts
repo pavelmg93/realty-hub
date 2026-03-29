@@ -139,7 +139,7 @@ export const WARD_DISPLAY_NAME: Record<string, string> = {
  * ward_new column stores these region names.
  */
 export const NEW_WARD_OPTIONS: Record<string, string> = {
-  "Nha Trang Ward": "Nha Trang Ward",
+  "Nha Trang Ward": "P. Nha Trang",
   "Bac Nha Trang": "Bắc Nha Trang",
   "Tay Nha Trang": "Tây Nha Trang",
   "Nam Nha Trang": "Nam Nha Trang",
@@ -147,7 +147,7 @@ export const NEW_WARD_OPTIONS: Record<string, string> = {
 
 /** Region → list of old wards (ASCII) that belong to it */
 export const REGION_TO_WARDS: Record<string, string[]> = {
-  "Nha Trang Ward": ["Van Thanh", "Loc Tho", "Vinh Nguyen", "Tan Tien", "Phuoc Hoa",
+  "P. Nha Trang": ["Van Thanh", "Loc Tho", "Vinh Nguyen", "Tan Tien", "Phuoc Hoa",
     // Pre-merger wards that merged into Nha Trang Ward wards
     "Xuong Huan", "Van Thang", "Phuoc Tien", "Phuoc Tan", "Tan Lap"],
   "Bac Nha Trang": ["Vinh Hoa", "Vinh Hai", "Vinh Phuoc", "Vinh Tho", "Vinh Luong", "Vinh Phuong"],
