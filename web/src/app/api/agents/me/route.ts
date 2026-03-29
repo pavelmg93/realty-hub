@@ -59,7 +59,7 @@ export async function GET(_request: NextRequest) {
 
     const listingsResult = await pool.query(
       `SELECT pl.id, pl.ward, pl.ward_new, pl.street, pl.price_vnd, pl.property_type, pl.area_m2, pl.status,
-              pl.title_standardized, pl.num_floors, pl.frontage_m, pl.depth_m, pl.price_short, pl.commission,
+              pl.title_standardized, pl.num_floors, pl.frontage_m, pl.depth_m, pl.commission,
               (SELECT lp.file_path FROM listing_photos lp WHERE lp.listing_id = pl.id ORDER BY lp.display_order LIMIT 1) AS primary_photo
        FROM parsed_listings pl
        WHERE pl.agent_id = $1 AND pl.archived_at IS NULL

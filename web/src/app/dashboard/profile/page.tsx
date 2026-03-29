@@ -24,6 +24,9 @@ export default function ProfilePage() {
     dob_year: number | null;
     listing_count: number;
   } | null>(null);
+  // begin fix DOB input
+  const [savingDob, setSavingDob] = useState(false);
+  //end fix 
   const [contactVisible, setContactVisible] = useState<Record<string, boolean>>({
     phone: true,
     email: true,
@@ -44,7 +47,6 @@ export default function ProfilePage() {
     num_floors: number | null;
     frontage_m: number | null;
     depth_m: number | null;
-    price_short: string | null;
     commission: string | null;
   }>>([]);
   const [loading, setLoading] = useState(true);
@@ -73,9 +75,38 @@ export default function ProfilePage() {
     fetchMe();
   }, []);
 
-  const displayName = agent?.first_name || agent?.username || user?.first_name || user?.username || "?";
-  const initials = displayName.slice(0, 2).toUpperCase();
-  const avatarUrl = agent?.avatar_url ? `/api/files/${agent.avatar_url}` : null;
+  // begin fix
+  // const displayName = agent?.first_name || agent?.last_name || agent?.username || user?.first_name || user?.last_name || user?.username || "?";
+  // const initials = displayName.slice(0, 2).toUpperCase();
+  const firstName = agent?.first_name ?? user?.first_name ?? "";
+  const lastName = agent?.last_name ?? user?.last_name ?? "";
+  const username = agent?.username ?? user?.username ?? "";
+
+  const displayName =
+    [firstName, lastName].filter(Boolean).join(" ").trim() ||
+    username ||
+    "?";
+
+  const initials = displayName
+    .split(" ")
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part[0]?.toUpperCase() || "")
+    .join("");
+  // end fix
+
+  // begin fix DOB input step B
+  const dobYear = agent?.dob_year ?? null;
+  // end fix
+
+  // begin fix below:
+  // const avatarUrl = agent?.avatar_url ? `/api/files/${agent.avatar_url}-${Date.now()}` : null;
+
+  const [avatarVersion, setAvatarVersion] = useState(0);
+  const rawAvatarUrl = user?.avatar_url || agent?.avatar_url || null;
+  const avatarUrl = rawAvatarUrl ? `/api/files/${rawAvatarUrl}?v=${avatarVersion}` : null;
+  // end fix
+
 
   const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -89,11 +120,20 @@ export default function ProfilePage() {
         credentials: "include",
         body: formData,
       });
+      // begin fix
+      // if (res.ok) {
+      //   const data = await res.json();
+      //   setAgent((a) => (a ? { ...a, avatar_url: data.avatar_url } : null));
+      //   refreshUser();
+      // }
       if (res.ok) {
         const data = await res.json();
         setAgent((a) => (a ? { ...a, avatar_url: data.avatar_url } : null));
-        refreshUser();
+        await refreshUser();
+        setAvatarVersion((v) => v + 1);
       }
+      // end fix
+
     } finally {
       setUploading(false);
       e.target.value = "";
@@ -107,6 +147,11 @@ export default function ProfilePage() {
       </div>
     );
   }
+// debugging begin
+  console.log("PROFILE agent.avatar_url:", agent?.avatar_url);
+  console.log("PROFILE user.avatar_url:", user?.avatar_url);
+  console.log("PROFILE final avatarUrl:", avatarUrl);
+// debugging end
 
   return (
     <div className="p-4 max-w-md mx-auto">
@@ -331,31 +376,44 @@ export default function ProfilePage() {
           style={{ backgroundColor: "var(--bg-surface)" }}
         >
           <div className="flex items-center gap-3">
+            {/* begin fix DOB input step C */}
             <input
               type="number"
               min={1950}
               max={2010}
-              value={agent?.dob_year ?? ""}
+              value={dobYear ?? ""}
               onChange={(e) => {
-                const val = e.target.value ? parseInt(e.target.value, 10) : null;
-                setAgent((a) => a ? { ...a, dob_year: val } : null);
+                const raw = e.target.value.trim();
+                const val = raw ? parseInt(raw, 10) : null;
+                setAgent((a) => (a ? { ...a, dob_year: val } : a));
               }}
               onBlur={async () => {
                 if (!agent) return;
-                await fetch("/api/agents/me", {
-                  method: "PUT",
-                  headers: { "Content-Type": "application/json" },
-                  credentials: "include",
-                  body: JSON.stringify({ dob_year: agent.dob_year }),
-                });
+
+                setSavingDob(true);
+                try {
+                  await fetch("/api/agents/me", {
+                    method: "PUT",
+                    headers: { "Content-Type": "application/json" },
+                    credentials: "include",
+                    body: JSON.stringify({ dob_year: agent.dob_year }),
+                  });
+                } finally {
+                  setSavingDob(false);
+                }
               }}
               placeholder={lang === "vi" ? "VD: 1993" : "e.g. 1993"}
               className="w-full rounded-lg px-3 py-2 text-sm border border-[var(--border)] bg-[var(--bg-elevated)] text-[var(--text-primary)] focus:outline-none focus:border-[var(--orange)]"
             />
+          {/* end fix */}
           </div>
+          {/* begin fix DOB input step D */}
           <p className="text-xs text-[var(--text-muted)] mt-2">
-            {lang === "vi" ? "Hiển thị trên thẻ BĐS của bạn" : "Shown on your listing cards"}
+            {savingDob
+              ? (lang === "vi" ? "Đang lưu..." : "Saving...")
+              : (lang === "vi" ? "Hiển thị trên thẻ BĐS của bạn" : "Shown on your listing cards")}
           </p>
+          {/* end fix */}
         </div>
       </section>
 

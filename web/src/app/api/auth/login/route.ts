@@ -17,7 +17,7 @@ export async function POST(request: NextRequest) {
     const { username, password } = parsed.data;
 
     const result = await pool.query(
-      `SELECT id, username, password_hash, first_name, last_name, email, phone
+      `SELECT id, username, password_hash, first_name, last_name, email, phone, avatar_url
        FROM agents WHERE username = $1`,
       [username],
     );
