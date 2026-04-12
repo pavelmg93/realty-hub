@@ -2,9 +2,7 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   images: {
-    remotePatterns: [
-      { protocol: "https", hostname: "fidt.vn", pathname: "/**" },
-    ],
+    remotePatterns: [],
   },
   experimental: {
     serverActions: {

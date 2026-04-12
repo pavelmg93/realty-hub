@@ -18,7 +18,7 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "Realty Hub",
   description: "Wealth Realty Internal Agent Platform - Nha Trang",
-  icons: { icon: "/fidt-logo.svg" },
+  icons: { icon: "/favicon.ico" },
 };
 
 export const viewport = {

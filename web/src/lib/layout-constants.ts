@@ -3,7 +3,7 @@
  * Import from here instead of hardcoding pixel values in components.
  */
 export const LAYOUT = {
-  /** Fixed FIDT header bar (h-14 = 56px) */
+  /** Fixed header bar (h-14 = 56px) */
   TOPBAR_HEIGHT: 56,
   /** Fixed mobile bottom nav */
   BOTTOMNAV_HEIGHT: 64,

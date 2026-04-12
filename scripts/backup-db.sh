@@ -5,9 +5,7 @@
 
 set -euo pipefail
 
-CONTAINER="realty-hub-app-postgres-1"
-DB_USER="re_nhatrang"
-DB_NAME="re_nhatrang"
+CONTAINER="${LOCAL_CONTAINER}"
 BACKUP_DIR="$(cd "$(dirname "$0")/.." && pwd)/backups"
 TIMESTAMP=$(date +"%Y-%m-%d-%H%M%S")
 BACKUP_FILE="${BACKUP_DIR}/${TIMESTAMP}.sql.gz"

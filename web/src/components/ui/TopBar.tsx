@@ -1,11 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import Image from "next/image";
 import { LangSwitcher } from "./LangSwitcher";
 import { Bell } from "lucide-react";
 
-const FIDT_LOGO_URL = "https://fidt.vn/wp-content/uploads/2023/04/type5-2.svg";
 const HEADER_BG_OFFWHITE = "#f5f5f0";
 
 interface TopBarProps {
@@ -40,14 +38,9 @@ export function TopBar({
           </h1>
         ) : (
           <Link href="/dashboard" className="flex items-center justify-center">
-            <Image
-              src={FIDT_LOGO_URL}
-              alt="FIDT"
-              width={86}
-              height={50}
-              className="h-8 w-auto object-contain"
-              unoptimized
-            />
+            <span className="text-lg font-bold" style={{ color: "#2563eb" }}>
+              RealtyHub
+            </span>
           </Link>
         )}
       </div>
