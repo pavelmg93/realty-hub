@@ -4,7 +4,6 @@ set -euo pipefail
 # ---------------------------------------------------------------------------
 # Config (Matches your re-prod SSH alias)
 # ---------------------------------------------------------------------------
-VM_HOST="re-prod"
 REMOTE_DIR="~/realty-hub/uploads/"  # Ensure trailing slash
 LOCAL_DIR="./uploads/"
 
